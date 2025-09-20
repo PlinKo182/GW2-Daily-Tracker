@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,9 +6,10 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Dict, Optional
 import uuid
-from datetime import datetime
+from datetime import datetime, date
+import json
 
 
 ROOT_DIR = Path(__file__).parent
@@ -26,7 +27,50 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 
-# Define Models
+# Define Models for Tyria Tracker
+class TaskProgress(BaseModel):
+    vine_bridge: bool = False
+    prosperity: bool = False  
+    destinys_gorge: bool = False
+
+class CraftingProgress(BaseModel):
+    mithrillium: bool = False
+    elonian_cord: bool = False
+    spirit_residue: bool = False
+    gossamer: bool = False
+
+class SpecialsProgress(BaseModel):
+    psna: bool = False
+    home_instance: bool = False
+
+class DailyProgress(BaseModel):
+    gathering: TaskProgress = Field(default_factory=TaskProgress)
+    crafting: CraftingProgress = Field(default_factory=CraftingProgress)
+    specials: SpecialsProgress = Field(default_factory=SpecialsProgress)
+
+class UserProgress(BaseModel):
+    userId: str
+    date: str
+    dailyProgress: DailyProgress
+    createdAt: datetime = Field(default_factory=datetime.utcnow)
+    updatedAt: datetime = Field(default_factory=datetime.utcnow)
+
+class UserEvents(BaseModel):
+    userId: str
+    date: str
+    completedEvents: Dict[str, bool] = Field(default_factory=dict)
+    completedEventTypes: Dict[str, bool] = Field(default_factory=dict)
+    createdAt: datetime = Field(default_factory=datetime.utcnow)
+    updatedAt: datetime = Field(default_factory=datetime.utcnow)
+
+class ProgressUpdateRequest(BaseModel):
+    dailyProgress: DailyProgress
+
+class EventsUpdateRequest(BaseModel):
+    completedEvents: Dict[str, bool] = Field(default_factory=dict)
+    completedEventTypes: Dict[str, bool] = Field(default_factory=dict)
+
+# Legacy models (keeping for compatibility)
 class StatusCheck(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_name: str
@@ -35,10 +79,111 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
-# Add your routes to the router instead of directly to app
+# Helper function to get current date string
+def get_current_date() -> str:
+    return datetime.utcnow().strftime('%Y-%m-%d')
+
+# Tyria Tracker Routes
+@api_router.get("/progress/{user_id}")
+async def get_user_progress(user_id: str):
+    """Get user's daily progress for today"""
+    current_date = get_current_date()
+    
+    progress_doc = await db.users_progress.find_one({
+        "userId": user_id,
+        "date": current_date
+    })
+    
+    if not progress_doc:
+        # Create default progress for new user/day
+        default_progress = UserProgress(
+            userId=user_id,
+            date=current_date,
+            dailyProgress=DailyProgress()
+        )
+        
+        await db.users_progress.insert_one(default_progress.dict())
+        return default_progress.dict()
+    
+    return progress_doc
+
+@api_router.put("/progress/{user_id}")
+async def update_user_progress(user_id: str, request: ProgressUpdateRequest):
+    """Update user's daily progress"""
+    current_date = get_current_date()
+    
+    update_data = {
+        "dailyProgress": request.dailyProgress.dict(),
+        "updatedAt": datetime.utcnow()
+    }
+    
+    result = await db.users_progress.update_one(
+        {"userId": user_id, "date": current_date},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    if result.acknowledged:
+        updated_doc = await db.users_progress.find_one({
+            "userId": user_id,
+            "date": current_date
+        })
+        return updated_doc
+    else:
+        raise HTTPException(status_code=500, detail="Failed to update progress")
+
+@api_router.get("/events/{user_id}")
+async def get_user_events(user_id: str):
+    """Get user's completed events for today"""
+    current_date = get_current_date()
+    
+    events_doc = await db.users_events.find_one({
+        "userId": user_id,
+        "date": current_date
+    })
+    
+    if not events_doc:
+        # Create default events for new user/day
+        default_events = UserEvents(
+            userId=user_id,
+            date=current_date
+        )
+        
+        await db.users_events.insert_one(default_events.dict())
+        return default_events.dict()
+    
+    return events_doc
+
+@api_router.put("/events/{user_id}")
+async def update_user_events(user_id: str, request: EventsUpdateRequest):
+    """Update user's completed events"""
+    current_date = get_current_date()
+    
+    update_data = {
+        "completedEvents": request.completedEvents,
+        "completedEventTypes": request.completedEventTypes,
+        "updatedAt": datetime.utcnow()
+    }
+    
+    result = await db.users_events.update_one(
+        {"userId": user_id, "date": current_date},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    if result.acknowledged:
+        updated_doc = await db.users_events.find_one({
+            "userId": user_id,
+            "date": current_date
+        })
+        return updated_doc
+    else:
+        raise HTTPException(status_code=500, detail="Failed to update events")
+
+# Legacy routes (keeping for compatibility)
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Tyria Tracker API - Ready to track your Guild Wars 2 progress!"}
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
