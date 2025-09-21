@@ -98,7 +98,6 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://*.vercel.app",
-        "https://*.emergentagent.com",
         "https://tyria-tracker.vercel.app"
     ],
     allow_methods=["*"],
