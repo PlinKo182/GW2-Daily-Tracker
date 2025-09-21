@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Clock, MapPin, RefreshCw, Eye, EyeOff, Undo } from 'lucide-react';
+import { Clock, MapPin, Eye, EyeOff, Undo } from 'lucide-react';
 import { mockData } from '../utils/mockData';
 
 // Componente isolado para o timer com estado interno
@@ -201,6 +201,30 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     });
   }, []);
 
+  // Função para lidar com o toggle do evento
+  const handleEventToggle = useCallback((eventId, eventKey) => {
+    // Primeiro atualiza o estado no componente pai
+    onEventToggle(eventId, eventKey);
+    
+    // Depois atualiza imediatamente a lista local
+    const now = new Date();
+    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    
+    const filteredEvents = allEvents.filter(event => {
+      // Não mostrar eventos concluídos na visualização principal
+      if (completedEventTypes[event.eventKey] || completedEvents[event.id] || 
+          (event.id === eventId && !completedEvents[eventId]) || 
+          (event.eventKey === eventKey && !completedEventTypes[eventKey])) {
+        return false;
+      }
+      
+      // Mostrar apenas eventos que começam nas próximas 2 horas
+      return event.startTime <= twoHoursFromNow;
+    });
+    
+    setEventsData(filteredEvents);
+  }, [allEvents, completedEvents, completedEventTypes, onEventToggle]);
+
   // Componente de cartão de evento com memoização
   const EventCard = useMemo(() => React.memo(({ event, isCompleted = false, onToggle }) => {
     const now = new Date();
@@ -340,7 +364,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               key={event.id} 
               event={event} 
               isCompleted={false}
-              onToggle={onEventToggle}
+              onToggle={handleEventToggle}
             />
           ))}
         </div>
@@ -370,7 +394,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               <CompletedEventTypeCard 
                 key={eventType.eventKey} 
                 eventType={eventType}
-                onToggle={onEventToggle}
+                onToggle={handleEventToggle}
               />
             ))}
           </div>
