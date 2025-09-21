@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Wifi, WifiOff, CheckCircle, AlertCircle } from 'lucide-react';
+import { MapPin, Wifi, WifiOff, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 
 const Header = ({ currentTime, apiStatus, isOnline }) => {
   const formatTime = (date) => {
@@ -20,6 +20,7 @@ const Header = ({ currentTime, apiStatus, isOnline }) => {
   };
 
   const getStatusDisplay = () => {
+    // Primeiro verifica se está offline
     if (!isOnline) {
       return (
         <div className="flex items-center gap-2 text-amber-400">
@@ -29,19 +30,20 @@ const Header = ({ currentTime, apiStatus, isOnline }) => {
       );
     }
 
+    // Se está online, verifica o status da API
     switch (apiStatus) {
       case 'checking':
         return (
           <div className="flex items-center gap-2 text-blue-400">
-            <AlertCircle className="w-4 h-4" />
-            <span className="text-xs">Checking...</span>
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            <span className="text-xs">Checking API...</span>
           </div>
         );
       case 'online':
         return (
           <div className="flex items-center gap-2 text-emerald-400">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-xs">Online</span>
+            <Wifi className="w-4 h-4" />
+            <span className="text-xs">Online & Connected</span>
           </div>
         );
       case 'offline':
@@ -49,7 +51,7 @@ const Header = ({ currentTime, apiStatus, isOnline }) => {
         return (
           <div className="flex items-center gap-2 text-amber-400">
             <AlertCircle className="w-4 h-4" />
-            <span className="text-xs">Local Only</span>
+            <span className="text-xs">Online (API Unavailable)</span>
           </div>
         );
     }
