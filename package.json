@@ -1,0 +1,14 @@
+{
+  "name": "tyria-tracker",
+  "version": "1.0.0",
+  "description": "Guild Wars 2 daily progress tracker",
+  "scripts": {
+    "build": "cd frontend && yarn install && yarn build",
+    "start": "cd frontend && yarn start",
+    "dev": "cd frontend && yarn start",
+    "backend": "cd backend && python server.py"
+  },
+  "keywords": ["guild-wars-2", "tracker", "gaming", "progress"],
+  "author": "Tyria Tracker",
+  "license": "MIT"
+}
