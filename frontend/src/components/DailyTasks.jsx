@@ -19,6 +19,7 @@ const ProgressBar = ({ progress }) => (
 
 const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) => {
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredWaypoint, setHoveredWaypoint] = useState(null);
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text.trim()).then(() => {
@@ -51,7 +52,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
           <p className="text-sm text-gray-400 mb-4">{description}</p>
           <div className="space-y-3">
             {tasks.map((task) => (
-              <label key={task.id} className="flex items-center space-x-3 cursor-pointer group">
+              <label key={task.id} className="flex items-center space-x-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={dailyProgress[category][task.id]}
@@ -68,7 +69,11 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
                         e.preventDefault();
                         copyToClipboard(task.waypoint);
                       }}
-                      className="text-emerald-400 text-xs font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors group-hover:bg-gray-700"
+                      onMouseEnter={() => setHoveredWaypoint(`${cardId}_${task.id}`)}
+                      onMouseLeave={() => setHoveredWaypoint(null)}
+                      className={`text-emerald-400 text-xs font-mono px-2 py-1 rounded transition-colors ${
+                        hoveredWaypoint === `${cardId}_${task.id}` ? 'bg-gray-700' : ''
+                      }`}
                       title="Click to copy waypoint"
                     >
                       {task.waypoint}

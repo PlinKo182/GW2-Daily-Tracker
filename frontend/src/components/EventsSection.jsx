@@ -5,7 +5,8 @@ import { mockData } from '../utils/mockData';
 const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, currentTime }) => {
   const [eventsData, setEventsData] = useState([]);
   const [currentFilter, setCurrentFilter] = useState('upcoming');
-  const [hoveredCard, setHoveredCard] = useState(null); // Estado para controlar qual card está com hover
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredWaypoint, setHoveredWaypoint] = useState(null);
 
   useEffect(() => {
     processEventsData();
@@ -90,7 +91,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
     return new Date(utcDate);
   };
 
-  const getTimeRemaining = (endTime) => {
+  const getTimeRemaining = useCallback((endTime) => {
     const difference = endTime - currentTime;
     
     if (difference <= 0) {
@@ -102,17 +103,17 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
     const seconds = Math.floor((difference / 1000) % 60);
     
     return { total: difference, hours, minutes, seconds };
-  };
+  }, [currentTime]);
 
-  const formatTimeRemaining = (timeObj) => {
+  const formatTimeRemaining = useCallback((timeObj) => {
     return `${timeObj.hours.toString().padStart(2, '0')}:${timeObj.minutes.toString().padStart(2, '0')}:${timeObj.seconds.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const formatTime = (date) => {
+  const formatTime = useCallback((date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  }, []);
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = useCallback((text) => {
     navigator.clipboard.writeText(text.trim()).catch(() => {
       const textArea = document.createElement('textarea');
       textArea.value = text.trim();
@@ -121,9 +122,9 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
       document.execCommand('copy');
       document.body.removeChild(textArea);
     });
-  };
+  }, []);
 
-  const getFilteredEvents = () => {
+  const getFilteredEvents = useCallback(() => {
     const now = new Date();
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
@@ -140,10 +141,9 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
           return true;
       }
     });
-  };
+  }, [eventsData, completedEvents, completedEventTypes, currentFilter]);
 
-  // Componente de cartão de evento com controle de hover
-  const EventCard = ({ event }) => {
+  const EventCard = useMemo(() => ({ event }) => {
     const now = new Date();
     const timeRemaining = getTimeRemaining(event.startTime);
     const eventActive = event.startTime <= now && event.endTime >= now;
@@ -169,10 +169,12 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
       countdownText = 'Event completed';
     }
 
+    const isWaypointHovered = hoveredWaypoint === event.id;
+
     return (
       <div 
-        className={`bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col relative transition-all duration-300 ${
-          hoveredCard === event.id ? 'shadow-xl -translate-y-1' : ''
+        className={`bg-gray-800 rounded-xl overflow-hidden border border-gray-700 flex flex-col transition-all duration-300 ${
+          hoveredCard === event.id ? 'shadow-xl -translate-y-1' : 'shadow-lg'
         } ${isCompleted ? 'opacity-70 border-l-4 border-l-emerald-400' : ''}`}
         onMouseEnter={() => setHoveredCard(event.id)}
         onMouseLeave={() => setHoveredCard(null)}
@@ -211,7 +213,11 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
           <div className="flex justify-between items-center">
             <button
               onClick={() => copyToClipboard(event.waypoint)}
-              className="text-emerald-400 hover:underline text-sm font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors"
+              onMouseEnter={() => setHoveredWaypoint(event.id)}
+              onMouseLeave={() => setHoveredWaypoint(null)}
+              className={`text-emerald-400 text-sm font-mono px-2 py-1 rounded transition-colors ${
+                isWaypointHovered ? 'bg-gray-700' : ''
+              }`}
               title="Click to copy waypoint"
             >
               {event.waypoint}
@@ -223,7 +229,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
         </div>
       </div>
     );
-  };
+  }, [hoveredCard, hoveredWaypoint, completedEvents, completedEventTypes, getTimeRemaining, formatTimeRemaining, formatTime, copyToClipboard, onEventToggle]);
 
   const filteredEvents = getFilteredEvents();
 
