@@ -148,11 +148,31 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     return () => clearInterval(interval);
   }, [allEvents, completedEvents, completedEventTypes]);
 
-  // Obter eventos concluídos
-  const completedEventsList = useMemo(() => {
-    return allEvents.filter(event => 
-      completedEventTypes[event.eventKey] || completedEvents[event.id]
-    );
+  // Obter eventos concluídos agrupados por tipo
+  const completedEventsByType = useMemo(() => {
+    const eventsByType = {};
+    
+    allEvents.forEach(event => {
+      // Verificar se o evento está concluído por tipo ou por instância
+      const isCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
+      
+      if (isCompleted) {
+        // Se é a primeira vez que vemos este tipo de evento, inicializar
+        if (!eventsByType[event.eventKey]) {
+          eventsByType[event.eventKey] = {
+            eventKey: event.eventKey,
+            name: event.name,
+            instances: []
+          };
+        }
+        
+        // Adicionar esta instância à lista
+        eventsByType[event.eventKey].instances.push(event);
+      }
+    });
+    
+    // Converter objeto em array
+    return Object.values(eventsByType);
   }, [allEvents, completedEvents, completedEventTypes]);
 
   const convertUTCTimeToLocal = (utcTimeString) => {
@@ -251,6 +271,42 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     );
   }), [copyToClipboard, formatTime]);
 
+  // Componente para mostrar eventos concluídos agrupados por tipo
+  const CompletedEventTypeCard = useMemo(() => React.memo(({ eventType, onToggle }) => {
+    return (
+      <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 flex flex-col relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group opacity-70">
+        <input
+          type="checkbox"
+          checked={true}
+          onChange={() => onToggle(eventType.instances[0].id, eventType.eventKey)}
+          className="absolute top-3 right-3 rounded bg-gray-700 border-gray-600 text-emerald-400 focus:ring-emerald-400/50"
+        />
+
+        <div className="p-6 flex-grow pt-12">
+          <h3 className="text-xl font-bold text-emerald-400 mb-2">{eventType.name}</h3>
+          <div className="text-sm text-gray-400 mb-4">
+            Completed today
+          </div>
+          
+          <div className="text-xs text-gray-400 mb-2">
+            {eventType.instances.length} occurrence(s)
+          </div>
+        </div>
+        
+        <div className="px-6 pb-4">
+          <div className="flex justify-between items-center">
+            <span className="text-emerald-400 text-sm font-mono">
+              Click checkbox to undo
+            </span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300">
+              Completed
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }), []);
+
   return (
     <div className="mb-12">
       <h2 className="text-3xl font-bold mb-6">Events & World Bosses</h2>
@@ -260,7 +316,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
           Showing events within the next 2 hours
         </div>
         
-        {completedEventsList.length > 0 && (
+        {completedEventsByType.length > 0 && (
           <button
             onClick={() => setShowCompleted(!showCompleted)}
             className="flex items-center gap-2 bg-gray-700 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
@@ -273,7 +329,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             ) : (
               <>
                 <Eye className="w-4 h-4" />
-                Show Completed ({completedEventsList.length})
+                Show Completed ({completedEventsByType.length})
               </>
             )}
           </button>
@@ -300,7 +356,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
       )}
       
       {/* Eventos concluídos (se mostrados) */}
-      {showCompleted && completedEventsList.length > 0 && (
+      {showCompleted && completedEventsByType.length > 0 && (
         <div className="mt-12">
           <div className="flex items-center gap-3 mb-6">
             <h3 className="text-2xl font-bold text-emerald-400">Completed Events</h3>
@@ -314,11 +370,10 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {completedEventsList.map(event => (
-              <EventCard 
-                key={event.id} 
-                event={event} 
-                isCompleted={true}
+            {completedEventsByType.map(eventType => (
+              <CompletedEventTypeCard 
+                key={eventType.eventKey} 
+                eventType={eventType}
                 onToggle={onEventToggle}
               />
             ))}
