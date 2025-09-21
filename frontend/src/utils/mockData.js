@@ -107,7 +107,7 @@ export const mockData = {
         "location": "Queensdale",
         "duration_minutes": 10,
         "utc_times": ["01:45", "03:45", "05:45", "07:45", "09:45", "11:45", "13:45", "15:45", "17:45", "19:45", "21:45", "23:45"],
-        "waypoint": "[&BPAAAA=]"
+        "waypoint": "[&BPcAAAA=]"
       },
       "gjw_great_jungle_wurm": {
         "event_name": "Great Jungle Wurm",
