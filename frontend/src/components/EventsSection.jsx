@@ -5,8 +5,6 @@ import { mockData } from '../utils/mockData';
 const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, currentTime }) => {
   const [eventsData, setEventsData] = useState([]);
   const [currentFilter, setCurrentFilter] = useState('upcoming');
-  const [hoveredCard, setHoveredCard] = useState(null);
-  const [hoveredWaypoint, setHoveredWaypoint] = useState(null);
 
   useEffect(() => {
     processEventsData();
@@ -143,7 +141,8 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
     });
   }, [eventsData, completedEvents, completedEventTypes, currentFilter]);
 
-  const EventCard = useMemo(() => ({ event }) => {
+  // Componente de cartão de evento com memoização
+  const EventCard = useMemo(() => React.memo(({ event }) => {
     const now = new Date();
     const timeRemaining = getTimeRemaining(event.startTime);
     const eventActive = event.startTime <= now && event.endTime >= now;
@@ -169,16 +168,8 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
       countdownText = 'Event completed';
     }
 
-    const isWaypointHovered = hoveredWaypoint === event.id;
-
     return (
-      <div 
-        className={`bg-gray-800 rounded-xl overflow-hidden border border-gray-700 flex flex-col transition-all duration-300 ${
-          hoveredCard === event.id ? 'shadow-xl -translate-y-1' : 'shadow-lg'
-        } ${isCompleted ? 'opacity-70 border-l-4 border-l-emerald-400' : ''}`}
-        onMouseEnter={() => setHoveredCard(event.id)}
-        onMouseLeave={() => setHoveredCard(null)}
-      >
+      <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
         {isCompleted && (
           <div className="absolute top-3 left-3 bg-emerald-400 text-gray-900 px-2 py-1 rounded-full text-xs font-bold">
             Completed
@@ -213,11 +204,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
           <div className="flex justify-between items-center">
             <button
               onClick={() => copyToClipboard(event.waypoint)}
-              onMouseEnter={() => setHoveredWaypoint(event.id)}
-              onMouseLeave={() => setHoveredWaypoint(null)}
-              className={`text-emerald-400 text-sm font-mono px-2 py-1 rounded transition-colors ${
-                isWaypointHovered ? 'bg-gray-700' : ''
-              }`}
+              className="text-emerald-400 hover:underline text-sm font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors duration-150"
               title="Click to copy waypoint"
             >
               {event.waypoint}
@@ -229,7 +216,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
         </div>
       </div>
     );
-  }, [hoveredCard, hoveredWaypoint, completedEvents, completedEventTypes, getTimeRemaining, formatTimeRemaining, formatTime, copyToClipboard, onEventToggle]);
+  }), [completedEvents, completedEventTypes, getTimeRemaining, formatTimeRemaining, formatTime, copyToClipboard, onEventToggle]);
 
   const filteredEvents = getFilteredEvents();
 
