@@ -1,3 +1,14 @@
+# Endpoint para testar conexão com MongoDB Atlas
+@api_router.get("/mongo_health")
+async def mongo_health():
+    try:
+        # Tenta listar coleções do banco
+        collections = db.list_collection_names()
+        return {"mongo_status": "connected", "collections": collections}
+    except Exception as e:
+        import logging
+        logging.error(f"Erro de conexão MongoDB: {e}")
+        return {"mongo_status": "error", "error": str(e)}
 from fastapi import FastAPI, APIRouter
 from pymongo import MongoClient
 import os
