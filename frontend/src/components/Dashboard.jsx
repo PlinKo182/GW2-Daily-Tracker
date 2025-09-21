@@ -247,7 +247,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
-      <Header currentTime={currentTime} apiStatus={apiStatus} />
+      <Header currentTime={currentTime} apiStatus={apiStatus} isOnline={isOnline} />
 
       {/* Componente isolado para atualização do tempo */}
       <TimeUpdater onTimeUpdate={updateCurrentTime} />
