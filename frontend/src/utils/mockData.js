@@ -87,17 +87,17 @@ export const mockData = {
         "locations": [
           {
             "map": "Timberline Falls",
-            "waypoint": "[&BH4BAAA=]",
+            "waypoint": "[&BEwCAAA=]",
             "utc_times": ["00:20", "06:20", "12:20", "18:20"]
           },
           {
             "map": "Iron Marches",
-            "waypoint": "[&BHoAAAA=]",
+            "waypoint": "[&BOcBAAA=]",
             "utc_times": ["02:20", "08:20", "14:20", "20:20"]
           },
           {
             "map": "Gendarran Fields",
-            "waypoint": "[&BEEAAAA=]",
+            "waypoint": "[&BOQAAAA=]",
             "utc_times": ["04:20", "10:20", "16:20", "22:20"]
           }
         ]
