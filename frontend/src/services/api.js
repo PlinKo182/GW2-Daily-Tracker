@@ -21,60 +21,13 @@ const generateUUID = () => {
   });
 };
 
-// API service class
+// Simple API service class (localStorage only)
 class TyriaTrackerAPI {
   constructor() {
     this.userId = getUserId();
   }
 
-  // Progress endpoints
-  async getProgress() {
-    try {
-      const response = await axios.get(`${API}/progress/${this.userId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch progress:', error);
-      throw error;
-    }
-  }
-
-  async updateProgress(dailyProgress) {
-    try {
-      const response = await axios.put(`${API}/progress/${this.userId}`, {
-        dailyProgress
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Failed to update progress:', error);
-      throw error;
-    }
-  }
-
-  // Events endpoints
-  async getEvents() {
-    try {
-      const response = await axios.get(`${API}/events/${this.userId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch events:', error);
-      throw error;
-    }
-  }
-
-  async updateEvents(completedEvents, completedEventTypes) {
-    try {
-      const response = await axios.put(`${API}/events/${this.userId}`, {
-        completedEvents,
-        completedEventTypes
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Failed to update events:', error);
-      throw error;
-    }
-  }
-
-  // Health check
+  // Health check endpoint
   async healthCheck() {
     try {
       const response = await axios.get(`${API}/`);
@@ -84,13 +37,50 @@ class TyriaTrackerAPI {
       return null;
     }
   }
+
+  // All data operations use localStorage
+  async getProgress() {
+    return Promise.resolve(localStorageAPI.getProgress());
+  }
+
+  async updateProgress(dailyProgress) {
+    localStorageAPI.saveProgress(dailyProgress);
+    return Promise.resolve({ dailyProgress });
+  }
+
+  async getEvents() {
+    return Promise.resolve(localStorageAPI.getEvents());
+  }
+
+  async updateEvents(completedEvents, completedEventTypes) {
+    localStorageAPI.saveEvents(completedEvents, completedEventTypes);
+    return Promise.resolve({ completedEvents, completedEventTypes });
+  }
 }
 
-// Local storage fallback functions
+// Local storage API - now the primary data layer
 export const localStorageAPI = {
   getProgress: () => {
     const saved = localStorage.getItem('tyriaTracker_dailyProgress');
-    return saved ? JSON.parse(saved) : null;
+    return saved ? JSON.parse(saved) : {
+      dailyProgress: {
+        gathering: {
+          vine_bridge: false,
+          prosperity: false,
+          destinys_gorge: false
+        },
+        crafting: {
+          mithrillium: false,
+          elonian_cord: false,
+          spirit_residue: false,
+          gossamer: false
+        },
+        specials: {
+          psna: false,
+          home_instance: false
+        }
+      }
+    };
   },
 
   saveProgress: (progress) => {
@@ -110,6 +100,13 @@ export const localStorageAPI = {
   saveEvents: (completedEvents, completedEventTypes) => {
     localStorage.setItem('tyriaTracker_completedEvents', JSON.stringify(completedEvents));
     localStorage.setItem('tyriaTracker_completedEventTypes', JSON.stringify(completedEventTypes));
+  },
+
+  // Clear all data (for daily reset)
+  clearAll: () => {
+    localStorage.removeItem('tyriaTracker_dailyProgress');
+    localStorage.removeItem('tyriaTracker_completedEvents');
+    localStorage.removeItem('tyriaTracker_completedEventTypes');
   }
 };
 

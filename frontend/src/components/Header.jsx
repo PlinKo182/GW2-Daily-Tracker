@@ -1,7 +1,7 @@
 import React from 'react';
-import { MapPin, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { MapPin, Wifi, WifiOff, CheckCircle, AlertCircle } from 'lucide-react';
 
-const Header = ({ currentTime, syncStatus, isOnline }) => {
+const Header = ({ currentTime, apiStatus, isOnline }) => {
   const formatTime = (date) => {
     const timeString = date.toLocaleTimeString([], { 
       hour: '2-digit', 
@@ -19,28 +19,37 @@ const Header = ({ currentTime, syncStatus, isOnline }) => {
     return `${dateString} - ${timeString}`;
   };
 
-  const getSyncStatusDisplay = () => {
-    switch (syncStatus) {
-      case 'syncing':
+  const getStatusDisplay = () => {
+    if (!isOnline) {
+      return (
+        <div className="flex items-center gap-2 text-amber-400">
+          <WifiOff className="w-4 h-4" />
+          <span className="text-xs">Offline Mode</span>
+        </div>
+      );
+    }
+
+    switch (apiStatus) {
+      case 'checking':
         return (
-          <div className="flex items-center gap-2 text-amber-400">
-            <RefreshCw className="w-4 h-4 animate-spin" />
-            <span className="text-xs">Syncing...</span>
+          <div className="flex items-center gap-2 text-blue-400">
+            <AlertCircle className="w-4 h-4" />
+            <span className="text-xs">Checking...</span>
+          </div>
+        );
+      case 'online':
+        return (
+          <div className="flex items-center gap-2 text-emerald-400">
+            <CheckCircle className="w-4 h-4" />
+            <span className="text-xs">Online</span>
           </div>
         );
       case 'offline':
-        return (
-          <div className="flex items-center gap-2 text-red-400">
-            <WifiOff className="w-4 h-4" />
-            <span className="text-xs">Offline</span>
-          </div>
-        );
-      case 'synced':
       default:
         return (
-          <div className="flex items-center gap-2 text-emerald-400">
-            <Wifi className="w-4 h-4" />
-            <span className="text-xs">Synced</span>
+          <div className="flex items-center gap-2 text-amber-400">
+            <AlertCircle className="w-4 h-4" />
+            <span className="text-xs">Local Only</span>
           </div>
         );
     }
@@ -56,7 +65,7 @@ const Header = ({ currentTime, syncStatus, isOnline }) => {
           <h1 className="text-xl font-bold">Tyria Tracker</h1>
         </div>
         <div className="flex items-center gap-4">
-          {getSyncStatusDisplay()}
+          {getStatusDisplay()}
           <div className="text-sm text-gray-400">
             {formatTime(currentTime)}
           </div>
