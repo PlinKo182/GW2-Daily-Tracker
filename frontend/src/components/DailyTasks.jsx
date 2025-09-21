@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Pickaxe, Hammer, Star, ExternalLink } from 'lucide-react';
 import { mockData } from '../utils/mockData';
 
-const ProgressBar = ({ progress }) => (
+const ProgressBar = React.memo(({ progress }) => (
   <div className="px-6 pb-4">
     <div className="flex justify-between items-center mb-1 text-sm font-medium">
       <span className="text-gray-400">Progress</span>
@@ -15,10 +15,10 @@ const ProgressBar = ({ progress }) => (
       />
     </div>
   </div>
-);
+));
 
 const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) => {
-  const copyToClipboard = (text) => {
+  const copyToClipboard = useCallback((text) => {
     navigator.clipboard.writeText(text.trim()).then(() => {
       // Could add toast notification here
     }).catch(() => {
@@ -30,10 +30,10 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
       document.execCommand('copy');
       document.body.removeChild(textArea);
     });
-  };
+  }, []);
 
-  const TaskCard = React.memo(({ title, icon: Icon, description, tasks, category, progress }) => (
-    <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
+  const TaskCard = useCallback(({ title, icon: Icon, description, tasks, category, progress }) => (
+    <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       <div className="p-6 flex-grow">
         <div className="flex items-center gap-2 mb-2">
           <Icon className="w-5 h-5 text-emerald-400" />
@@ -59,7 +59,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
                       e.preventDefault();
                       copyToClipboard(task.waypoint);
                     }}
-                    className="text-emerald-400 text-xs font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors duration-150"
+                    className="text-emerald-400 text-xs font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors group-hover:bg-gray-700"
                     title="Click to copy waypoint"
                   >
                     {task.waypoint}
@@ -73,7 +73,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
       </div>
       <ProgressBar progress={progress} />
     </div>
-  ));
+  ), [dailyProgress, onTaskToggle, copyToClipboard]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -107,4 +107,4 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
   );
 };
 
-export default DailyTasks;
+export default React.memo(DailyTasks);
