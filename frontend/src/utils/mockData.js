@@ -137,31 +137,33 @@ export const mockData = {
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
         "waypoint": "Octovine - [&BMYHAAA=]"
       },
-      "fractal_incursion": {
+      "fractal_incursion_brisban": {
         "event_name": "Fractal Incursion",
+        "location": "Brisban Wildlands",
         "duration_minutes": 20,
-        "locations": [
-          {
-            "map": "Brisban Wildlands",
-            "waypoint": "[&BHUAAAA=]",
-            "utc_times": ["23:00", "03:00", "07:00", "11:00", "15:00", "19:00"]
-          },
-          {
-            "map": "Snowden Drifts",
-            "waypoint": "[&BLQAAAA=]",
-            "utc_times": ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"]
-          },
-          {
-            "map": "Kessex Hills",
-            "waypoint": "[&BBIAAAA=]",
-            "utc_times": ["01:00", "05:00", "09:00", "13:00", "17:00", "21:00"]
-          },
-          {
-            "map": "Diessa Plateau",
-            "waypoint": "[&BN0AAAA=]",
-            "utc_times": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"]
-          }
-        ]
+        "utc_times": ["23:00", "03:00", "07:00", "11:00", "15:00", "19:00"],
+        "waypoint": "Fractal Incursion - [&BHUAAAA=]"
+      },
+      "fractal_incursion_snowden": {
+        "event_name": "Fractal Incursion",
+        "location": "Snowden Drifts",
+        "duration_minutes": 20,
+        "utc_times": ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"],
+        "waypoint": "Fractal Incursion - [&BLQAAAA=]"
+      },
+      "fractal_incursion_kessex": {
+        "event_name": "Fractal Incursion",
+        "location": "Kessex Hills",
+        "duration_minutes": 20,
+        "utc_times": ["01:00", "05:00", "09:00", "13:00", "17:00", "21:00"],
+        "waypoint": "Fractal Incursion - [&BBIAAAA=]"
+      },
+      "fractal_incursion_diessa": {
+        "event_name": "Fractal Incursion",
+        "location": "Diessa Plateau",
+        "duration_minutes": 20,
+        "utc_times": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"],
+        "waypoint": "Fractal Incursion - [&BN0AAAA=]"
       }
     }
   }
