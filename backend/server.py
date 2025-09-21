@@ -1,3 +1,19 @@
+
+from fastapi import FastAPI, APIRouter
+from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
+from starlette.middleware.cors import CORSMiddleware
+import logging
+from pathlib import Path
+from pydantic import BaseModel, Field
+from typing import List
+import uuid
+from datetime import datetime
+
+# Create a router with the /api prefix
+api_router = APIRouter(prefix="/api")
+
 # Endpoint para testar conexão com MongoDB Atlas
 @api_router.get("/mongo_health")
 async def mongo_health():
@@ -6,21 +22,8 @@ async def mongo_health():
         collections = db.list_collection_names()
         return {"mongo_status": "connected", "collections": collections}
     except Exception as e:
-        import logging
         logging.error(f"Erro de conexão MongoDB: {e}")
         return {"mongo_status": "error", "error": str(e)}
-from fastapi import FastAPI, APIRouter
-from pymongo import MongoClient
-import os
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
-import uuid
-from datetime import datetime
 
 
 ROOT_DIR = Path(__file__).parent
