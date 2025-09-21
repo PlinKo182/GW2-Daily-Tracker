@@ -47,9 +47,8 @@ const Dashboard = () => {
 
   // Função para salvar progresso no MongoDB
   function saveProgressToMongo(dailyProgress, completedEvents, completedEventTypes, userName) {
-    const userId = localStorage.getItem('tyriaTracker_userId');
     const date = new Date().toISOString().slice(0, 10);
-    fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress/' + userId, {
+    fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ date, dailyProgress, completedEvents, completedEventTypes, userName })

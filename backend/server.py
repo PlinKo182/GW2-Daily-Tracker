@@ -67,11 +67,9 @@ async def health_check():
     }
 
 
-# Endpoint para salvar progresso diário
-@api_router.put("/progress/{userId}")
-async def save_progress(userId: str, req: ProgressRequest):
+@api_router.put("/progress")
+async def save_progress(req: ProgressRequest):
     doc = {
-        "userId": userId,
         "date": req.date,
         "dailyProgress": req.dailyProgress,
         "completedEvents": req.completedEvents,
@@ -80,7 +78,7 @@ async def save_progress(userId: str, req: ProgressRequest):
     }
     try:
         result = progress_collection.update_one(
-            {"userId": userId, "date": req.date},
+            {"userName": req.userName, "date": req.date},
             {"$set": doc},
             upsert=True
         )
