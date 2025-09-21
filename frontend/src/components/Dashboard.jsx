@@ -23,14 +23,6 @@ function saveProgressToMongo(dailyProgress, completedEvents, completedEventTypes
       else alert('Erro ao salvar: ' + data.error);
     });
 }
-    const [userName, setUserName] = useState(() => {
-      return localStorage.getItem('tyriaTracker_userName') || 'PlinKo';
-    });
-
-    const handleUserNameChange = (e) => {
-      setUserName(e.target.value);
-      localStorage.setItem('tyriaTracker_userName', e.target.value);
-    };
 
 const Dashboard = () => {
   const [dailyProgress, setDailyProgress] = useState({
