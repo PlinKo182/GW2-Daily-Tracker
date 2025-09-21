@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Pickaxe, Hammer, Star, ExternalLink } from 'lucide-react';
+import { Pickaxe, Hammer, Star } from 'lucide-react';
 import { mockData } from '../utils/mockData';
 
 const ProgressBar = React.memo(({ progress }) => (
@@ -20,9 +20,9 @@ const ProgressBar = React.memo(({ progress }) => (
 const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) => {
   const copyToClipboard = useCallback((text) => {
     navigator.clipboard.writeText(text.trim()).then(() => {
-      // Could add toast notification here
+      // Poderia adicionar notificação toast aqui
     }).catch(() => {
-      // Fallback for older browsers
+      // Fallback para navegadores antigos
       const textArea = document.createElement('textarea');
       textArea.value = text.trim();
       document.body.appendChild(textArea);
@@ -45,12 +45,12 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
             <label key={task.id} className="flex items-center space-x-3 cursor-pointer group">
               <input
                 type="checkbox"
-                checked={dailyProgress[category][task.id]}
+                checked={dailyProgress[category]?.[task.id] || false}
                 onChange={() => onTaskToggle(category, task.id)}
                 className="rounded bg-gray-700 border-gray-600 text-emerald-400 focus:ring-emerald-400/50 focus:ring-2"
               />
               <div className="flex-1 flex items-center justify-between">
-                <span className={`text-gray-300 transition-colors ${dailyProgress[category][task.id] ? 'line-through text-gray-500' : ''}`}>
+                <span className={`text-gray-300 transition-colors ${dailyProgress[category]?.[task.id] ? 'line-through text-gray-500' : ''}`}>
                   {task.name}
                 </span>
                 {task.waypoint && (
@@ -59,11 +59,11 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
                       e.preventDefault();
                       copyToClipboard(task.waypoint);
                     }}
-                    className="text-emerald-400 text-xs font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors group-hover:bg-gray-700"
+                    className="text-emerald-400 text-xs font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors duration-150"
                     title="Click to copy waypoint"
                   >
                     {task.waypoint}
-                    <ExternalLink className="w-3 h-3 inline ml-1" />
+                    {/* Removido o ícone ExternalLink */}
                   </button>
                 )}
               </div>
