@@ -61,13 +61,17 @@ async def save_progress(userId: str, req: ProgressRequest):
         "date": req.date,
         "dailyProgress": req.dailyProgress
     }
-    # Upsert: atualiza se existir, senão cria
-    progress_collection.update_one(
-        {"userId": userId, "date": req.date},
-        {"$set": doc},
-        upsert=True
-    )
-    return {"success": True}
+    try:
+        result = progress_collection.update_one(
+            {"userId": userId, "date": req.date},
+            {"$set": doc},
+            upsert=True
+        )
+        return {"success": True, "matched_count": result.matched_count, "modified_count": result.modified_count}
+    except Exception as e:
+        import logging
+        logging.error(f"Erro ao salvar progresso: {e}")
+        return {"success": False, "error": str(e)}
 
 @api_router.get("/status", response_model=List[StatusCheck])
 async def get_status_checks():
