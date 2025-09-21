@@ -137,13 +137,6 @@ export const mockData = {
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
         "waypoint": "Octovine - [&BMYHAAA=]"
       },
-      "fractal_incursion_brisban": {
-        "event_name": "Fractal Incursion",
-        "location": "Brisban Wildlands",
-        "duration_minutes": 20,
-        "utc_times": ["23:00", "03:00", "07:00", "11:00", "15:00", "19:00"],
-        "waypoint": "Fractal Incursion - [&BHUAAAA=]"
-      },
       "fractal_incursion_snowden": {
         "event_name": "Fractal Incursion",
         "location": "Snowden Drifts",
