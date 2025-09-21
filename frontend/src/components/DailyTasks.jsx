@@ -1,4 +1,19 @@
 import React from 'react';
+
+const ProgressBar = ({ progress }) => (
+  <div className="px-6 pb-4">
+    <div className="flex justify-between items-center mb-1 text-sm font-medium">
+      <span className="text-gray-400">Progress</span>
+      <span className="text-emerald-400">{progress.completed}/{progress.total}</span>
+    </div>
+    <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
+      <div 
+        className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500 ease-out"
+        style={{ width: `${progress.percentage}%` }}
+      />
+    </div>
+  </div>
+);
 import { Pickaxe, Hammer, Star, ExternalLink } from 'lucide-react';
 import { mockData } from '../utils/mockData';
 
@@ -17,8 +32,8 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
     });
   };
 
-  const TaskCard = ({ title, icon: Icon, description, tasks, category, progress }) => (
-  <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+  const TaskCard = React.memo(({ title, icon: Icon, description, tasks, category, progress }) => (
+    <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       <div className="p-6 flex-grow">
         <div className="flex items-center gap-2 mb-2">
           <Icon className="w-5 h-5 text-emerald-400" />
@@ -56,20 +71,9 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
           ))}
         </div>
       </div>
-      <div className="px-6 pb-4">
-        <div className="flex justify-between items-center mb-1 text-sm font-medium">
-          <span className="text-gray-400">Progress</span>
-          <span className="text-emerald-400">{progress.completed}/{progress.total}</span>
-        </div>
-        <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
-          <div 
-            className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500 ease-out"
-            style={{ width: `${progress.percentage}%` }}
-          />
-        </div>
-      </div>
+      <ProgressBar progress={progress} />
     </div>
-  );
+  ));
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
