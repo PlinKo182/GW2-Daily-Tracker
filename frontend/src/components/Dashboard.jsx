@@ -44,6 +44,7 @@ const Dashboard = () => {
   const [completedEventTypes, setCompletedEventTypes] = useState({});
   const [currentTime, setCurrentTime] = useState(new Date());
   const [apiStatus, setApiStatus] = useState('checking');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [userName, setUserName] = useState(() => {
     return localStorage.getItem('tyriaTracker_userName') || 'PlinKo';
   });
@@ -91,10 +92,12 @@ const Dashboard = () => {
 
     // Monitor online/offline status
     const handleOnline = () => {
+      setIsOnline(true);
       checkApiStatus();
     };
     
     const handleOffline = () => {
+      setIsOnline(false);
       setApiStatus('offline');
     };
 
@@ -114,6 +117,11 @@ const Dashboard = () => {
   }, []);
 
   const checkApiStatus = async () => {
+    if (!isOnline) {
+      setApiStatus('offline');
+      return;
+    }
+
     try {
       const response = await api.healthCheck();
       setApiStatus(response ? 'online' : 'offline');
@@ -301,7 +309,7 @@ const Dashboard = () => {
           completedEvents={completedEvents}
           completedEventTypes={completedEventTypes}
           onEventToggle={handleEventToggle}
-          currentTime={currentTimeRef.current} // Passar a referência, não o estado
+          currentTime={currentTimeRef.current}
         />
       </main>
 
