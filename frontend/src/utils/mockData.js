@@ -60,6 +60,13 @@ export const mockData = {
         "utc_times": ["01:00", "04:00", "08:00", "12:30", "17:00", "20:00"],
         "waypoint": "[&BKgBAAA=]"
       },
+      "vb_night_boss": {
+      "event_name": "Night Bosses",
+      "location": "Verdant Brink",
+      "duration_minutes": 20,
+      "utc_times": ["00:10", "02:10", "04:10", "06:10", "08:10", "10:10", "12:10", "14:10", "16:10", "18:10", "20:10", "22:10"],
+      "waypoint": "[&BAgIAAA=]"
+      },
       "td_chak_gerent": {
         "event_name": "Chak Gerent",
         "location": "Tangled Depths",
