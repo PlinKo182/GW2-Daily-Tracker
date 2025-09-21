@@ -171,7 +171,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
     }
 
     return (
-      <div className={`bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col relative hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${isCompleted ? 'opacity-70 border-l-4 border-l-emerald-400' : ''}`}>
+  <div className={`bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col relative hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${isCompleted ? 'opacity-70 border-l-4 border-l-emerald-400' : ''}`}>
         {isCompleted && (
           <div className="absolute top-3 left-3 bg-emerald-400 text-gray-900 px-2 py-1 rounded-full text-xs font-bold">
             Completed

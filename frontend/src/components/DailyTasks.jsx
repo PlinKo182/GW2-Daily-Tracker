@@ -18,7 +18,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
   };
 
   const TaskCard = ({ title, icon: Icon, description, tasks, category, progress }) => (
-    <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+  <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       <div className="p-6 flex-grow">
         <div className="flex items-center gap-2 mb-2">
           <Icon className="w-5 h-5 text-emerald-400" />
