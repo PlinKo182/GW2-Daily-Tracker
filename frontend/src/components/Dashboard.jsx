@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from './Header';
 import DailyProgress from './DailyProgress';
 import DailyTasks from './DailyTasks';
@@ -6,6 +6,21 @@ import EventsSection from './EventsSection';
 import Footer from './Footer';
 import { mockData } from '../utils/mockData';
 import api, { localStorageAPI } from '../services/api';
+
+// Componente isolado para o timer para evitar re-renderizações desnecessárias
+const CurrentTimeUpdater = ({ onTimeUpdate }) => {
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      onTimeUpdate(new Date());
+    }, 1000);
+
+    return () => {
+      clearInterval(timeInterval);
+    };
+  }, [onTimeUpdate]);
+
+  return null;
+};
 
 const Dashboard = () => {
   const [notification, setNotification] = useState(null);
@@ -36,7 +51,7 @@ const Dashboard = () => {
   });
 
   // Função para salvar progresso no MongoDB
-  const saveProgressToMongo = (dailyProgress, completedEvents, completedEventTypes, userName) => {
+  const saveProgressToMongo = useCallback((dailyProgress, completedEvents, completedEventTypes, userName) => {
     const date = new Date().toISOString().slice(0, 10);
     fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress', {
       method: 'PUT',
@@ -56,21 +71,20 @@ const Dashboard = () => {
         setNotification({ type: 'error', message: 'Connection error: ' + error.message });
         setTimeout(() => setNotification(null), 4000);
       });
-  };
+  }, []);
 
-  const handleUserNameChange = (e) => {
+  const handleUserNameChange = useCallback((e) => {
     setUserName(e.target.value);
     localStorage.setItem('tyriaTracker_userName', e.target.value);
-  };
+  }, []);
+
+  const handleTimeUpdate = useCallback((newTime) => {
+    setCurrentTime(newTime);
+  }, []);
 
   // Load data from localStorage on component mount
   useEffect(() => {
     loadInitialData();
-    
-    // Update time every second
-    const timeInterval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
 
     // Monitor online/offline status
     const handleOnline = () => {
@@ -91,7 +105,6 @@ const Dashboard = () => {
     scheduleDailyReset();
 
     return () => {
-      clearInterval(timeInterval);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -121,7 +134,7 @@ const Dashboard = () => {
     }
   };
 
-  const handleTaskToggle = (category, task) => {
+  const handleTaskToggle = useCallback((category, task) => {
     const newProgress = {
       ...dailyProgress,
       [category]: {
@@ -133,9 +146,9 @@ const Dashboard = () => {
     // Update state and localStorage
     setDailyProgress(newProgress);
     localStorageAPI.saveProgress(newProgress);
-  };
+  }, [dailyProgress]);
 
-  const handleEventToggle = (eventId, eventKey) => {
+  const handleEventToggle = useCallback((eventId, eventKey) => {
     let newCompletedEvents = { ...completedEvents };
     let newCompletedEventTypes = { ...completedEventTypes };
 
@@ -159,9 +172,9 @@ const Dashboard = () => {
     setCompletedEvents(newCompletedEvents);
     setCompletedEventTypes(newCompletedEventTypes);
     localStorageAPI.saveEvents(newCompletedEvents, newCompletedEventTypes);
-  };
+  }, [completedEvents, completedEventTypes]);
 
-  const scheduleDailyReset = () => {
+  const scheduleDailyReset = useCallback(() => {
     const now = new Date();
     const utcMidnight = new Date(Date.UTC(
       now.getUTCFullYear(), 
@@ -201,9 +214,9 @@ const Dashboard = () => {
       // Schedule next reset
       scheduleDailyReset();
     }, timeUntilReset);
-  };
+  }, []);
 
-  const calculateOverallProgress = () => {
+  const calculateOverallProgress = useCallback(() => {
     let totalTasks = 0;
     let completedTasks = 0;
 
@@ -215,9 +228,9 @@ const Dashboard = () => {
     });
 
     return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  };
+  }, [dailyProgress]);
 
-  const calculateCategoryProgress = (category) => {
+  const calculateCategoryProgress = useCallback((category) => {
     const tasks = dailyProgress[category];
     const totalTasks = Object.keys(tasks).length;
     const completedTasks = Object.values(tasks).filter(Boolean).length;
@@ -227,11 +240,14 @@ const Dashboard = () => {
       total: totalTasks,
       percentage: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
     };
-  };
+  }, [dailyProgress]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
       <Header currentTime={currentTime} apiStatus={apiStatus} />
+      
+      {/* Componente isolado para atualizar o tempo */}
+      <CurrentTimeUpdater onTimeUpdate={handleTimeUpdate} />
 
       {/* Notificação no canto inferior direito */}
       {notification && (
@@ -291,4 +307,4 @@ const Dashboard = () => {
   );
 }
 
-export default Dashboard;
+export default React.memo(Dashboard);
