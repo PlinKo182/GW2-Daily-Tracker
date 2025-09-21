@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Clock, MapPin, RefreshCw } from 'lucide-react';
+import { Clock, MapPin, RefreshCw, Eye, EyeOff, Undo } from 'lucide-react';
 import { mockData } from '../utils/mockData';
 
 // Componente isolado para o timer com estado interno
@@ -57,6 +57,7 @@ const CountdownTimer = React.memo(({ startTime, endTime }) => {
 const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) => {
   const [eventsData, setEventsData] = useState([]);
   const [allEvents, setAllEvents] = useState([]);
+  const [showCompleted, setShowCompleted] = useState(false);
 
   // Carregar todos os eventos uma vez
   useEffect(() => {
@@ -128,7 +129,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
       const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
       
       const filteredEvents = allEvents.filter(event => {
-        // Não mostrar eventos concluídos
+        // Não mostrar eventos concluídos na visualização principal
         if (completedEventTypes[event.eventKey] || completedEvents[event.id]) {
           return false;
         }
@@ -145,6 +146,13 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     // Atualizar a cada segundo
     const interval = setInterval(updateVisibleEvents, 1000);
     return () => clearInterval(interval);
+  }, [allEvents, completedEvents, completedEventTypes]);
+
+  // Obter eventos concluídos
+  const completedEventsList = useMemo(() => {
+    return allEvents.filter(event => 
+      completedEventTypes[event.eventKey] || completedEvents[event.id]
+    );
   }, [allEvents, completedEvents, completedEventTypes]);
 
   const convertUTCTimeToLocal = (utcTimeString) => {
@@ -178,7 +186,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   }, []);
 
   // Componente de cartão de evento com memoização
-  const EventCard = useMemo(() => React.memo(({ event }) => {
+  const EventCard = useMemo(() => React.memo(({ event, isCompleted = false, onToggle }) => {
     const now = new Date();
     const eventActive = event.startTime <= now && event.endTime >= now;
     const eventUpcoming = event.startTime > now;
@@ -198,11 +206,11 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     }
 
     return (
-      <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
+      <div className={`bg-gray-800 rounded-xl overflow-hidden border border-gray-700 flex flex-col relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group ${isCompleted ? 'opacity-70' : ''}`}>
         <input
           type="checkbox"
-          checked={completedEvents[event.id] || completedEventTypes[event.eventKey]}
-          onChange={() => onEventToggle(event.id, event.eventKey)}
+          checked={isCompleted}
+          onChange={() => onToggle(event.id, event.eventKey)}
           className="absolute top-3 right-3 rounded bg-gray-700 border-gray-600 text-emerald-400 focus:ring-emerald-400/50"
         />
 
@@ -213,10 +221,12 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             {event.location}
           </div>
           
-          <CountdownTimer 
-            startTime={event.startTime} 
-            endTime={event.endTime} 
-          />
+          {!isCompleted && (
+            <CountdownTimer 
+              startTime={event.startTime} 
+              endTime={event.endTime} 
+            />
+          )}
           
           <div className="text-xs text-gray-400 mb-2">
             {formatTime(event.startTime)} - {formatTime(event.endTime)}
@@ -233,34 +243,86 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               {event.waypoint}
             </button>
             <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${statusClass}`}>
-              {statusText}
+              {isCompleted ? 'Completed' : statusText}
             </span>
           </div>
         </div>
       </div>
     );
-  }), [completedEvents, completedEventTypes, copyToClipboard, formatTime, onEventToggle]);
+  }), [copyToClipboard, formatTime]);
 
   return (
     <div className="mb-12">
       <h2 className="text-3xl font-bold mb-6">Events & World Bosses</h2>
       
-      <div className="mb-6 flex justify-end">
+      <div className="mb-6 flex justify-between items-center">
         <div className="text-sm text-gray-400 italic">
           Showing events within the next 2 hours
         </div>
+        
+        {completedEventsList.length > 0 && (
+          <button
+            onClick={() => setShowCompleted(!showCompleted)}
+            className="flex items-center gap-2 bg-gray-700 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            {showCompleted ? (
+              <>
+                <EyeOff className="w-4 h-4" />
+                Hide Completed
+              </>
+            ) : (
+              <>
+                <Eye className="w-4 h-4" />
+                Show Completed ({completedEventsList.length})
+              </>
+            )}
+          </button>
+        )}
       </div>
       
+      {/* Eventos ativos/upcoming */}
       {eventsData.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {eventsData.map(event => (
-            <EventCard key={event.id} event={event} />
+            <EventCard 
+              key={event.id} 
+              event={event} 
+              isCompleted={false}
+              onToggle={onEventToggle}
+            />
           ))}
         </div>
       ) : (
         <div className="text-center py-8 text-gray-400">
           <p>No events in the next 2 hours.</p>
           <p className="mt-2">Check back later for upcoming events.</p>
+        </div>
+      )}
+      
+      {/* Eventos concluídos (se mostrados) */}
+      {showCompleted && completedEventsList.length > 0 && (
+        <div className="mt-12">
+          <div className="flex items-center gap-3 mb-6">
+            <h3 className="text-2xl font-bold text-emerald-400">Completed Events</h3>
+            <button
+              onClick={() => setShowCompleted(false)}
+              className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-300"
+            >
+              <Undo className="w-4 h-4" />
+              Hide
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {completedEventsList.map(event => (
+              <EventCard 
+                key={event.id} 
+                event={event} 
+                isCompleted={true}
+                onToggle={onEventToggle}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
