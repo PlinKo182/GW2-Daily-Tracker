@@ -58,28 +58,28 @@ export const mockData = {
         "location": "Bloodtide Coast",
         "duration_minutes": 30,
         "utc_times": ["01:00", "04:00", "08:00", "12:30", "17:00", "20:00"],
-        "waypoint": "[&BKgBAAA=]"
+        "waypoint": "Triple Trouble - [&BKoBAAA=]"
       },
       "vb_night_boss": {
       "event_name": "Night Bosses",
       "location": "Verdant Brink",
       "duration_minutes": 20,
       "utc_times": ["00:10", "02:10", "04:10", "06:10", "08:10", "10:10", "12:10", "14:10", "16:10", "18:10", "20:10", "22:10"],
-      "waypoint": "[&BAgIAAA=]"
+      "waypoint": "Night Bosses - [&BAgIAAA=]"
       },
       "td_chak_gerent": {
         "event_name": "Chak Gerent",
         "location": "Tangled Depths",
         "duration_minutes": 20,
         "utc_times": ["00:30", "02:30", "04:30", "06:30", "08:30", "10:30", "12:30", "14:30", "16:30", "18:30", "20:30", "22:30"],
-        "waypoint": "[&BPUHAAA=]"
+        "waypoint": "Chak Gerent - [&BPUHAAA=]"
       },
       "tt_tequatl": {
-        "event_name": "Tequatl the Sunless",
+        "event_name": "Tequatl",
         "location": "Sparkfly Fen",
         "duration_minutes": 15,
         "utc_times": ["00:00", "03:00", "06:00", "07:00", "11:30", "16:00", "19:00"],
-        "waypoint": "[&BEMCAAA=]"
+        "waypoint": "Tequatl - [&BNABAAA=]"
       },
       "lla": {
         "event_name": "Ley-Line Anomaly",
@@ -87,17 +87,17 @@ export const mockData = {
         "locations": [
           {
             "map": "Timberline Falls",
-            "waypoint": "[&BEwCAAA=]",
+            "waypoint": "Timberline Falls - [&BEwCAAA=]",
             "utc_times": ["00:20", "06:20", "12:20", "18:20"]
           },
           {
             "map": "Iron Marches",
-            "waypoint": "[&BOcBAAA=]",
+            "waypoint": "Iron Marches - [&BOYBAAA=]",
             "utc_times": ["02:20", "08:20", "14:20", "20:20"]
           },
           {
             "map": "Gendarran Fields",
-            "waypoint": "[&BOQAAAA=]",
+            "waypoint": "Gendarran Fields - [&BOQAAAA=]",
             "utc_times": ["04:20", "10:20", "16:20", "22:20"]
           }
         ]
@@ -114,28 +114,28 @@ export const mockData = {
         "location": "Queensdale",
         "duration_minutes": 10,
         "utc_times": ["01:45", "03:45", "05:45", "07:45", "09:45", "11:45", "13:45", "15:45", "17:45", "19:45", "21:45", "23:45"],
-        "waypoint": "[&BPcAAAA=]"
+        "waypoint": "Shadow Behemoth - [&BPcAAAA=]"
       },
       "gjw_great_jungle_wurm": {
         "event_name": "Great Jungle Wurm",
         "location": "Caledon Forest",
         "duration_minutes": 10,
         "utc_times": ["01:15", "03:15", "05:15", "07:15", "09:15", "11:15", "13:15", "15:15", "17:15", "19:15", "21:15", "23:15"],
-        "waypoint": "[&BEEFAAA=]"
+        "waypoint": "Great Jungle Wurm - [&BEEFAAA=]"
       },
       "coj_claw_of_jormag": {
         "event_name": "Claw of Jormag",
         "location": "Frostgorge Sound",
         "duration_minutes": 15,
         "utc_times": ["02:30", "05:30", "08:30", "11:30", "14:30", "17:30", "20:30", "23:30"],
-        "waypoint": "[&BHMHAAA=]"
+        "waypoint": "Claw of Jormag - [&BHoCAAA=]"
       },
       "ab_auric_basin": {
         "event_name": "Auric Basin Octovine",
         "location": "Auric Basin",
         "duration_minutes": 20,
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
-        "waypoint": "[&BIMHAAA=]"
+        "waypoint": "Octovine - [&BMYHAAA=]"
       }
     }
   }
