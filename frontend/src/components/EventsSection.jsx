@@ -56,90 +56,96 @@ const CountdownTimer = React.memo(({ startTime, endTime }) => {
 
 const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) => {
   const [eventsData, setEventsData] = useState([]);
+  const [allEvents, setAllEvents] = useState([]);
 
+  // Carregar todos os eventos uma vez
   useEffect(() => {
-    processEventsData();
-  }, [completedEvents, completedEventTypes]);
+    const loadAllEvents = () => {
+      const events = [];
+      const now = new Date();
 
-  const processEventsData = () => {
-    const events = [];
-    const now = new Date();
+      Object.entries(mockData.eventConfig.events).forEach(([key, event]) => {
+        if (event.locations) {
+          event.locations.forEach(location => {
+            location.utc_times.forEach(utcTimeStr => {
+              const eventTime = convertUTCTimeToLocal(utcTimeStr);
+              const endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
-    Object.entries(mockData.eventConfig.events).forEach(([key, event]) => {
-      if (key === "lla" && completedEventTypes["lla"]) {
-        return;
-      }
+              // Se o evento já passou, agenda para o próximo dia
+              if (endTime < now) {
+                eventTime.setDate(eventTime.getDate() + 1);
+                endTime.setDate(endTime.getDate() + 1);
+              }
 
-      if (event.locations) {
-        event.locations.forEach(location => {
-          location.utc_times.forEach(utcTimeStr => {
+              events.push({
+                id: `${key}_${location.map}`,
+                eventKey: key,
+                name: event.event_name,
+                location: location.map,
+                waypoint: location.waypoint,
+                startTime: eventTime,
+                endTime: endTime,
+                duration: event.duration_minutes
+              });
+            });
+          });
+        } else {
+          event.utc_times.forEach(utcTimeStr => {
             const eventTime = convertUTCTimeToLocal(utcTimeStr);
             const endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
+            // Se o evento já passou, agenda para o próximo dia
             if (endTime < now) {
               eventTime.setDate(eventTime.getDate() + 1);
               endTime.setDate(endTime.getDate() + 1);
             }
 
-            // Não adicionar eventos concluídos
-            if (completedEventTypes[key] || completedEvents[`${key}_${location.map}`]) {
-              return;
-            }
-
-            // Não adicionar eventos que já terminaram
-            if (endTime < now) {
-              return;
-            }
-
             events.push({
-              id: `${key}_${location.map}`,
+              id: key,
               eventKey: key,
               name: event.event_name,
-              location: location.map,
-              waypoint: location.waypoint,
+              location: event.location,
+              waypoint: event.waypoint,
               startTime: eventTime,
               endTime: endTime,
               duration: event.duration_minutes
             });
           });
-        });
-      } else {
-        event.utc_times.forEach(utcTimeStr => {
-          const eventTime = convertUTCTimeToLocal(utcTimeStr);
-          const endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
+        }
+      });
 
-          if (endTime < now) {
-            eventTime.setDate(eventTime.getDate() + 1);
-            endTime.setDate(endTime.getDate() + 1);
-          }
+      events.sort((a, b) => a.startTime - b.startTime);
+      setAllEvents(events);
+    };
 
-          // Não adicionar eventos concluídos
-          if (completedEventTypes[key] || completedEvents[key]) {
-            return;
-          }
+    loadAllEvents();
+  }, []);
 
-          // Não adicionar eventos que já terminaram
-          if (endTime < now) {
-            return;
-          }
+  // Atualizar eventos visíveis a cada segundo
+  useEffect(() => {
+    const updateVisibleEvents = () => {
+      const now = new Date();
+      const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+      
+      const filteredEvents = allEvents.filter(event => {
+        // Não mostrar eventos concluídos
+        if (completedEventTypes[event.eventKey] || completedEvents[event.id]) {
+          return false;
+        }
+        
+        // Mostrar apenas eventos que começam nas próximas 2 horas
+        return event.startTime <= twoHoursFromNow;
+      });
+      
+      setEventsData(filteredEvents);
+    };
 
-          events.push({
-            id: key,
-            eventKey: key,
-            name: event.event_name,
-            location: event.location,
-            waypoint: event.waypoint,
-            startTime: eventTime,
-            endTime: endTime,
-            duration: event.duration_minutes
-          });
-        });
-      }
-    });
-
-    events.sort((a, b) => a.startTime - b.startTime);
-    setEventsData(events);
-  };
+    updateVisibleEvents();
+    
+    // Atualizar a cada segundo
+    const interval = setInterval(updateVisibleEvents, 1000);
+    return () => clearInterval(interval);
+  }, [allEvents, completedEvents, completedEventTypes]);
 
   const convertUTCTimeToLocal = (utcTimeString) => {
     const now = new Date();
@@ -176,7 +182,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     const now = new Date();
     const eventActive = event.startTime <= now && event.endTime >= now;
     const eventUpcoming = event.startTime > now;
-    const isCompleted = completedEvents[event.id] || completedEventTypes[event.eventKey];
 
     let statusClass = '';
     let statusText = '';
@@ -194,15 +199,9 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
 
     return (
       <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700 flex flex-col relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
-        {isCompleted && (
-          <div className="absolute top-3 left-3 bg-emerald-400 text-gray-900 px-2 py-1 rounded-full text-xs font-bold">
-            Completed
-          </div>
-        )}
-        
         <input
           type="checkbox"
-          checked={isCompleted}
+          checked={completedEvents[event.id] || completedEventTypes[event.eventKey]}
           onChange={() => onEventToggle(event.id, event.eventKey)}
           className="absolute top-3 right-3 rounded bg-gray-700 border-gray-600 text-emerald-400 focus:ring-emerald-400/50"
         />
@@ -247,13 +246,9 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
       <h2 className="text-3xl font-bold mb-6">Events & World Bosses</h2>
       
       <div className="mb-6 flex justify-end">
-        <button
-          onClick={processEventsData}
-          className="bg-emerald-500 text-gray-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-400 transition-colors flex items-center gap-2"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Refresh Events
-        </button>
+        <div className="text-sm text-gray-400 italic">
+          Showing events within the next 2 hours
+        </div>
       </div>
       
       {eventsData.length > 0 ? (
@@ -264,8 +259,8 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </div>
       ) : (
         <div className="text-center py-8 text-gray-400">
-          <p>No upcoming events found.</p>
-          <p className="mt-2">All events have been completed or have already ended.</p>
+          <p>No events in the next 2 hours.</p>
+          <p className="mt-2">Check back later for upcoming events.</p>
         </div>
       )}
     </div>
