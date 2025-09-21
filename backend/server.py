@@ -1,4 +1,6 @@
 from fastapi import FastAPI, APIRouter
+from pymongo import MongoClient
+import os
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 import os
@@ -13,21 +15,20 @@ from datetime import datetime
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Create the main app without a prefix
+MONGODB_URI = os.environ.get("MONGODB_URI")
+mongo_client = MongoClient(MONGODB_URI)
+db = mongo_client["tyria_tracker"]
+progress_collection = db["daily_progress"]
+
 app = FastAPI()
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
 
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
+class ProgressRequest(BaseModel):
+    date: str
+    dailyProgress: dict
 
 # Health check and info endpoints
 @api_router.get("/")
@@ -51,11 +52,22 @@ async def health_check():
         "service": "tyria-tracker-api"
     }
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    # Simple in-memory status check (no database)
-    status_obj = StatusCheck(**input.dict())
-    return status_obj
+
+# Endpoint para salvar progresso diário
+@api_router.put("/progress/{userId}")
+async def save_progress(userId: str, req: ProgressRequest):
+    doc = {
+        "userId": userId,
+        "date": req.date,
+        "dailyProgress": req.dailyProgress
+    }
+    # Upsert: atualiza se existir, senão cria
+    progress_collection.update_one(
+        {"userId": userId, "date": req.date},
+        {"$set": doc},
+        upsert=True
+    )
+    return {"success": True}
 
 @api_router.get("/status", response_model=List[StatusCheck])
 async def get_status_checks():
