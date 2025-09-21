@@ -72,7 +72,7 @@ export const mockData = {
         "location": "Tangled Depths",
         "duration_minutes": 20,
         "utc_times": ["00:30", "02:30", "04:30", "06:30", "08:30", "10:30", "12:30", "14:30", "16:30", "18:30", "20:30", "22:30"],
-        "waypoint": "[&BIsCAAA=]"
+        "waypoint": "[&BPUHAAA=]"
       },
       "tt_tequatl": {
         "event_name": "Tequatl the Sunless",
@@ -107,7 +107,7 @@ export const mockData = {
         "location": "Eye of the North",
         "duration_minutes": 15,
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
-        "waypoint": "[&BPEHAAA=]"
+        "waypoint": "Dragonstorm - [&BAkMAAA=]"
       },
       "sb_shadow_behemoth": {
         "event_name": "Shadow Behemoth",
@@ -121,7 +121,7 @@ export const mockData = {
         "location": "Caledon Forest",
         "duration_minutes": 10,
         "utc_times": ["01:15", "03:15", "05:15", "07:15", "09:15", "11:15", "13:15", "15:15", "17:15", "19:15", "21:15", "23:15"],
-        "waypoint": "[&BDAAAAA=]"
+        "waypoint": "[&BEEFAAA=]"
       },
       "coj_claw_of_jormag": {
         "event_name": "Claw of Jormag",
