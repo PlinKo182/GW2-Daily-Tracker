@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-
 import Header from './Header';
 import DailyProgress from './DailyProgress';
 import DailyTasks from './DailyTasks';
@@ -7,10 +6,6 @@ import EventsSection from './EventsSection';
 import Footer from './Footer';
 import { mockData } from '../utils/mockData';
 import api, { localStorageAPI } from '../services/api';
-
-// Função para salvar progresso no MongoDB
-// Notificação visual
-// Adicione o estado notification ao componente Dashboard
 
 const Dashboard = () => {
   const [notification, setNotification] = useState(null);
@@ -35,18 +30,13 @@ const Dashboard = () => {
   const [completedEvents, setCompletedEvents] = useState({});
   const [completedEventTypes, setCompletedEventTypes] = useState({});
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [apiStatus, setApiStatus] = useState('checking');
   const [userName, setUserName] = useState(() => {
     return localStorage.getItem('tyriaTracker_userName') || 'PlinKo';
   });
-  const handleUserNameChange = (e) => {
-    setUserName(e.target.value);
-    localStorage.setItem('tyriaTracker_userName', e.target.value);
-  };
-  const [apiStatus, setApiStatus] = useState('checking'); // 'checking', 'online', 'offline'
 
   // Função para salvar progresso no MongoDB
-  function saveProgressToMongo(dailyProgress, completedEvents, completedEventTypes, userName) {
+  const saveProgressToMongo = (dailyProgress, completedEvents, completedEventTypes, userName) => {
     const date = new Date().toISOString().slice(0, 10);
     fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress', {
       method: 'PUT',
@@ -55,13 +45,23 @@ const Dashboard = () => {
     })
       .then(res => res.json())
       .then(data => {
-        if (data.success) setNotification({ type: 'success', message: 'Saved on MongoDB!' });
-        else setNotification({ type: 'error', message: 'Error: ' + data.error });
+        if (data.success) {
+          setNotification({ type: 'success', message: 'Saved on MongoDB!' });
+        } else {
+          setNotification({ type: 'error', message: 'Error: ' + data.error });
+        }
+        setTimeout(() => setNotification(null), 4000);
+      })
+      .catch(error => {
+        setNotification({ type: 'error', message: 'Connection error: ' + error.message });
         setTimeout(() => setNotification(null), 4000);
       });
-  }
+  };
 
-  // Removido duplicatas dos hooks acima
+  const handleUserNameChange = (e) => {
+    setUserName(e.target.value);
+    localStorage.setItem('tyriaTracker_userName', e.target.value);
+  };
 
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -74,12 +74,10 @@ const Dashboard = () => {
 
     // Monitor online/offline status
     const handleOnline = () => {
-      setIsOnline(true);
       checkApiStatus();
     };
     
     const handleOffline = () => {
-      setIsOnline(false);
       setApiStatus('offline');
     };
 
@@ -100,11 +98,6 @@ const Dashboard = () => {
   }, []);
 
   const checkApiStatus = async () => {
-    if (!isOnline) {
-      setApiStatus('offline');
-      return;
-    }
-
     try {
       const response = await api.healthCheck();
       setApiStatus(response ? 'online' : 'offline');
@@ -238,20 +231,13 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
-      <Header currentTime={currentTime} apiStatus={apiStatus} isOnline={isOnline} />
+      <Header currentTime={currentTime} apiStatus={apiStatus} />
 
       {/* Notificação no canto inferior direito */}
       {notification && (
-        <div style={{
-          position: 'fixed',
-          bottom: 24,
-          right: 24,
-          zIndex: 9999,
-          minWidth: 220,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-        }}
-          className={`px-4 py-2 rounded text-sm font-semibold ${notification.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}
-        >
+        <div className={`fixed bottom-6 right-6 z-50 min-w-[220px] shadow-lg px-4 py-2 rounded text-sm font-semibold ${
+          notification.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+        }`}>
           {notification.message}
         </div>
       )}
@@ -263,7 +249,7 @@ const Dashboard = () => {
           <p className="text-xs text-gray-500 mt-2">
             💾 Data stored localmente no navegador - sem conta!
           </p>
-          <div className="flex items-center gap-4 mt-4">
+          <div className="flex items-center gap-4 mt-4 flex-wrap">
             <label htmlFor="userName" className="text-sm text-gray-300">Nome do usuário:</label>
             <input
               id="userName"
@@ -274,7 +260,7 @@ const Dashboard = () => {
               style={{ minWidth: 100 }}
             />
             <button
-              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
               onClick={() => saveProgressToMongo(dailyProgress, completedEvents, completedEventTypes, userName)}
             >
               Save to MongoDB
