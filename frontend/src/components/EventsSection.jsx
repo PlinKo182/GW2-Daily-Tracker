@@ -2,10 +2,20 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Clock, MapPin, RefreshCw } from 'lucide-react';
 import { mockData } from '../utils/mockData';
 
-// Componente isolado para o timer para evitar re-renderizações desnecessárias
-const CountdownTimer = React.memo(({ startTime, endTime, currentTime }) => {
-  const getTimeRemaining = (endTime) => {
-    const difference = endTime - currentTime;
+// Componente isolado para o timer com estado interno
+const CountdownTimer = React.memo(({ startTime, endTime }) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const getTimeRemaining = (targetTime) => {
+    const difference = targetTime - currentTime;
     
     if (difference <= 0) {
       return { total: 0, hours: 0, minutes: 0, seconds: 0 };
@@ -22,9 +32,8 @@ const CountdownTimer = React.memo(({ startTime, endTime, currentTime }) => {
     return `${timeObj.hours.toString().padStart(2, '0')}:${timeObj.minutes.toString().padStart(2, '0')}:${timeObj.seconds.toString().padStart(2, '0')}`;
   };
 
-  const now = new Date();
-  const eventActive = startTime <= now && endTime >= now;
-  const eventUpcoming = startTime > now;
+  const eventActive = startTime <= currentTime && endTime >= currentTime;
+  const eventUpcoming = startTime > currentTime;
 
   let countdownText = '';
   if (eventActive) {
@@ -45,23 +54,13 @@ const CountdownTimer = React.memo(({ startTime, endTime, currentTime }) => {
   );
 });
 
-const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, currentTime }) => {
+const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) => {
   const [eventsData, setEventsData] = useState([]);
   const [currentFilter, setCurrentFilter] = useState('upcoming');
-  const [internalTime, setInternalTime] = useState(currentTime);
-
-  // Atualizar o tempo interno apenas quando a prop currentTime mudar significativamente
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setInternalTime(currentTime);
-    }, 100); // Debounce para evitar atualizações muito frequentes
-    
-    return () => clearTimeout(timer);
-  }, [currentTime]);
 
   useEffect(() => {
     processEventsData();
-  }, [internalTime, completedEvents, completedEventTypes]);
+  }, [completedEvents, completedEventTypes]);
 
   const processEventsData = () => {
     const events = [];
@@ -222,7 +221,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
           <CountdownTimer 
             startTime={event.startTime} 
             endTime={event.endTime} 
-            currentTime={internalTime} 
           />
           
           <div className="text-xs text-gray-400 mb-2">
@@ -246,7 +244,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
         </div>
       </div>
     );
-  }), [completedEvents, completedEventTypes, copyToClipboard, formatTime, onEventToggle, internalTime]);
+  }), [completedEvents, completedEventTypes, copyToClipboard, formatTime, onEventToggle]);
 
   const filteredEvents = getFilteredEvents();
 
