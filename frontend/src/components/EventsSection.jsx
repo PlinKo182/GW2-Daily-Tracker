@@ -122,7 +122,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     loadAllEvents();
   }, []);
 
-  // Atualizar eventos visíveis a cada segundo
+  // Atualizar eventos visíveis imediatamente quando as props mudarem
   useEffect(() => {
     const updateVisibleEvents = () => {
       const now = new Date();
@@ -142,10 +142,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     };
 
     updateVisibleEvents();
-    
-    // Atualizar a cada segundo
-    const interval = setInterval(updateVisibleEvents, 1000);
-    return () => clearInterval(interval);
   }, [allEvents, completedEvents, completedEventTypes]);
 
   // Obter eventos concluídos agrupados por tipo
