@@ -23,13 +23,9 @@
       "dest": "/frontend/$1"
     }
   ],
-  "env": {
-    "MONGO_URL": "@mongo-url",
-    "DB_NAME": "@db-name"
-  },
   "build": {
     "env": {
-      "REACT_APP_BACKEND_URL": "https://your-app-name.vercel.app"
+      "REACT_APP_BACKEND_URL": "https://tyria-tracker.vercel.app"
     }
   }
 }
