@@ -137,7 +137,7 @@ export const mockData = {
 // PSNA (Pact Supply Network Agent) helper functions
 function getPSNAName() {
   const psnaData = {
-    0: "Azarr's Arbor",        // Sunday
+    0: "Repair Station",        // Sunday
     1: "Restoration Refuge",   // Monday
     2: "Camp Resolve",         // Tuesday
     3: "Town of Prosperity",   // Wednesday
@@ -152,7 +152,7 @@ function getPSNAName() {
 
 function getPSNAWaypoint() {
   const psnaWaypoints = {
-    0: "[&BIkHAAA=]",  // Sunday - Azarr's Arbor
+    0: "[&BIkHAAA=]",  // Sunday - Repair Station
     1: "[&BIcHAAA=]",  // Monday - Restoration Refuge
     2: "[&BH8HAAA=]",  // Tuesday - Camp Resolve
     3: "[&BH4HAAA=]",  // Wednesday - Town of Prosperity
