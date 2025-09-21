@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Header from './Header';
 import DailyProgress from './DailyProgress';
 import DailyTasks from './DailyTasks';
@@ -7,18 +7,16 @@ import Footer from './Footer';
 import { mockData } from '../utils/mockData';
 import api, { localStorageAPI } from '../services/api';
 
-// Componente isolado para o timer para evitar re-renderizações desnecessárias
-const CurrentTimeUpdater = ({ onTimeUpdate }) => {
+// Componente isolado para atualização do tempo
+const TimeUpdater = ({ onTimeUpdate }) => {
   useEffect(() => {
-    const timeInterval = setInterval(() => {
+    const interval = setInterval(() => {
       onTimeUpdate(new Date());
     }, 1000);
-
-    return () => {
-      clearInterval(timeInterval);
-    };
+    
+    return () => clearInterval(interval);
   }, [onTimeUpdate]);
-
+  
   return null;
 };
 
@@ -50,6 +48,15 @@ const Dashboard = () => {
     return localStorage.getItem('tyriaTracker_userName') || 'PlinKo';
   });
 
+  // Usar useRef para valores que não devem causar re-renderização
+  const currentTimeRef = useRef(currentTime);
+  
+  // Atualizar both state and ref
+  const updateCurrentTime = useCallback((newTime) => {
+    currentTimeRef.current = newTime;
+    setCurrentTime(newTime);
+  }, []);
+
   // Função para salvar progresso no MongoDB
   const saveProgressToMongo = useCallback((dailyProgress, completedEvents, completedEventTypes, userName) => {
     const date = new Date().toISOString().slice(0, 10);
@@ -76,10 +83,6 @@ const Dashboard = () => {
   const handleUserNameChange = useCallback((e) => {
     setUserName(e.target.value);
     localStorage.setItem('tyriaTracker_userName', e.target.value);
-  }, []);
-
-  const handleTimeUpdate = useCallback((newTime) => {
-    setCurrentTime(newTime);
   }, []);
 
   // Load data from localStorage on component mount
@@ -245,9 +248,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
       <Header currentTime={currentTime} apiStatus={apiStatus} />
-      
-      {/* Componente isolado para atualizar o tempo */}
-      <CurrentTimeUpdater onTimeUpdate={handleTimeUpdate} />
+
+      {/* Componente isolado para atualização do tempo */}
+      <TimeUpdater onTimeUpdate={updateCurrentTime} />
 
       {/* Notificação no canto inferior direito */}
       {notification && (
@@ -298,7 +301,7 @@ const Dashboard = () => {
           completedEvents={completedEvents}
           completedEventTypes={completedEventTypes}
           onEventToggle={handleEventToggle}
-          currentTime={currentTime}
+          currentTime={currentTimeRef.current} // Passar a referência, não o estado
         />
       </main>
 
