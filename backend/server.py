@@ -87,10 +87,6 @@ async def save_progress(userId: str, req: ProgressRequest):
         logging.error(f"Erro ao salvar progresso: {e}")
         return {"success": False, "error": str(e)}
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Return empty list since we're not storing anything
-    return []
 
 # Include the router in the main app
 app.include_router(api_router)
