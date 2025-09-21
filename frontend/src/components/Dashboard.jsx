@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import Header from './Header';
 import DailyProgress from './DailyProgress';
 import DailyTasks from './DailyTasks';
@@ -6,6 +7,22 @@ import EventsSection from './EventsSection';
 import Footer from './Footer';
 import { mockData } from '../utils/mockData';
 import api, { localStorageAPI } from '../services/api';
+
+// Função para salvar progresso no MongoDB
+function saveProgressToMongo(dailyProgress) {
+  const userId = localStorage.getItem('tyriaTracker_userId');
+  const date = new Date().toISOString().slice(0, 10);
+  fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress/' + userId, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date, dailyProgress })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) alert('Progresso salvo no MongoDB!');
+      else alert('Erro ao salvar: ' + data.error);
+    });
+}
 
 const Dashboard = () => {
   const [dailyProgress, setDailyProgress] = useState({
@@ -214,8 +231,14 @@ const Dashboard = () => {
           <h2 className="text-3xl font-bold mb-2">Daily Dashboard</h2>
           <p className="text-gray-400">Track your daily progress in Guild Wars 2</p>
           <p className="text-xs text-gray-500 mt-2">
-            💾 Data stored locally in your browser - no account required!
+            💾 Data stored localmente no navegador - sem conta!
           </p>
+          <button
+            className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+            onClick={() => saveProgressToMongo(dailyProgress)}
+          >
+            Salvar no MongoDB
+          </button>
         </div>
 
         <DailyProgress 
