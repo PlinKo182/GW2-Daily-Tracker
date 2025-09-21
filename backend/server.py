@@ -36,8 +36,8 @@ progress_collection = db["daily_progress"]
 
 app = FastAPI()
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
+# Inclui o router no app principal
+app.include_router(api_router)
 
 
 class ProgressRequest(BaseModel):
