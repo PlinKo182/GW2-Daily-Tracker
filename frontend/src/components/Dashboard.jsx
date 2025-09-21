@@ -55,8 +55,8 @@ const Dashboard = () => {
     })
       .then(res => res.json())
       .then(data => {
-        if (data.success) setNotification({ type: 'success', message: 'Progresso e eventos salvos no MongoDB!' });
-        else setNotification({ type: 'error', message: 'Erro ao salvar: ' + data.error });
+        if (data.success) setNotification({ type: 'success', message: 'Saved on MongoDB!' });
+        else setNotification({ type: 'error', message: 'Error: ' + data.error });
         setTimeout(() => setNotification(null), 4000);
       });
   }
@@ -277,7 +277,7 @@ const Dashboard = () => {
               className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
               onClick={() => saveProgressToMongo(dailyProgress, completedEvents, completedEventTypes, userName)}
             >
-              Salvar progresso e eventos no MongoDB
+              Save to MongoDB
             </button>
           </div>
         </div>
