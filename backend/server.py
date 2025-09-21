@@ -2,7 +2,6 @@
 from fastapi import FastAPI, APIRouter
 from pymongo import MongoClient
 import os
-from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 import logging
 from pathlib import Path
@@ -27,7 +26,6 @@ async def mongo_health():
 
 
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
 
 MONGODB_URI = os.environ.get("MONGODB_URI")
 mongo_client = MongoClient(MONGODB_URI)
@@ -36,8 +34,7 @@ progress_collection = db["daily_progress"]
 
 app = FastAPI()
 
-# Inclui o router no app principal
-app.include_router(api_router)
+## Inclui o router no app principal (mantido apenas uma vez)
 
 
 class ProgressRequest(BaseModel):
