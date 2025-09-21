@@ -62,7 +62,24 @@ class TyriaTrackerAPI {
 export const localStorageAPI = {
   getProgress: () => {
     const saved = localStorage.getItem('tyriaTracker_dailyProgress');
-    return saved ? JSON.parse(saved) : {
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // If it's already in the correct format, return it
+        if (parsed.gathering) {
+          return { dailyProgress: parsed };
+        }
+        // If it has dailyProgress wrapper, return as is
+        if (parsed.dailyProgress) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error('Error parsing saved progress:', e);
+      }
+    }
+    
+    // Return default structure
+    return {
       dailyProgress: {
         gathering: {
           vine_bridge: false,
