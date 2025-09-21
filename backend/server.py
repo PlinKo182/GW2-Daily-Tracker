@@ -43,6 +43,9 @@ app.include_router(api_router)
 class ProgressRequest(BaseModel):
     date: str
     dailyProgress: dict
+    completedEvents: dict = {}
+    completedEventTypes: dict = {}
+    userName: str = "PlinKo"
 
 # Health check and info endpoints
 @api_router.get("/")
@@ -73,7 +76,10 @@ async def save_progress(userId: str, req: ProgressRequest):
     doc = {
         "userId": userId,
         "date": req.date,
-        "dailyProgress": req.dailyProgress
+        "dailyProgress": req.dailyProgress,
+        "completedEvents": req.completedEvents,
+        "completedEventTypes": req.completedEventTypes,
+        "userName": req.userName
     }
     try:
         result = progress_collection.update_one(

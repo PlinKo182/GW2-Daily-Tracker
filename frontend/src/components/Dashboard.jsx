@@ -9,20 +9,28 @@ import { mockData } from '../utils/mockData';
 import api, { localStorageAPI } from '../services/api';
 
 // Função para salvar progresso no MongoDB
-function saveProgressToMongo(dailyProgress) {
+function saveProgressToMongo(dailyProgress, completedEvents, completedEventTypes) {
   const userId = localStorage.getItem('tyriaTracker_userId');
   const date = new Date().toISOString().slice(0, 10);
   fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress/' + userId, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ date, dailyProgress })
+    body: JSON.stringify({ date, dailyProgress, completedEvents, completedEventTypes })
   })
     .then(res => res.json())
     .then(data => {
-      if (data.success) alert('Progresso salvo no MongoDB!');
+      if (data.success) alert('Progresso e eventos salvos no MongoDB!');
       else alert('Erro ao salvar: ' + data.error);
     });
 }
+    const [userName, setUserName] = useState(() => {
+      return localStorage.getItem('tyriaTracker_userName') || 'PlinKo';
+    });
+
+    const handleUserNameChange = (e) => {
+      setUserName(e.target.value);
+      localStorage.setItem('tyriaTracker_userName', e.target.value);
+    };
 
 const Dashboard = () => {
   const [dailyProgress, setDailyProgress] = useState({
@@ -47,6 +55,14 @@ const Dashboard = () => {
   const [completedEventTypes, setCompletedEventTypes] = useState({});
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [userName, setUserName] = useState(() => {
+      return localStorage.getItem('tyriaTracker_userName') || 'PlinKo';
+    });
+
+    const handleUserNameChange = (e) => {
+      setUserName(e.target.value);
+      localStorage.setItem('tyriaTracker_userName', e.target.value);
+    };
   const [apiStatus, setApiStatus] = useState('checking'); // 'checking', 'online', 'offline'
 
   // Load data from localStorage on component mount
@@ -234,11 +250,23 @@ const Dashboard = () => {
             💾 Data stored localmente no navegador - sem conta!
           </p>
           <button
-            className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
-            onClick={() => saveProgressToMongo(dailyProgress)}
-          >
-            Salvar no MongoDB
-          </button>
+          <div className="flex items-center gap-4 mt-4">
+            <label htmlFor="userName" className="text-sm text-gray-300">Nome do usuário:</label>
+            <input
+              id="userName"
+              type="text"
+              value={userName}
+              onChange={handleUserNameChange}
+              className="px-2 py-1 rounded bg-gray-800 text-white border border-gray-600"
+              style={{ minWidth: 100 }}
+            />
+            <button
+              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+              onClick={() => saveProgressToMongo(dailyProgress, completedEvents, completedEventTypes, userName)}
+            >
+              Salvar progresso e eventos no MongoDB
+            </button>
+          </div>
         </div>
 
         <DailyProgress 
