@@ -56,7 +56,6 @@ const CountdownTimer = React.memo(({ startTime, endTime }) => {
 
 const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) => {
   const [eventsData, setEventsData] = useState([]);
-  const [currentFilter, setCurrentFilter] = useState('upcoming');
 
   useEffect(() => {
     processEventsData();
@@ -82,7 +81,15 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               endTime.setDate(endTime.getDate() + 1);
             }
 
-            if (completedEventTypes[key]) return;
+            // Não adicionar eventos concluídos
+            if (completedEventTypes[key] || completedEvents[`${key}_${location.map}`]) {
+              return;
+            }
+
+            // Não adicionar eventos que já terminaram
+            if (endTime < now) {
+              return;
+            }
 
             events.push({
               id: `${key}_${location.map}`,
@@ -106,7 +113,15 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             endTime.setDate(endTime.getDate() + 1);
           }
 
-          if (completedEventTypes[key]) return;
+          // Não adicionar eventos concluídos
+          if (completedEventTypes[key] || completedEvents[key]) {
+            return;
+          }
+
+          // Não adicionar eventos que já terminaram
+          if (endTime < now) {
+            return;
+          }
 
           events.push({
             id: key,
@@ -155,25 +170,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
       document.body.removeChild(textArea);
     });
   }, []);
-
-  const getFilteredEvents = useCallback(() => {
-    const now = new Date();
-    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-
-    return eventsData.filter(event => {
-      const isCompleted = completedEvents[event.id] || completedEventTypes[event.eventKey];
-      
-      switch (currentFilter) {
-        case 'completed':
-          return isCompleted;
-        case 'upcoming':
-          return event.startTime <= twoHoursFromNow;
-        case 'all':
-        default:
-          return true;
-      }
-    });
-  }, [eventsData, completedEvents, completedEventTypes, currentFilter]);
 
   // Componente de cartão de evento com memoização
   const EventCard = useMemo(() => React.memo(({ event }) => {
@@ -246,29 +242,11 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     );
   }), [completedEvents, completedEventTypes, copyToClipboard, formatTime, onEventToggle]);
 
-  const filteredEvents = getFilteredEvents();
-
   return (
     <div className="mb-12">
       <h2 className="text-3xl font-bold mb-6">Events & World Bosses</h2>
       
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex gap-2">
-          {['upcoming', 'all', 'completed'].map(filter => (
-            <button
-              key={filter}
-              onClick={() => setCurrentFilter(filter)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                currentFilter === filter
-                  ? 'bg-emerald-400 text-gray-900'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              {filter === 'upcoming' ? 'Upcoming (2h)' : filter.charAt(0).toUpperCase() + filter.slice(1)}
-            </button>
-          ))}
-        </div>
-        
+      <div className="mb-6 flex justify-end">
         <button
           onClick={processEventsData}
           className="bg-emerald-500 text-gray-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-400 transition-colors flex items-center gap-2"
@@ -278,16 +256,16 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </button>
       </div>
       
-      {filteredEvents.length > 0 ? (
+      {eventsData.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map(event => (
+          {eventsData.map(event => (
             <EventCard key={event.id} event={event} />
           ))}
         </div>
       ) : (
         <div className="text-center py-8 text-gray-400">
-          <p>No events found with the current filter.</p>
-          <p className="mt-2">Try changing the filter or refreshing the page.</p>
+          <p>No upcoming events found.</p>
+          <p className="mt-2">All events have been completed or have already ended.</p>
         </div>
       )}
     </div>
