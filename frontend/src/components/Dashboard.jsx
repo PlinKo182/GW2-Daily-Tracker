@@ -249,7 +249,6 @@ const Dashboard = () => {
           <p className="text-xs text-gray-500 mt-2">
             💾 Data stored localmente no navegador - sem conta!
           </p>
-          <button
           <div className="flex items-center gap-4 mt-4">
             <label htmlFor="userName" className="text-sm text-gray-300">Nome do usuário:</label>
             <input
