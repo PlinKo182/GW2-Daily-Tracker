@@ -27,5 +27,6 @@
     "env": {
       "REACT_APP_BACKEND_URL": "https://tyria-tracker.vercel.app"
     }
-  }
+  },
+  "installCommand": "cd frontend && yarn install"
 }
