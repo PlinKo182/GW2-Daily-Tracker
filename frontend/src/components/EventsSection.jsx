@@ -115,9 +115,9 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
   };
 
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).catch(() => {
+    navigator.clipboard.writeText(text.trim()).catch(() => {
       const textArea = document.createElement('textarea');
-      textArea.value = text;
+      textArea.value = text.trim();
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');

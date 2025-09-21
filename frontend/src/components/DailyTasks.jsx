@@ -4,12 +4,12 @@ import { mockData } from '../utils/mockData';
 
 const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) => {
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
+    navigator.clipboard.writeText(text.trim()).then(() => {
       // Could add toast notification here
     }).catch(() => {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
-      textArea.value = text;
+      textArea.value = text.trim();
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');
