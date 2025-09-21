@@ -9,22 +9,11 @@ import { mockData } from '../utils/mockData';
 import api, { localStorageAPI } from '../services/api';
 
 // Função para salvar progresso no MongoDB
-function saveProgressToMongo(dailyProgress, completedEvents, completedEventTypes) {
-  const userId = localStorage.getItem('tyriaTracker_userId');
-  const date = new Date().toISOString().slice(0, 10);
-  fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress/' + userId, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ date, dailyProgress, completedEvents, completedEventTypes })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) alert('Progresso e eventos salvos no MongoDB!');
-      else alert('Erro ao salvar: ' + data.error);
-    });
-}
+// Notificação visual
+// Adicione o estado notification ao componente Dashboard
 
 const Dashboard = () => {
+  const [notification, setNotification] = useState(null);
   const [dailyProgress, setDailyProgress] = useState({
     gathering: {
       vine_bridge: false,
@@ -47,15 +36,33 @@ const Dashboard = () => {
   const [completedEventTypes, setCompletedEventTypes] = useState({});
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-    const [userName, setUserName] = useState(() => {
-      return localStorage.getItem('tyriaTracker_userName') || 'PlinKo';
-    });
-
-    const handleUserNameChange = (e) => {
-      setUserName(e.target.value);
-      localStorage.setItem('tyriaTracker_userName', e.target.value);
-    };
+  const [userName, setUserName] = useState(() => {
+    return localStorage.getItem('tyriaTracker_userName') || 'PlinKo';
+  });
+  const handleUserNameChange = (e) => {
+    setUserName(e.target.value);
+    localStorage.setItem('tyriaTracker_userName', e.target.value);
+  };
   const [apiStatus, setApiStatus] = useState('checking'); // 'checking', 'online', 'offline'
+
+  // Função para salvar progresso no MongoDB
+  function saveProgressToMongo(dailyProgress, completedEvents, completedEventTypes, userName) {
+    const userId = localStorage.getItem('tyriaTracker_userId');
+    const date = new Date().toISOString().slice(0, 10);
+    fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress/' + userId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, dailyProgress, completedEvents, completedEventTypes, userName })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setNotification({ type: 'success', message: 'Progresso e eventos salvos no MongoDB!' });
+        else setNotification({ type: 'error', message: 'Erro ao salvar: ' + data.error });
+        setTimeout(() => setNotification(null), 4000);
+      });
+  }
+
+  // Removido duplicatas dos hooks acima
 
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -233,7 +240,23 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
       <Header currentTime={currentTime} apiStatus={apiStatus} isOnline={isOnline} />
-      
+
+      {/* Notificação no canto inferior direito */}
+      {notification && (
+        <div style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          zIndex: 9999,
+          minWidth: 220,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+        }}
+          className={`px-4 py-2 rounded text-sm font-semibold ${notification.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}
+        >
+          {notification.message}
+        </div>
+      )}
+
       <main className="max-w-7xl mx-auto py-8 px-6">
         <div className="mb-10">
           <h2 className="text-3xl font-bold mb-2">Daily Dashboard</h2>
@@ -281,6 +304,6 @@ const Dashboard = () => {
       <Footer />
     </div>
   );
-};
+}
 
 export default Dashboard;
