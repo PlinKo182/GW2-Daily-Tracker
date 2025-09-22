@@ -2,8 +2,18 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Clock, MapPin, Eye, EyeOff, Undo } from 'lucide-react';
 import { mockData } from '../utils/mockData';
 
-// Componente CountdownTimer - sem React.memo e sem intervalo interno
-const CountdownTimer = ({ startTime, endTime, currentTime }) => {
+// CountdownTimer com estado interno - isolado das re-renderizações do pai
+const CountdownTimer = React.memo(({ startTime, endTime }) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const getTimeRemaining = (targetTime) => {
     const difference = targetTime - currentTime;
     
@@ -37,21 +47,21 @@ const CountdownTimer = ({ startTime, endTime, currentTime }) => {
   }
 
   return (
-    <div className={`font-mono mb-4 flex items-center gap-2 ${eventActive ? 'text-emerald-300' : eventUpcoming ? 'text-amber-300' : 'text-gray-400'}`}>
+    <div className={`font-mono mb-4 flex items-center gap-2 ${eventActive ? 'text-emerald-300 animate-pulse' : eventUpcoming ? 'text-amber-300' : 'text-gray-400'}`}>
       <Clock className="w-4 h-4" />
       {countdownText}
     </div>
   );
-};
+});
 
 const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) => {
   const [eventsData, setEventsData] = useState([]);
   const [allEvents, setAllEvents] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [itemPrices, setItemPrices] = useState({}); // Estado para armazenar preços dos itens
+  const [itemPrices, setItemPrices] = useState({});
 
-  // Atualizar o tempo atual a cada segundo
+  // Atualizar o tempo atual a cada segundo apenas para lógica de filtragem
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
@@ -126,7 +136,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   // Buscar preços dos itens via API
   useEffect(() => {
     const fetchItemPrices = async () => {
-      // Coletar todos os IDs de itens necessários
       const itemIds = [];
       
       allEvents.forEach(event => {
@@ -135,21 +144,18 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         }
       });
       
-      // Remover duplicatas
       const uniqueItemIds = [...new Set(itemIds)];
       
       if (uniqueItemIds.length === 0) return;
       
       try {
-        // Fazer uma única chamada para vários itens (API suporta múltiplos IDs)
         const response = await fetch(`https://api.guildwars2.com/v2/commerce/prices?ids=${uniqueItemIds.join(',')}`);
         const data = await response.json();
         
-        // Processar os resultados
         const prices = {};
         data.forEach(item => {
           const copper = item.sells?.unit_price || item.buys?.unit_price || 0;
-          prices[item.id] = copper; // Armazenar o valor em copper
+          prices[item.id] = copper;
         });
         
         setItemPrices(prices);
@@ -162,7 +168,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   }, [allEvents]);
 
   // Função para formatar preço com imagens de moedas
-  const formatPriceWithImages = (copper) => {
+  const formatPriceWithImages = useCallback((copper) => {
     if (!copper) return null;
     
     const gold = Math.floor(copper / 10000);
@@ -203,7 +209,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         )}
       </div>
     );
-  };
+  }, []);
 
   // Atualizar eventos visíveis
   useEffect(() => {
@@ -212,18 +218,15 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
       const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
       
       const filteredEvents = allEvents.filter(event => {
-        // Não mostrar eventos marcados manualmente como concluídos
         const isManuallyCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
         if (isManuallyCompleted) {
           return false;
         }
         
-        // Não mostrar eventos que já terminaram naturalmente
         if (event.endTime <= now) {
           return false;
         }
         
-        // Mostrar apenas eventos que começam nas próximas 2 horas
         return event.startTime <= twoHoursFromNow;
       });
       
@@ -236,10 +239,8 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   // Obter eventos concluídos manualmente
   const completedEventsByType = useMemo(() => {
     const eventsByType = {};
-    const now = currentTime;
     
     allEvents.forEach(event => {
-      // Apenas eventos marcados manualmente como concluídos
       const isManuallyCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
       
       if (isManuallyCompleted) {
@@ -256,7 +257,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     });
     
     return Object.values(eventsByType);
-  }, [allEvents, completedEvents, completedEventTypes, currentTime]);
+  }, [allEvents, completedEvents, completedEventTypes]);
 
   const convertUTCTimeToLocal = (utcTimeString) => {
     const now = new Date();
@@ -288,15 +289,16 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     });
   }, []);
 
-  // Função simplificada para toggle do evento
   const handleEventToggle = useCallback((eventId, eventKey) => {
     onEventToggle(eventId, eventKey);
   }, [onEventToggle]);
 
-  // Componente de cartão de evento
-  const EventCard = useMemo(() => React.memo(({ event, isCompleted = false, onToggle, currentTime }) => {
-    const eventActive = event.startTime <= currentTime && event.endTime >= currentTime;
-    const eventUpcoming = event.startTime > currentTime;
+  // Componente de cartão de evento - AGORA SEM DEPENDÊNCIA DE currentTime
+  const EventCard = useMemo(() => React.memo(({ event, isCompleted = false, onToggle }) => {
+    // Usamos new Date() estático para o status (não precisa ser em tempo real)
+    const now = new Date();
+    const eventActive = event.startTime <= now && event.endTime >= now;
+    const eventUpcoming = event.startTime > now;
 
     let statusClass = '';
     let statusText = '';
@@ -332,7 +334,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             <CountdownTimer 
               startTime={event.startTime} 
               endTime={event.endTime}
-              currentTime={currentTime}
+              // Não passamos currentTime - o timer gerencia seu próprio estado
             />
           )}
           
@@ -340,7 +342,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             {formatTime(event.startTime)} - {formatTime(event.endTime)}
           </div>
 
-          {/* Exibe o reward com imagens de moedas */}
           {event.reward && (
             <div className="flex items-center gap-1 text-sm mt-1">
               {event.reward.type === 'item' && event.reward.itemId ? (
@@ -406,7 +407,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </div>
       </div>
     );
-  }), [copyToClipboard, formatTime, itemPrices, formatPriceWithImages, currentTime]);
+  }), [copyToClipboard, formatTime, itemPrices, formatPriceWithImages]);
 
   // Componente para eventos concluídos manualmente
   const CompletedEventTypeCard = useMemo(() => React.memo(({ eventType, onToggle }) => {
@@ -428,6 +429,55 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
           <div className="text-xs text-gray-400 mb-2">
             {eventType.instances.length} occurrence(s) marked as completed
           </div>
+
+          {/* Exibe o reward também nos eventos concluídos */}
+          {eventType.instances[0]?.reward && (
+            <div className="flex items-center gap-1 text-sm mt-1">
+              {eventType.instances[0].reward.type === 'item' && eventType.instances[0].reward.itemId ? (
+                <a 
+                  href={eventType.instances[0].reward.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-emerald-400 hover:underline"
+                >
+                  {eventType.instances[0].reward.name} 
+                  {itemPrices[eventType.instances[0].reward.itemId] !== undefined ? (
+                    formatPriceWithImages(itemPrices[eventType.instances[0].reward.itemId])
+                  ) : (
+                    <span className="text-yellow-400">Carregando...</span>
+                  )}
+                </a>
+              ) : eventType.instances[0].reward.type === 'item' ? (
+                <a 
+                  href={eventType.instances[0].reward.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-emerald-400 hover:underline"
+                >
+                  {eventType.instances[0].reward.name} <span className="text-yellow-400">({eventType.instances[0].reward.price})</span>
+                </a>
+              ) : (
+                <>
+                  <span className={eventType.instances[0].reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
+                    {eventType.instances[0].reward.amount}
+                  </span>
+                  {eventType.instances[0].reward.currency === 'gold' ? (
+                    <img 
+                      src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
+                      alt="Gold coin" 
+                      className="w-4 h-4 object-contain" 
+                    />
+                  ) : (
+                    <img 
+                      src="https://wiki.guildwars2.com/images/b/b5/Mystic_Coin.png" 
+                      alt="Mystic Coin" 
+                      className="w-4 h-4 object-contain" 
+                    />
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
         
         <div className="px-6 pb-4">
@@ -442,7 +492,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </div>
       </div>
     );
-  }), []);
+  }), [itemPrices, formatPriceWithImages]);
 
   return (
     <div className="mb-12">
@@ -473,7 +523,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         )}
       </div>
       
-      {/* Eventos ativos/upcoming - APENAS NÃO CONCLUÍDOS */}
+      {/* Eventos ativos/upcoming - AGORA COM HOVER ESTÁVEL */}
       {eventsData.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {eventsData.map(event => (
@@ -482,7 +532,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               event={event} 
               isCompleted={false}
               onToggle={handleEventToggle}
-              currentTime={currentTime}
+              // Não passamos currentTime - o cartão é estável
             />
           ))}
         </div>
