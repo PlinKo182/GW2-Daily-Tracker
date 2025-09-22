@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Clock, MapPin, Eye, EyeOff, Undo } from 'lucide-react';
 import { mockData } from '../utils/mockData';
-
+// Importa o ícone de relógio do lucide-react
 // Componente CountdownTimer modificado para receber currentTime como prop
 const CountdownTimer = React.memo(({ startTime, endTime, currentTime }) => {
   const getTimeRemaining = (targetTime) => {
