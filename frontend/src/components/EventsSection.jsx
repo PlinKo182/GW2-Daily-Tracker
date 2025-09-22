@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Clock, MapPin, Eye, EyeOff, Undo } from 'lucide-react';
 import { mockData } from '../utils/mockData';
 
-// Componente CountdownTimer modificado para receber currentTime como prop
+// Componente CountdownTimer
 const CountdownTimer = React.memo(({ startTime, endTime, currentTime }) => {
   const getTimeRemaining = (targetTime) => {
     const difference = targetTime - currentTime;
@@ -24,7 +24,6 @@ const CountdownTimer = React.memo(({ startTime, endTime, currentTime }) => {
 
   const eventActive = startTime <= currentTime && endTime >= currentTime;
   const eventUpcoming = startTime > currentTime;
-  const eventCompleted = endTime < currentTime;
 
   let countdownText = '';
   if (eventActive) {
@@ -73,7 +72,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               const eventTime = convertUTCTimeToLocal(utcTimeStr);
               const endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
-              // Se o evento já passou, agenda para o próximo dia
               if (endTime < now) {
                 eventTime.setDate(eventTime.getDate() + 1);
                 endTime.setDate(endTime.getDate() + 1);
@@ -96,7 +94,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             const eventTime = convertUTCTimeToLocal(utcTimeStr);
             const endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
-            // Se o evento já passou, agenda para o próximo dia
             if (endTime < now) {
               eventTime.setDate(eventTime.getDate() + 1);
               endTime.setDate(endTime.getDate() + 1);
@@ -123,24 +120,25 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     loadAllEvents();
   }, []);
 
-  // Atualizar eventos visíveis quando currentTime ou outras dependências mudarem
+  // CORREÇÃO CRÍTICA: Atualizar eventos visíveis
   useEffect(() => {
     const updateVisibleEvents = () => {
       const now = currentTime;
       const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
       
       const filteredEvents = allEvents.filter(event => {
-        // Não mostrar eventos concluídos manualmente na visualização principal
-        if (completedEventTypes[event.eventKey] || completedEvents[event.id]) {
-          return false;
+        // PRIMEIRO: Não mostrar eventos marcados manualmente como concluídos
+        const isManuallyCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
+        if (isManuallyCompleted) {
+          return false; // Remove imediatamente da lista principal
         }
         
-        // Não mostrar eventos que já terminaram naturalmente (CRÍTICO: remover eventos concluídos naturalmente)
+        // SEGUNDO: Não mostrar eventos que já terminaram naturalmente
         if (event.endTime <= now) {
           return false;
         }
         
-        // Mostrar apenas eventos que começam nas próximas 2 horas
+        // TERCEIRO: Mostrar apenas eventos que começam nas próximas 2 horas
         return event.startTime <= twoHoursFromNow;
       });
       
@@ -150,20 +148,16 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     updateVisibleEvents();
   }, [allEvents, completedEvents, completedEventTypes, currentTime]);
 
-  // Obter eventos concluídos agrupados por tipo (apenas os marcados manualmente)
+  // Obter eventos concluídos manualmente
   const completedEventsByType = useMemo(() => {
     const eventsByType = {};
     const now = currentTime;
     
     allEvents.forEach(event => {
-      // Verificar se o evento está concluído APENAS por marcação manual
+      // Apenas eventos marcados manualmente como concluídos
       const isManuallyCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
       
-      // Ignorar eventos que terminaram naturalmente mas não foram marcados manualmente
-      const isNaturallyCompleted = event.endTime <= now;
-      
-      if (isManuallyCompleted && !isNaturallyCompleted) {
-        // Se é a primeira vez que vemos este tipo de evento, inicializar
+      if (isManuallyCompleted) {
         if (!eventsByType[event.eventKey]) {
           eventsByType[event.eventKey] = {
             eventKey: event.eventKey,
@@ -172,12 +166,10 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
           };
         }
         
-        // Adicionar esta instância à lista
         eventsByType[event.eventKey].instances.push(event);
       }
     });
     
-    // Converter objeto em array
     return Object.values(eventsByType);
   }, [allEvents, completedEvents, completedEventTypes, currentTime]);
 
@@ -211,40 +203,15 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     });
   }, []);
 
-  // Função para lidar com o toggle do evento
+  // Função simplificada para toggle do evento
   const handleEventToggle = useCallback((eventId, eventKey) => {
-    // Primeiro atualiza o estado no componente pai
     onEventToggle(eventId, eventKey);
-    
-    // Depois atualiza imediatamente a lista local
-    const now = currentTime;
-    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-    
-    const filteredEvents = allEvents.filter(event => {
-      // Não mostrar eventos concluídos na visualização principal
-      if (completedEventTypes[event.eventKey] || completedEvents[event.id] || 
-          (event.id === eventId && !completedEvents[eventId]) || 
-          (event.eventKey === eventKey && !completedEventTypes[eventKey])) {
-        return false;
-      }
-      
-      // Não mostrar eventos que já terminaram naturalmente
-      if (event.endTime <= now) {
-        return false;
-      }
-      
-      // Mostrar apenas eventos que começam nas próximas 2 horas
-      return event.startTime <= twoHoursFromNow;
-    });
-    
-    setEventsData(filteredEvents);
-  }, [allEvents, completedEvents, completedEventTypes, onEventToggle, currentTime]);
+  }, [onEventToggle]);
 
-  // Componente de cartão de evento com memoização
+  // Componente de cartão de evento
   const EventCard = useMemo(() => React.memo(({ event, isCompleted = false, onToggle, currentTime }) => {
     const eventActive = event.startTime <= currentTime && event.endTime >= currentTime;
     const eventUpcoming = event.startTime > currentTime;
-    const eventNaturallyCompleted = event.endTime < currentTime;
 
     let statusClass = '';
     let statusText = '';
@@ -258,11 +225,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     } else {
       statusClass = 'bg-gray-500/20 text-gray-300';
       statusText = 'Completed';
-    }
-
-    // Se o evento terminou naturalmente e não foi marcado manualmente, não renderizar o cartão
-    if (eventNaturallyCompleted && !isCompleted) {
-      return null;
     }
 
     return (
@@ -281,7 +243,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             {event.location}
           </div>
           
-          {!isCompleted && !eventNaturallyCompleted && (
+          {!isCompleted && (
             <CountdownTimer 
               startTime={event.startTime} 
               endTime={event.endTime}
@@ -312,7 +274,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     );
   }), [copyToClipboard, formatTime]);
 
-  // Componente para mostrar eventos concluídos agrupados por tipo (apenas marcados manualmente)
+  // Componente para eventos concluídos manualmente
   const CompletedEventTypeCard = useMemo(() => React.memo(({ eventType, onToggle }) => {
     return (
       <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 flex flex-col relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group opacity-70">
@@ -377,7 +339,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         )}
       </div>
       
-      {/* Eventos ativos/upcoming */}
+      {/* Eventos ativos/upcoming - APENAS NÃO CONCLUÍDOS */}
       {eventsData.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {eventsData.map(event => (
@@ -397,7 +359,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </div>
       )}
       
-      {/* Eventos concluídos manualmente (se mostrados) */}
+      {/* Eventos concluídos manualmente */}
       {showCompleted && completedEventsByType.length > 0 && (
         <div className="mt-12">
           <div className="flex items-center gap-3 mb-6">
