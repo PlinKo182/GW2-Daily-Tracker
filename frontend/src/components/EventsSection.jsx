@@ -2,39 +2,19 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Clock, MapPin, Eye, EyeOff, Undo } from 'lucide-react';
 import { mockData } from '../utils/mockData';
 
-// Componente CountdownTimer - SEM React.memo
-const CountdownTimer = ({ startTime, endTime }) => {
-  const [timeRemaining, setTimeRemaining] = useState(() => {
-    const now = new Date();
-    return calculateTimeRemaining(now, startTime, endTime);
-  });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      setTimeRemaining(calculateTimeRemaining(now, startTime, endTime));
-    }, 1000);
+// Componente CountdownTimer - sem React.memo e sem intervalo interno
+const CountdownTimer = ({ startTime, endTime, currentTime }) => {
+  const getTimeRemaining = (targetTime) => {
+    const difference = targetTime - currentTime;
     
-    return () => clearInterval(interval);
-  }, [startTime, endTime]);
-
-  const calculateTimeRemaining = (now, startTime, endTime) => {
-    if (now >= endTime) {
+    if (difference <= 0) {
       return { total: 0, hours: 0, minutes: 0, seconds: 0 };
     }
     
-    if (now < startTime) {
-      const difference = startTime - now;
-      const hours = Math.floor(difference / (1000 * 60 * 60));
-      const minutes = Math.floor((difference / 1000 / 60) % 60);
-      const seconds = Math.floor((difference / 1000) % 60);
-      return { total: difference, hours, minutes, seconds };
-    }
-    
-    const difference = endTime - now;
     const hours = Math.floor(difference / (1000 * 60 * 60));
     const minutes = Math.floor((difference / 1000 / 60) % 60);
     const seconds = Math.floor((difference / 1000) % 60);
+    
     return { total: difference, hours, minutes, seconds };
   };
 
@@ -42,15 +22,16 @@ const CountdownTimer = ({ startTime, endTime }) => {
     return `${timeObj.hours.toString().padStart(2, '0')}:${timeObj.minutes.toString().padStart(2, '0')}:${timeObj.seconds.toString().padStart(2, '0')}`;
   };
 
-  const now = new Date();
-  const eventActive = startTime <= now && endTime >= now;
-  const eventUpcoming = startTime > now;
+  const eventActive = startTime <= currentTime && endTime >= currentTime;
+  const eventUpcoming = startTime > currentTime;
 
   let countdownText = '';
   if (eventActive) {
-    countdownText = `Ends in: ${formatTimeRemaining(timeRemaining)}`;
+    const remaining = getTimeRemaining(endTime);
+    countdownText = `Ends in: ${formatTimeRemaining(remaining)}`;
   } else if (eventUpcoming) {
-    countdownText = `Starts in: ${formatTimeRemaining(timeRemaining)}`;
+    const remaining = getTimeRemaining(startTime);
+    countdownText = `Starts in: ${formatTimeRemaining(remaining)}`;
   } else {
     countdownText = 'Event completed';
   }
@@ -68,6 +49,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   const [allEvents, setAllEvents] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [itemPrices, setItemPrices] = useState({}); // Estado para armazenar preços dos itens
 
   // Atualizar o tempo atual a cada segundo
   useEffect(() => {
@@ -140,6 +122,88 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
 
     loadAllEvents();
   }, []);
+
+  // Buscar preços dos itens via API
+  useEffect(() => {
+    const fetchItemPrices = async () => {
+      // Coletar todos os IDs de itens necessários
+      const itemIds = [];
+      
+      allEvents.forEach(event => {
+        if (event.reward && event.reward.itemId) {
+          itemIds.push(event.reward.itemId);
+        }
+      });
+      
+      // Remover duplicatas
+      const uniqueItemIds = [...new Set(itemIds)];
+      
+      if (uniqueItemIds.length === 0) return;
+      
+      try {
+        // Fazer uma única chamada para vários itens (API suporta múltiplos IDs)
+        const response = await fetch(`https://api.guildwars2.com/v2/commerce/prices?ids=${uniqueItemIds.join(',')}`);
+        const data = await response.json();
+        
+        // Processar os resultados
+        const prices = {};
+        data.forEach(item => {
+          const copper = item.sells?.unit_price || item.buys?.unit_price || 0;
+          prices[item.id] = copper; // Armazenar o valor em copper
+        });
+        
+        setItemPrices(prices);
+      } catch (error) {
+        console.error('Falha ao buscar preços de itens:', error);
+      }
+    };
+
+    fetchItemPrices();
+  }, [allEvents]);
+
+  // Função para formatar preço com imagens de moedas
+  const formatPriceWithImages = (copper) => {
+    if (!copper) return null;
+    
+    const gold = Math.floor(copper / 10000);
+    const silver = Math.floor((copper % 10000) / 100);
+    const copperRemaining = copper % 100;
+    
+    return (
+      <div className="flex items-center gap-1 text-yellow-400">
+        {gold > 0 && (
+          <>
+            <span>{gold}</span>
+            <img 
+              src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
+              alt="Gold coin" 
+              className="w-4 h-4 object-contain" 
+            />
+          </>
+        )}
+        {silver > 0 && (
+          <>
+            <span>{silver}</span>
+            <img 
+              src="https://wiki.guildwars2.com/images/3/3c/Silver_coin.png" 
+              alt="Silver coin" 
+              className="w-4 h-4 object-contain" 
+            />
+          </>
+        )}
+        {copperRemaining > 0 && (
+          <>
+            <span>{copperRemaining}</span>
+            <img 
+              src="https://wiki.guildwars2.com/images/e/eb/Copper_coin.png" 
+              alt="Copper coin" 
+              className="w-4 h-4 object-contain" 
+            />
+          </>
+        )}
+      </div>
+    );
+  };
 
   // Atualizar eventos visíveis
   useEffect(() => {
@@ -268,6 +332,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             <CountdownTimer 
               startTime={event.startTime} 
               endTime={event.endTime}
+              currentTime={currentTime}
             />
           )}
           
@@ -341,7 +406,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </div>
       </div>
     );
-  }), [copyToClipboard, formatTime, itemPrices, formatPriceWithImages]);
+  }), [copyToClipboard, formatTime, itemPrices, formatPriceWithImages, currentTime]);
 
   // Componente para eventos concluídos manualmente
   const CompletedEventTypeCard = useMemo(() => React.memo(({ eventType, onToggle }) => {
