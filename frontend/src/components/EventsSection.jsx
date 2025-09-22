@@ -49,6 +49,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   const [allEvents, setAllEvents] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [itemPrices, setItemPrices] = useState({}); // Estado para armazenar preços dos itens
 
   // Atualizar o tempo atual a cada segundo
   useEffect(() => {
@@ -72,7 +73,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               const eventTime = convertUTCTimeToLocal(utcTimeStr);
               let endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
-              // CORREÇÃO CRÍTICA: Recalcula o endTime após adicionar um dia
               if (endTime < now) {
                 eventTime.setDate(eventTime.getDate() + 1);
                 endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
@@ -96,7 +96,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             const eventTime = convertUTCTimeToLocal(utcTimeStr);
             let endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
-            // CORREÇÃO CRÍTICA: Recalcula o endTime após adicionar um dia
             if (endTime < now) {
               eventTime.setDate(eventTime.getDate() + 1);
               endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
@@ -123,6 +122,50 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
 
     loadAllEvents();
   }, []);
+
+  // Buscar preços dos itens via API
+  useEffect(() => {
+    const fetchItemPrices = async () => {
+      // Coletar todos os IDs de itens necessários
+      const itemIds = [];
+      
+      allEvents.forEach(event => {
+        if (event.reward && event.reward.itemId) {
+          itemIds.push(event.reward.itemId);
+        }
+      });
+      
+      // Remover duplicatas
+      const uniqueItemIds = [...new Set(itemIds)];
+      
+      if (uniqueItemIds.length === 0) return;
+      
+      try {
+        // Fazer uma única chamada para vários itens (API suporta múltiplos IDs)
+        const response = await fetch(`https://api.guildwars2.com/v2/commerce/prices?ids=${uniqueItemIds.join(',')}`);
+        const data = await response.json();
+        
+        // Processar os resultados
+        const prices = {};
+        data.forEach(item => {
+          const copper = item.sells[0]?.unit_price || item.buys[0]?.unit_price || 0;
+          const gold = Math.floor(copper / 10000);
+          const silver = Math.floor((copper % 10000) / 100);
+          const copperRemaining = copper % 100;
+          
+          // Formatar o preço (ex: 1g 10s 5c)
+          const formatted = `${gold}g ${silver}s ${copperRemaining}c`;
+          prices[item.id] = formatted;
+        });
+        
+        setItemPrices(prices);
+      } catch (error) {
+        console.error('Falha ao buscar preços de itens:', error);
+      }
+    };
+
+    fetchItemPrices();
+  }, [allEvents]);
 
   // Atualizar eventos visíveis
   useEffect(() => {
@@ -262,18 +305,27 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
           {/* Exibe o reward com imagem de ouro, mystic coin ou link para item */}
           {event.reward && (
             <div className="flex items-center gap-1 text-sm mt-1">
-              {event.reward.type === 'item' ? (
+              {event.reward.type === 'item' && event.reward.itemId ? (
                 <a 
                   href={event.reward.link} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-emerald-400 hover:underline"
                 >
-                  {event.reward.name}
+                  {event.reward.name} <span className="text-yellow-400">({itemPrices[event.reward.itemId] || 'Carregando...'})</span>
+                </a>
+              ) : event.reward.type === 'item' ? (
+                <a 
+                  href={event.reward.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-emerald-400 hover:underline"
+                >
+                  {event.reward.name} <span className="text-yellow-400">({event.reward.price})</span>
                 </a>
               ) : (
                 <>
-                  <span className={event.reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
+                  <span className={event.reward.currency === 'gold' ? 'text-yellow-400' : 'text-yellow-400'}>
                     {event.reward.amount}
                   </span>
                   {event.reward.currency === 'gold' ? (
@@ -311,7 +363,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </div>
       </div>
     );
-  }), [copyToClipboard, formatTime]);
+  }), [copyToClipboard, formatTime, itemPrices]);
 
   // Componente para eventos concluídos manualmente
   const CompletedEventTypeCard = useMemo(() => React.memo(({ eventType, onToggle }) => {
