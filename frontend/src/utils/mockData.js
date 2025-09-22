@@ -95,12 +95,20 @@ export const mockData = {
           {
             "map": "Iron Marches",
             "waypoint": "Iron Marches - [&BOYBAAA=]",
-            "utc_times": ["02:20", "08:20", "14:20", "20:20"]
+            "utc_times": ["02:20", "08:20", "14:20", "20:20"],
+            "reward": {
+              "amount": 1,
+              "currency": "mystic_coin"
+            }
           },
           {
             "map": "Gendarran Fields",
             "waypoint": "Gendarran Fields - [&BOQAAAA=]",
-            "utc_times": ["04:20", "10:20", "16:20", "22:20"]
+            "utc_times": ["04:20", "10:20", "16:20", "22:20"],
+            "reward": {
+              "amount": 1,
+              "currency": "mystic_coin"
+            }
           }
         ]
       },
