@@ -271,7 +271,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
                 </a>
               ) : (
                 <>
-                  <span className={event.reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
+                  <span className={event.reward.currency === 'gold' ? 'text-gray-400' : 'text-gray-400'}>
                     {event.reward.amount}
                   </span>
                   {event.reward.currency === 'gold' ? (
