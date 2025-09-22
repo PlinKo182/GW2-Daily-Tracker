@@ -58,6 +58,16 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   const [eventsData, setEventsData] = useState([]);
   const [allEvents, setAllEvents] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date()); // Adicionado estado para currentTime
+
+  // Atualizar o tempo atual a cada segundo
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   // Carregar todos os eventos uma vez
   useEffect(() => {
@@ -122,15 +132,20 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     loadAllEvents();
   }, []);
 
-  // Atualizar eventos visíveis imediatamente quando as props mudarem
+  // Atualizar eventos visíveis quando currentTime ou outras dependências mudarem
   useEffect(() => {
     const updateVisibleEvents = () => {
-      const now = new Date();
+      const now = currentTime; // Usar currentTime em vez de new Date()
       const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
       
       const filteredEvents = allEvents.filter(event => {
         // Não mostrar eventos concluídos na visualização principal
         if (completedEventTypes[event.eventKey] || completedEvents[event.id]) {
+          return false;
+        }
+        
+        // Não mostrar eventos que já terminaram
+        if (event.endTime <= now) {
           return false;
         }
         
@@ -142,7 +157,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     };
 
     updateVisibleEvents();
-  }, [allEvents, completedEvents, completedEventTypes]);
+  }, [allEvents, completedEvents, completedEventTypes, currentTime]); // Adicionar currentTime como dependência
 
   // Obter eventos concluídos agrupados por tipo
   const completedEventsByType = useMemo(() => {
@@ -207,7 +222,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     onEventToggle(eventId, eventKey);
     
     // Depois atualiza imediatamente a lista local
-    const now = new Date();
+    const now = currentTime;
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     
     const filteredEvents = allEvents.filter(event => {
@@ -218,12 +233,17 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         return false;
       }
       
+      // Não mostrar eventos que já terminaram
+      if (event.endTime <= now) {
+        return false;
+      }
+      
       // Mostrar apenas eventos que começam nas próximas 2 horas
       return event.startTime <= twoHoursFromNow;
     });
     
     setEventsData(filteredEvents);
-  }, [allEvents, completedEvents, completedEventTypes, onEventToggle]);
+  }, [allEvents, completedEvents, completedEventTypes, onEventToggle, currentTime]);
 
   // Componente de cartão de evento com memoização
   const EventCard = useMemo(() => React.memo(({ event, isCompleted = false, onToggle }) => {
