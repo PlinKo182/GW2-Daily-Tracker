@@ -37,7 +37,7 @@ const CountdownTimer = React.memo(({ startTime, endTime, currentTime }) => {
   }
 
   return (
-    <div className={`font-mono mb-4 flex items-center gap-2 ${eventActive ? 'text-emerald-300 animate-pulse' : eventUpcoming ? 'text-amber-300' : 'text-gray-400'}`}>
+    <div className={`font-mono mb-4 flex items-center gap-2 ${eventActive ? 'text-emerald-300' : eventUpcoming ? 'text-amber-300' : 'text-gray-400'}`}>
       <Clock className="w-4 h-4" />
       {countdownText}
     </div>
