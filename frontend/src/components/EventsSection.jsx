@@ -2,18 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Clock, MapPin, Eye, EyeOff, Undo } from 'lucide-react';
 import { mockData } from '../utils/mockData';
 
-// Componente isolado para o timer com estado interno
-const CountdownTimer = React.memo(({ startTime, endTime }) => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
+// Componente CountdownTimer modificado para receber currentTime como prop
+const CountdownTimer = React.memo(({ startTime, endTime, currentTime }) => {
   const getTimeRemaining = (targetTime) => {
     const difference = targetTime - currentTime;
     
@@ -58,7 +48,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   const [eventsData, setEventsData] = useState([]);
   const [allEvents, setAllEvents] = useState([]);
   const [showCompleted, setShowCompleted] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date()); // Adicionado estado para currentTime
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Atualizar o tempo atual a cada segundo
   useEffect(() => {
@@ -135,7 +125,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   // Atualizar eventos visíveis quando currentTime ou outras dependências mudarem
   useEffect(() => {
     const updateVisibleEvents = () => {
-      const now = currentTime; // Usar currentTime em vez de new Date()
+      const now = currentTime;
       const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
       
       const filteredEvents = allEvents.filter(event => {
@@ -157,7 +147,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     };
 
     updateVisibleEvents();
-  }, [allEvents, completedEvents, completedEventTypes, currentTime]); // Adicionar currentTime como dependência
+  }, [allEvents, completedEvents, completedEventTypes, currentTime]);
 
   // Obter eventos concluídos agrupados por tipo
   const completedEventsByType = useMemo(() => {
@@ -246,10 +236,9 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   }, [allEvents, completedEvents, completedEventTypes, onEventToggle, currentTime]);
 
   // Componente de cartão de evento com memoização
-  const EventCard = useMemo(() => React.memo(({ event, isCompleted = false, onToggle }) => {
-    const now = new Date();
-    const eventActive = event.startTime <= now && event.endTime >= now;
-    const eventUpcoming = event.startTime > now;
+  const EventCard = useMemo(() => React.memo(({ event, isCompleted = false, onToggle, currentTime }) => {
+    const eventActive = event.startTime <= currentTime && event.endTime >= currentTime;
+    const eventUpcoming = event.startTime > currentTime;
 
     let statusClass = '';
     let statusText = '';
@@ -284,7 +273,8 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
           {!isCompleted && (
             <CountdownTimer 
               startTime={event.startTime} 
-              endTime={event.endTime} 
+              endTime={event.endTime}
+              currentTime={currentTime}
             />
           )}
           
@@ -385,6 +375,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               event={event} 
               isCompleted={false}
               onToggle={handleEventToggle}
+              currentTime={currentTime}
             />
           ))}
         </div>
