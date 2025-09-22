@@ -86,7 +86,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
                 startTime: eventTime,
                 endTime: endTime,
                 duration: event.duration_minutes,
-                reward: event.reward // Copia o reward se existir
+                reward: location.reward || event.reward // Copia o reward se existir
               });
             });
           });
@@ -257,15 +257,38 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             {formatTime(event.startTime)} - {formatTime(event.endTime)}
           </div>
 
-          {/* Exibe o reward com imagem de ouro */}
+          {/* Exibe o reward com imagem de ouro, mystic coin ou link para item */}
           {event.reward && (
-            <div className="flex items-center gap-1 text-sm text-yellow-400 mt-1">
-              <span>{event.reward.amount}</span>
-              <img 
-                src="https://wiki.guildwars2.com/images/thumb/d/d1/Gold_coin.png/18px-Gold_coin.png" 
-                alt="Gold coin" 
-                className="w-4 h-4 object-contain" 
-              />
+            <div className="flex items-center gap-1 text-sm mt-1">
+              {event.reward.type === 'item' ? (
+                <a 
+                  href={event.reward.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-emerald-400 hover:underline"
+                >
+                  {event.reward.name}
+                </a>
+              ) : (
+                <>
+                  <span className={event.reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
+                    {event.reward.amount}
+                  </span>
+                  {event.reward.currency === 'gold' ? (
+                    <img 
+                      src="https://wiki.guildwars2.com/images/thumb/d/d1/Gold_coin.png/18px-Gold_coin.png" 
+                      alt="Gold coin" 
+                      className="w-4 h-4 object-contain" 
+                    />
+                  ) : (
+                    <img 
+                      src="https://wiki.guildwars2.com/images/b/b5/Mystic_Coin.png" 
+                      alt="Mystic Coin" 
+                      className="w-4 h-4 object-contain" 
+                    />
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>

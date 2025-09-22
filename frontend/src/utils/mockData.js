@@ -86,7 +86,11 @@ export const mockData = {
           {
             "map": "Timberline Falls",
             "waypoint": "Timberline Falls - [&BEwCAAA=]",
-            "utc_times": ["00:20", "06:20", "12:20", "18:20"]
+            "utc_times": ["00:20", "06:20", "12:20", "18:20"],
+            "reward": {
+              "amount": 1,
+              "currency": "mystic_coin"
+            }
           },
           {
             "map": "Iron Marches",
@@ -115,6 +119,11 @@ export const mockData = {
         "event_name": "Shadow Behemoth",
         "location": "Queensdale",
         "duration_minutes": 10,
+        "reward": {
+          "type": "item",
+          "name": "Spirit Links",
+          "link": "https://wiki.guildwars2.com/wiki/Spirit_Links"
+        },
         "utc_times": ["01:45", "03:45", "05:45", "07:45", "09:45", "11:45", "13:45", "15:45", "17:45", "19:45", "21:45", "23:45"],
         "waypoint": "Shadow Behemoth - [&BPcAAAA=]"
       },
@@ -145,6 +154,13 @@ export const mockData = {
         "duration_minutes": 20,
         "utc_times": ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"],
         "waypoint": "Fractal Incursion - [&BLQAAAA=]"
+      },
+      "fractal_incursion_kessex": {
+        "event_name": "Fractal Incursion",
+        "location": "Kessex Hills",
+        "duration_minutes": 20,
+        "utc_times": ["01:00", "05:00", "09:00", "13:00", "17:00", "21:00"],
+        "waypoint": "Fractal Incursion - [&BBIAAAA=]"
       },
       "fractal_incursion_diessa": {
         "event_name": "Fractal Incursion",
