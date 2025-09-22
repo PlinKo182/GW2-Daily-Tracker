@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Header from './Header';
 import DailyProgress from './DailyProgress';
 import DailyTasks from './DailyTasks';
-import EventsSection from './EventsSection';
+import EventsSection from './EventsSection/EventsSection';
 import Footer from './Footer';
 import { mockData } from '../utils/mockData';
 import api, { localStorageAPI } from '../services/api';

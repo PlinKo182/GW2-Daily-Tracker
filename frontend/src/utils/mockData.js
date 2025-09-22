@@ -147,6 +147,12 @@ export const mockData = {
         "event_name": "Claw of Jormag",
         "location": "Frostgorge Sound",
         "duration_minutes": 15,
+        "reward": {
+          "type": "item",
+          "name": "Icy Dragon Sword",
+          "link": "https://wiki.guildwars2.com/wiki/Icy_Dragon_Sword",
+          "itemId": 31065 // ID do item para busca na API
+        },
         "utc_times": ["02:30", "05:30", "08:30", "11:30", "14:30", "17:30", "20:30", "23:30"],
         "waypoint": "Claw of Jormag - [&BHoCAAA=]"
       },
@@ -154,6 +160,12 @@ export const mockData = {
         "event_name": "Auric Basin Octovine",
         "location": "Auric Basin",
         "duration_minutes": 20,
+        "reward": {
+          "type": "item",
+          "name": "Vial of Liquid Aurillium",
+          "link": "https://wiki.guildwars2.com/wiki/Vial_of_Liquid_Aurillium",
+          "itemId": 76063 // ID do item para busca na API
+        },
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
         "waypoint": "Octovine - [&BMYHAAA=]"
       },
