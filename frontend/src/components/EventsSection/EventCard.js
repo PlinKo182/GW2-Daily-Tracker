@@ -58,13 +58,15 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
                 href={event.reward.link} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-emerald-400 hover:underline"
+                className="text-emerald-400"
               >
-                {event.reward.name} 
+                <span className="hover:underline">{event.reward.name}</span>
                 {itemPrices[event.reward.itemId] !== undefined ? (
-                  formatPriceWithImages(itemPrices[event.reward.itemId])
+                  <span className="ml-1">
+                    {formatPriceWithImages(itemPrices[event.reward.itemId])}
+                  </span>
                 ) : (
-                  <span className="text-yellow-400">Carregando...</span>
+                  <span className="text-yellow-400 ml-1">Carregando...</span>
                 )}
               </a>
             ) : event.reward.type === 'item' ? (
@@ -72,9 +74,10 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
                 href={event.reward.link} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-emerald-400 hover:underline"
+                className="text-emerald-400"
               >
-                {event.reward.name} <span className="text-yellow-400">({event.reward.price})</span>
+                <span className="hover:underline">{event.reward.name}</span>
+                <span className="text-yellow-400 ml-1">({event.reward.price})</span>
               </a>
             ) : (
               <>
