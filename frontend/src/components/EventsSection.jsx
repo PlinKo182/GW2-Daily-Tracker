@@ -85,7 +85,8 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
                 waypoint: location.waypoint,
                 startTime: eventTime,
                 endTime: endTime,
-                duration: event.duration_minutes
+                duration: event.duration_minutes,
+                reward: event.reward // Copia o reward se existir
               });
             });
           });
@@ -107,7 +108,8 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               waypoint: event.waypoint,
               startTime: eventTime,
               endTime: endTime,
-              duration: event.duration_minutes
+              duration: event.duration_minutes,
+              reward: event.reward // Copia o reward se existir
             });
           });
         }
@@ -254,6 +256,18 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
           <div className="text-xs text-gray-400 mb-2">
             {formatTime(event.startTime)} - {formatTime(event.endTime)}
           </div>
+
+          {/* Exibe o reward com imagem de ouro */}
+          {event.reward && (
+            <div className="flex items-center gap-1 text-sm text-yellow-400 mt-1">
+              <span>{event.reward.amount}</span>
+              <img 
+                src="https://wiki.guildwars2.com/images/thumb/d/d1/Gold_coin.png/18px-Gold_coin.png" 
+                alt="Gold coin" 
+                className="w-4 h-4 object-contain" 
+              />
+            </div>
+          )}
         </div>
         
         <div className="px-6 pb-4">

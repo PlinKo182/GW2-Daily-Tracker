@@ -1,5 +1,3 @@
-// Mock data for Tyria Tracker
-
 export const mockData = {
   gatheringTasks: [
     {
@@ -106,6 +104,10 @@ export const mockData = {
         "event_name": "Dragonstorm",
         "location": "Eye of the North",
         "duration_minutes": 15,
+        "reward": {
+          "amount": 2,
+          "currency": "gold"
+        },
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
         "waypoint": "Dragonstorm - [&BAkMAAA=]"
       },
@@ -143,13 +145,6 @@ export const mockData = {
         "duration_minutes": 20,
         "utc_times": ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"],
         "waypoint": "Fractal Incursion - [&BLQAAAA=]"
-      },
-      "fractal_incursion_kessex": {
-        "event_name": "Fractal Incursion",
-        "location": "Kessex Hills",
-        "duration_minutes": 20,
-        "utc_times": ["01:00", "05:00", "09:00", "13:00", "17:00", "21:00"],
-        "waypoint": "Fractal Incursion - [&BBIAAAA=]"
       },
       "fractal_incursion_diessa": {
         "event_name": "Fractal Incursion",
