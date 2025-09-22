@@ -70,11 +70,12 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
           event.locations.forEach(location => {
             location.utc_times.forEach(utcTimeStr => {
               const eventTime = convertUTCTimeToLocal(utcTimeStr);
-              const endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
+              let endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
+              // CORREÇÃO CRÍTICA: Recalcula o endTime após adicionar um dia
               if (endTime < now) {
                 eventTime.setDate(eventTime.getDate() + 1);
-                endTime.setDate(endTime.getDate() + 1);
+                endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
               }
 
               events.push({
@@ -86,18 +87,19 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
                 startTime: eventTime,
                 endTime: endTime,
                 duration: event.duration_minutes,
-                reward: location.reward || event.reward // Copia o reward se existir
+                reward: location.reward || event.reward
               });
             });
           });
         } else {
           event.utc_times.forEach(utcTimeStr => {
             const eventTime = convertUTCTimeToLocal(utcTimeStr);
-            const endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
+            let endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
+            // CORREÇÃO CRÍTICA: Recalcula o endTime após adicionar um dia
             if (endTime < now) {
               eventTime.setDate(eventTime.getDate() + 1);
-              endTime.setDate(endTime.getDate() + 1);
+              endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
             }
 
             events.push({
@@ -109,7 +111,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               startTime: eventTime,
               endTime: endTime,
               duration: event.duration_minutes,
-              reward: event.reward // Copia o reward se existir
+              reward: event.reward
             });
           });
         }
@@ -122,25 +124,25 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     loadAllEvents();
   }, []);
 
-  // CORREÇÃO CRÍTICA: Atualizar eventos visíveis
+  // Atualizar eventos visíveis
   useEffect(() => {
     const updateVisibleEvents = () => {
       const now = currentTime;
       const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
       
       const filteredEvents = allEvents.filter(event => {
-        // PRIMEIRO: Não mostrar eventos marcados manualmente como concluídos
+        // Não mostrar eventos marcados manualmente como concluídos
         const isManuallyCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
         if (isManuallyCompleted) {
-          return false; // Remove imediatamente da lista principal
+          return false;
         }
         
-        // SEGUNDO: Não mostrar eventos que já terminaram naturalmente
+        // Não mostrar eventos que já terminaram naturalmente
         if (event.endTime <= now) {
           return false;
         }
         
-        // TERCEIRO: Mostrar apenas eventos que começam nas próximas 2 horas
+        // Mostrar apenas eventos que começam nas próximas 2 horas
         return event.startTime <= twoHoursFromNow;
       });
       
@@ -271,7 +273,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
                 </a>
               ) : (
                 <>
-                  <span className={event.reward.currency === 'gold' ? 'text-gray-400' : 'text-gray-400'}>
+                  <span className={event.reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
                     {event.reward.amount}
                   </span>
                   {event.reward.currency === 'gold' ? (
