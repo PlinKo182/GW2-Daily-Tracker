@@ -148,7 +148,8 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         // Processar os resultados
         const prices = {};
         data.forEach(item => {
-          const copper = item.sells[0]?.unit_price || item.buys[0]?.unit_price || 0;
+          // CORREÇÃO: Acessar diretamente item.sells.unit_price e item.buys.unit_price
+          const copper = item.sells?.unit_price || item.buys?.unit_price || 0;
           const gold = Math.floor(copper / 10000);
           const silver = Math.floor((copper % 10000) / 100);
           const copperRemaining = copper % 100;
@@ -325,7 +326,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
                 </a>
               ) : (
                 <>
-                  <span className={event.reward.currency === 'gold' ? 'text-yellow-400' : 'text-yellow-400'}>
+                  <span className={event.reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
                     {event.reward.amount}
                   </span>
                   {event.reward.currency === 'gold' ? (
