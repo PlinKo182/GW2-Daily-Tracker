@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Clock, MapPin, Eye, EyeOff, Undo } from 'lucide-react';
 import { mockData } from '../utils/mockData';
-// Importa o ícone de relógio do lucide-react
+
 // Componente CountdownTimer modificado para receber currentTime como prop
 const CountdownTimer = React.memo(({ startTime, endTime, currentTime }) => {
   const getTimeRemaining = (targetTime) => {
@@ -24,6 +24,7 @@ const CountdownTimer = React.memo(({ startTime, endTime, currentTime }) => {
 
   const eventActive = startTime <= currentTime && endTime >= currentTime;
   const eventUpcoming = startTime > currentTime;
+  const eventCompleted = endTime < currentTime;
 
   let countdownText = '';
   if (eventActive) {
@@ -129,12 +130,12 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
       const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
       
       const filteredEvents = allEvents.filter(event => {
-        // Não mostrar eventos concluídos na visualização principal
+        // Não mostrar eventos concluídos manualmente na visualização principal
         if (completedEventTypes[event.eventKey] || completedEvents[event.id]) {
           return false;
         }
         
-        // Não mostrar eventos que já terminaram
+        // Não mostrar eventos que já terminaram naturalmente (CRÍTICO: remover eventos concluídos naturalmente)
         if (event.endTime <= now) {
           return false;
         }
@@ -149,15 +150,19 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     updateVisibleEvents();
   }, [allEvents, completedEvents, completedEventTypes, currentTime]);
 
-  // Obter eventos concluídos agrupados por tipo
+  // Obter eventos concluídos agrupados por tipo (apenas os marcados manualmente)
   const completedEventsByType = useMemo(() => {
     const eventsByType = {};
+    const now = currentTime;
     
     allEvents.forEach(event => {
-      // Verificar se o evento está concluído por tipo ou por instância
-      const isCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
+      // Verificar se o evento está concluído APENAS por marcação manual
+      const isManuallyCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
       
-      if (isCompleted) {
+      // Ignorar eventos que terminaram naturalmente mas não foram marcados manualmente
+      const isNaturallyCompleted = event.endTime <= now;
+      
+      if (isManuallyCompleted && !isNaturallyCompleted) {
         // Se é a primeira vez que vemos este tipo de evento, inicializar
         if (!eventsByType[event.eventKey]) {
           eventsByType[event.eventKey] = {
@@ -174,7 +179,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     
     // Converter objeto em array
     return Object.values(eventsByType);
-  }, [allEvents, completedEvents, completedEventTypes]);
+  }, [allEvents, completedEvents, completedEventTypes, currentTime]);
 
   const convertUTCTimeToLocal = (utcTimeString) => {
     const now = new Date();
@@ -223,7 +228,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         return false;
       }
       
-      // Não mostrar eventos que já terminaram
+      // Não mostrar eventos que já terminaram naturalmente
       if (event.endTime <= now) {
         return false;
       }
@@ -239,6 +244,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   const EventCard = useMemo(() => React.memo(({ event, isCompleted = false, onToggle, currentTime }) => {
     const eventActive = event.startTime <= currentTime && event.endTime >= currentTime;
     const eventUpcoming = event.startTime > currentTime;
+    const eventNaturallyCompleted = event.endTime < currentTime;
 
     let statusClass = '';
     let statusText = '';
@@ -252,6 +258,11 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     } else {
       statusClass = 'bg-gray-500/20 text-gray-300';
       statusText = 'Completed';
+    }
+
+    // Se o evento terminou naturalmente e não foi marcado manualmente, não renderizar o cartão
+    if (eventNaturallyCompleted && !isCompleted) {
+      return null;
     }
 
     return (
@@ -270,7 +281,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             {event.location}
           </div>
           
-          {!isCompleted && (
+          {!isCompleted && !eventNaturallyCompleted && (
             <CountdownTimer 
               startTime={event.startTime} 
               endTime={event.endTime}
@@ -301,7 +312,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     );
   }), [copyToClipboard, formatTime]);
 
-  // Componente para mostrar eventos concluídos agrupados por tipo
+  // Componente para mostrar eventos concluídos agrupados por tipo (apenas marcados manualmente)
   const CompletedEventTypeCard = useMemo(() => React.memo(({ eventType, onToggle }) => {
     return (
       <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 flex flex-col relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group opacity-70">
@@ -315,11 +326,11 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         <div className="p-6 flex-grow pt-12">
           <h3 className="text-xl font-bold text-emerald-400 mb-2">{eventType.name}</h3>
           <div className="text-sm text-gray-400 mb-4">
-            Completed today
+            Completed manually
           </div>
           
           <div className="text-xs text-gray-400 mb-2">
-            {eventType.instances.length} occurrence(s)
+            {eventType.instances.length} occurrence(s) marked as completed
           </div>
         </div>
         
@@ -329,7 +340,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
               Click checkbox to undo
             </span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300">
-              Completed
+              Manually Completed
             </span>
           </div>
         </div>
@@ -386,11 +397,11 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </div>
       )}
       
-      {/* Eventos concluídos (se mostrados) */}
+      {/* Eventos concluídos manualmente (se mostrados) */}
       {showCompleted && completedEventsByType.length > 0 && (
         <div className="mt-12">
           <div className="flex items-center gap-3 mb-6">
-            <h3 className="text-2xl font-bold text-emerald-400">Completed Events</h3>
+            <h3 className="text-2xl font-bold text-emerald-400">Manually Completed Events</h3>
             <button
               onClick={() => setShowCompleted(false)}
               className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-300"
