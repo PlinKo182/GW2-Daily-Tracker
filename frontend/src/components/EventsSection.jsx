@@ -148,15 +148,8 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         // Processar os resultados
         const prices = {};
         data.forEach(item => {
-          // CORREÇÃO: Acessar diretamente item.sells.unit_price e item.buys.unit_price
           const copper = item.sells?.unit_price || item.buys?.unit_price || 0;
-          const gold = Math.floor(copper / 10000);
-          const silver = Math.floor((copper % 10000) / 100);
-          const copperRemaining = copper % 100;
-          
-          // Formatar o preço (ex: 1g 10s 5c)
-          const formatted = `${gold}g ${silver}s ${copperRemaining}c`;
-          prices[item.id] = formatted;
+          prices[item.id] = copper; // Armazenar o valor em copper
         });
         
         setItemPrices(prices);
@@ -167,6 +160,50 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
 
     fetchItemPrices();
   }, [allEvents]);
+
+  // Função para formatar preço com imagens de moedas
+  const formatPriceWithImages = (copper) => {
+    if (!copper) return null;
+    
+    const gold = Math.floor(copper / 10000);
+    const silver = Math.floor((copper % 10000) / 100);
+    const copperRemaining = copper % 100;
+    
+    return (
+      <div className="flex items-center gap-1 text-yellow-400">
+        {gold > 0 && (
+          <>
+            <span>{gold}</span>
+            <img 
+              src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
+              alt="Gold coin" 
+              className="w-4 h-4 object-contain" 
+            />
+          </>
+        )}
+        {silver > 0 && (
+          <>
+            <span>{silver}</span>
+            <img 
+              src="https://wiki.guildwars2.com/images/3/3c/Silver_coin.png" 
+              alt="Silver coin" 
+              className="w-4 h-4 object-contain" 
+            />
+          </>
+        )}
+        {copperRemaining > 0 && (
+          <>
+            <span>{copperRemaining}</span>
+            <img 
+              src="https://wiki.guildwars2.com/images/e/eb/Copper_coin.png" 
+              alt="Copper coin" 
+              className="w-4 h-4 object-contain" 
+            />
+          </>
+        )}
+      </div>
+    );
+  };
 
   // Atualizar eventos visíveis
   useEffect(() => {
@@ -303,7 +340,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
             {formatTime(event.startTime)} - {formatTime(event.endTime)}
           </div>
 
-          {/* Exibe o reward com imagem de ouro, mystic coin ou link para item */}
+          {/* Exibe o reward com imagens de moedas */}
           {event.reward && (
             <div className="flex items-center gap-1 text-sm mt-1">
               {event.reward.type === 'item' && event.reward.itemId ? (
@@ -313,7 +350,12 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
                   rel="noopener noreferrer"
                   className="text-emerald-400 hover:underline"
                 >
-                  {event.reward.name} <span className="text-yellow-400">({itemPrices[event.reward.itemId] || 'Carregando...'})</span>
+                  {event.reward.name} 
+                  {itemPrices[event.reward.itemId] !== undefined ? (
+                    formatPriceWithImages(itemPrices[event.reward.itemId])
+                  ) : (
+                    <span className="text-yellow-400">Carregando...</span>
+                  )}
                 </a>
               ) : event.reward.type === 'item' ? (
                 <a 
@@ -331,7 +373,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
                   </span>
                   {event.reward.currency === 'gold' ? (
                     <img 
-                      src="https://wiki.guildwars2.com/images/thumb/d/d1/Gold_coin.png/18px-Gold_coin.png" 
+                      src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
                       alt="Gold coin" 
                       className="w-4 h-4 object-contain" 
                     />
@@ -364,7 +406,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </div>
       </div>
     );
-  }), [copyToClipboard, formatTime, itemPrices]);
+  }), [copyToClipboard, formatTime, itemPrices, formatPriceWithImages]);
 
   // Componente para eventos concluídos manualmente
   const CompletedEventTypeCard = useMemo(() => React.memo(({ eventType, onToggle }) => {
