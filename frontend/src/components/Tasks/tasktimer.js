@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Clock } from 'lucide-react';
 import { convertUTCTimeToLocal } from '../../utils/timeUtils';
 
@@ -8,65 +8,73 @@ const TaskTimer = ({ availability, currentTime }) => {
   const [isAvailable, setIsAvailable] = useState(false);
   const [currentWindow, setCurrentWindow] = useState(null);
 
-  useEffect(() => {
-    if (!availability || !availability.times) return;
+  // Calcular disponibilidade apenas quando availability ou currentTime mudarem
+  const availabilityInfo = useMemo(() => {
+    if (!availability || !availability.times) return null;
 
-    const calculateAvailability = () => {
-      const now = currentTime || new Date();
-      let nextTime = null;
-      let currentWindowTemp = null;
+    const now = currentTime || new Date();
+    let nextTime = null;
+    let currentWindowTemp = null;
+    let isAvailableTemp = false;
 
-      // Converter horários UTC para locais
-      const localTimes = availability.times.map(utcTime => {
-        return convertUTCTimeToLocal(utcTime);
-      });
+    // Converter horários UTC para locais
+    const localTimes = availability.times.map(utcTime => {
+      return convertUTCTimeToLocal(utcTime);
+    });
 
-      // Verificar se estamos em alguma janela de disponibilidade
-      for (const time of localTimes) {
-        const eventTime = new Date(time);
-        const endTime = new Date(eventTime.getTime() + availability.duration * 60000);
+    // Verificar se estamos em alguma janela de disponibilidade
+    for (const time of localTimes) {
+      const eventTime = new Date(time);
+      const endTime = new Date(eventTime.getTime() + availability.duration * 60000);
 
-        // Se o evento está acontecendo agora
-        if (eventTime <= now && endTime >= now) {
-          setIsAvailable(true);
-          setCurrentWindow({ start: eventTime, end: endTime });
-          setNextAvailableTime(null);
-          return;
-        }
-
-        // Se o evento é no futuro
-        if (eventTime > now) {
-          if (!nextTime || eventTime < nextTime) {
-            nextTime = eventTime;
-          }
-        }
+      // Se o evento está acontecendo agora
+      if (eventTime <= now && endTime >= now) {
+        isAvailableTemp = true;
+        currentWindowTemp = { start: eventTime, end: endTime };
+        break;
       }
 
-      // Se não estamos em nenhuma janela atual
-      setIsAvailable(false);
-      setCurrentWindow(null);
-      
+      // Se o evento é no futuro
+      if (eventTime > now) {
+        if (!nextTime || eventTime < nextTime) {
+          nextTime = eventTime;
+        }
+      }
+    }
+
+    // Se não estamos em nenhuma janela atual
+    if (!isAvailableTemp && !currentWindowTemp) {
       if (nextTime) {
-        setNextAvailableTime({ 
-          start: nextTime, 
-          end: new Date(nextTime.getTime() + availability.duration * 60000) 
-        });
+        currentWindowTemp = null;
       } else {
         // Se não há próximo hoje, usar o primeiro de amanhã
         const firstTimeTomorrow = convertUTCTimeToLocal(availability.times[0]);
         firstTimeTomorrow.setDate(firstTimeTomorrow.getDate() + 1);
-        setNextAvailableTime({ 
-          start: firstTimeTomorrow, 
-          end: new Date(firstTimeTomorrow.getTime() + availability.duration * 60000) 
-        });
+        nextTime = firstTimeTomorrow;
       }
-    };
+    }
 
-    calculateAvailability();
+    return {
+      isAvailable: isAvailableTemp,
+      currentWindow: currentWindowTemp,
+      nextAvailableTime: nextTime ? { 
+        start: nextTime, 
+        end: new Date(nextTime.getTime() + availability.duration * 60000) 
+      } : null
+    };
   }, [availability, currentTime]);
 
   useEffect(() => {
-    if (!nextAvailableTime && !currentWindow) return;
+    if (availabilityInfo) {
+      setIsAvailable(availabilityInfo.isAvailable);
+      setCurrentWindow(availabilityInfo.currentWindow);
+      setNextAvailableTime(availabilityInfo.nextAvailableTime);
+    }
+  }, [availabilityInfo]);
+
+  // Timer separado que não afeta o estado principal
+  useEffect(() => {
+    if (!availability) return;
 
     const updateTimer = () => {
       const now = new Date();
@@ -108,7 +116,7 @@ const TaskTimer = ({ availability, currentTime }) => {
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [nextAvailableTime, currentWindow]);
+  }, [currentWindow, nextAvailableTime, availability]);
 
   if (!availability) return null;
 
@@ -133,4 +141,4 @@ const TaskTimer = ({ availability, currentTime }) => {
   return null;
 };
 
-export default TaskTimer;
+export default React.memo(TaskTimer);
