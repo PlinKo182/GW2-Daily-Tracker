@@ -241,56 +241,53 @@ export const generateEvents = () => {
 
   for (const [eventKey, eventData] of Object.entries(mockData.eventConfig.events)) {
     if (eventData.locations) {
-      // Eventos com múltiplas localizações
       eventData.locations.forEach(location => {
         location.utc_times.forEach(utcTime => {
-          const startTime = convertUTCTimeToLocal(utcTime);
-          startTime.setMilliseconds(0);
+          const [hours, minutes] = utcTime.split(':').map(Number);
+          const utcDate = new Date(Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+            hours,
+            minutes
+          ));
+          utcDate.setMilliseconds(0);
+
+          // Se o horário já passou hoje, use amanhã
+          let startTime = utcDate;
+          if (startTime < now) {
+            startTime.setDate(startTime.getDate() + 1);
+          }
 
           const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
           endTime.setMilliseconds(0);
 
-          // Hoje
           const todayInstance = createEventInstance(eventKey, eventData, location, startTime, endTime, now, twoHoursLater);
           if (todayInstance) allEvents.push(todayInstance);
-
-          // Amanhã
-          const tomorrowStartTime = new Date(startTime);
-          tomorrowStartTime.setDate(tomorrowStartTime.getDate() + 1);
-          tomorrowStartTime.setMilliseconds(0);
-
-          const tomorrowEndTime = new Date(endTime);
-          tomorrowEndTime.setDate(tomorrowEndTime.getDate() + 1);
-          tomorrowEndTime.setMilliseconds(0);
-
-          const tomorrowInstance = createEventInstance(eventKey, eventData, location, tomorrowStartTime, tomorrowEndTime, now, twoHoursLater);
-          if (tomorrowInstance) allEvents.push(tomorrowInstance);
         });
       });
     } else {
-      // Eventos com local único
       eventData.utc_times.forEach(utcTime => {
-        const startTime = convertUTCTimeToLocal(utcTime);
-        startTime.setMilliseconds(0);
+        const [hours, minutes] = utcTime.split(':').map(Number);
+        const utcDate = new Date(Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          hours,
+          minutes
+        ));
+        utcDate.setMilliseconds(0);
+
+        let startTime = utcDate;
+        if (startTime < now) {
+          startTime.setDate(startTime.getDate() + 1);
+        }
 
         const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
         endTime.setMilliseconds(0);
 
-        // Hoje
         const todayInstance = createEventInstance(eventKey, eventData, null, startTime, endTime, now, twoHoursLater);
         if (todayInstance) allEvents.push(todayInstance);
-
-        // Amanhã
-        const tomorrowStartTime = new Date(startTime);
-        tomorrowStartTime.setDate(tomorrowStartTime.getDate() + 1);
-        tomorrowStartTime.setMilliseconds(0);
-
-        const tomorrowEndTime = new Date(endTime);
-        tomorrowEndTime.setDate(tomorrowEndTime.getDate() + 1);
-        tomorrowEndTime.setMilliseconds(0);
-
-        const tomorrowInstance = createEventInstance(eventKey, eventData, null, tomorrowStartTime, tomorrowEndTime, now, twoHoursLater);
-        if (tomorrowInstance) allEvents.push(tomorrowInstance);
       });
     }
   }
