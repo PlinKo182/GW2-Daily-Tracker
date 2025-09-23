@@ -4,7 +4,7 @@ import { convertUTCTimeToLocal } from '../utils/timeUtils';
 export const useEvents = (mockData, currentTime) => {
   const [allEvents, setAllEvents] = useState([]);
 
-  // Carregar todos os eventos
+  // Carregar todos os eventos apenas uma vez
   useEffect(() => {
     const loadAllEvents = () => {
       const events = [];
@@ -15,20 +15,21 @@ export const useEvents = (mockData, currentTime) => {
           event.locations.forEach(location => {
             location.utc_times.forEach(utcTimeStr => {
               const eventTime = convertUTCTimeToLocal(utcTimeStr);
-              let endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
-
-              if (endTime < now) {
+              
+              // Ajustar para o próximo dia se o evento já passou hoje
+              if (eventTime < now) {
                 eventTime.setDate(eventTime.getDate() + 1);
-                endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
               }
+              
+              const endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
               events.push({
-                id: `${key}_${location.map}`,
+                id: `${key}_${location.map}_${utcTimeStr}`,
                 eventKey: key,
                 name: event.event_name,
                 location: location.map,
                 waypoint: location.waypoint,
-                startTime: eventTime,
+                startTime: new Date(eventTime),
                 endTime: endTime,
                 duration: event.duration_minutes,
                 reward: location.reward || event.reward
@@ -38,20 +39,21 @@ export const useEvents = (mockData, currentTime) => {
         } else {
           event.utc_times.forEach(utcTimeStr => {
             const eventTime = convertUTCTimeToLocal(utcTimeStr);
-            let endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
-
-            if (endTime < now) {
+            
+            // Ajustar para o próximo dia se o evento já passou hoje
+            if (eventTime < now) {
               eventTime.setDate(eventTime.getDate() + 1);
-              endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
             }
+            
+            const endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
             events.push({
-              id: key,
+              id: `${key}_${utcTimeStr}`,
               eventKey: key,
               name: event.event_name,
               location: event.location,
               waypoint: event.waypoint,
-              startTime: eventTime,
+              startTime: new Date(eventTime),
               endTime: endTime,
               duration: event.duration_minutes,
               reward: event.reward
@@ -60,24 +62,22 @@ export const useEvents = (mockData, currentTime) => {
         }
       });
 
+      // Ordenar por hora de início
       events.sort((a, b) => a.startTime - b.startTime);
       setAllEvents(events);
     };
 
     loadAllEvents();
-  }, [mockData]);
+  }, [mockData]); // Remover currentTime das dependências
 
-  // Filtrar eventos visíveis
+  // Filtrar eventos visíveis baseado no currentTime
   const eventsData = useMemo(() => {
     const now = currentTime;
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     
     return allEvents.filter(event => {
-      if (event.endTime <= now) {
-        return false;
-      }
-      
-      return event.startTime <= twoHoursFromNow;
+      // Mostrar eventos que começam dentro das próximas 2 horas E não terminaram
+      return event.startTime <= twoHoursFromNow && event.endTime > now;
     });
   }, [allEvents, currentTime]);
 

@@ -1,15 +1,15 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Eye, EyeOff, Undo } from 'lucide-react';
 import { mockData } from '../../utils/mockData';
-import { useCurrentTime } from '../../hooks/useCurrentTime';
 import { useEvents } from '../../hooks/useEvents';
 import { useItemPrices } from '../../hooks/useItemPrices';
 import EventCard from './EventCard';
 import CompletedEventTypeCard from './CompletedEventTypeCard';
 
-const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) => {
+const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, currentTime }) => {
   const [showCompleted, setShowCompleted] = useState(false);
-  const currentTime = useCurrentTime();
+  
+  // Usar o currentTime passado do Dashboard em vez de criar um novo
   const { allEvents, eventsData } = useEvents(mockData, currentTime);
   const itemPrices = useItemPrices(allEvents);
 

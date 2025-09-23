@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 
-const CountdownTimer = ({ startTime, endTime }) => {
+const CountdownTimer = ({ startTime, endTime, onTimerEnd }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTime(new Date());
+      const newTime = new Date();
+      setCurrentTime(newTime);
+      
+      // Notificar quando o evento terminar
+      if (endTime <= newTime && onTimerEnd) {
+        onTimerEnd();
+      }
     }, 1000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [endTime, onTimerEnd]);
 
   const getTimeRemaining = (targetTime) => {
     const difference = targetTime - currentTime;
