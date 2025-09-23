@@ -134,6 +134,7 @@ export const mockData = {
         "event_name": "Fractal Incursion",
         "location": "Snowden Drifts",
         "duration_minutes": 20,
+        "reward": { "amount": 1, "currency": "gold" }, // ADICIONADO RECOMPENSA
         "utc_times": ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"],
         "waypoint": "Fractal Incursion - [&BLQAAAA=]"
       },
@@ -141,6 +142,7 @@ export const mockData = {
         "event_name": "Fractal Incursion",
         "location": "Kessex Hills",
         "duration_minutes": 20,
+        "reward": { "amount": 1, "currency": "gold" }, // ADICIONADO RECOMPENSA
         "utc_times": ["01:00", "05:00", "09:00", "13:00", "17:00", "21:00"],
         "waypoint": "Fractal Incursion - [&BBIAAAA=]"
       },
@@ -148,6 +150,7 @@ export const mockData = {
         "event_name": "Fractal Incursion",
         "location": "Diessa Plateau",
         "duration_minutes": 20,
+        "reward": { "amount": 1, "currency": "gold" }, // ADICIONADO RECOMPENSA
         "utc_times": ["02:00", "06:00", "10:00", "14:00", "18:00", "22:00"],
         "waypoint": "Fractal Incursion - [&BN0AAAA=]"
       }
@@ -171,11 +174,11 @@ function getPSNAWaypoint() {
   return psnaWaypoints[new Date().getDay()];
 }
 
-// ✅ Função principal — CORRIGIDA PARA FUSO HORÁRIO
+// ✅ Função principal — CORRIGIDA PARA FUSO HORÁRIO E RECOMPENSAS
 export const generateEvents = () => {
   const now = new Date();
-  const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000); // Horário local
-  const twoHoursLaterLocal = new Date(nowLocal.getTime() + 2 * 60 * 60 * 1000);
+  const nowUTC = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+  const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
   const allEvents = [];
 
   for (const [eventKey, eventData] of Object.entries(mockData.eventConfig.events)) {
@@ -183,45 +186,48 @@ export const generateEvents = () => {
       eventData.locations.forEach(location => {
         location.utc_times.forEach(utcTime => {
           const [hours, minutes] = utcTime.split(':').map(Number);
-          
-          // Gera evento para hoje em UTC
-          let startDate = new Date(nowLocal);
-          startDate.setUTCHours(hours, minutes, 0, 0);
-          
-          // Se já passou hoje, move para amanhã
-          if (startDate < nowLocal) {
-            startDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+          const utcDate = new Date(Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+            hours,
+            minutes
+          ));
+          utcDate.setMilliseconds(0);
+
+          let startTime = utcDate;
+          if (startTime < now) {
+            startTime = new Date(startTime.getTime() + 24 * 60 * 60 * 1000);
           }
 
-          const endDate = new Date(startDate.getTime() + eventData.duration_minutes * 60 * 1000);
+          const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
+          endTime.setMilliseconds(0);
 
-          // Só inclui se estiver nas próximas 2h locais
-          if (startDate > twoHoursLaterLocal && startDate > nowLocal) {
-            return;
-          }
-
-          const instance = createEventInstance(eventKey, eventData, location, startDate, endDate, nowLocal, twoHoursLaterLocal);
+          const instance = createEventInstance(eventKey, eventData, location, startTime, endTime, now, twoHoursLater);
           if (instance) allEvents.push(instance);
         });
       });
     } else {
       eventData.utc_times.forEach(utcTime => {
         const [hours, minutes] = utcTime.split(':').map(Number);
-        
-        let startDate = new Date(nowLocal);
-        startDate.setUTCHours(hours, minutes, 0, 0);
+        const utcDate = new Date(Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          hours,
+          minutes
+        ));
+        utcDate.setMilliseconds(0);
 
-        if (startDate < nowLocal) {
-          startDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+        let startTime = utcDate;
+        if (startTime < now) {
+          startTime = new Date(startTime.getTime() + 24 * 60 * 60 * 1000);
         }
 
-        const endDate = new Date(startDate.getTime() + eventData.duration_minutes * 60 * 1000);
+        const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
+        endTime.setMilliseconds(0);
 
-        if (startDate > twoHoursLaterLocal && startDate > nowLocal) {
-          return;
-        }
-
-        const instance = createEventInstance(eventKey, eventData, null, startDate, endDate, nowLocal, twoHoursLaterLocal);
+        const instance = createEventInstance(eventKey, eventData, null, startTime, endTime, now, twoHoursLater);
         if (instance) allEvents.push(instance);
       });
     }
@@ -233,11 +239,15 @@ export const generateEvents = () => {
 function createEventInstance(eventKey, eventData, location, startTime, endTime, now, cutoffTime) {
   if (startTime > cutoffTime && startTime > now) return null;
 
+  // Garante que reward sempre exista
   let reward = null;
   if (eventData.reward) {
     reward = { ...eventData.reward };
   } else if (location?.reward) {
     reward = { ...location.reward };
+  } else {
+    // Se não houver reward definido, cria um objeto padrão
+    reward = { type: 'gold', amount: 1 };
   }
 
   if (reward?.type === 'item' && !reward.link) {
@@ -252,7 +262,7 @@ function createEventInstance(eventKey, eventData, location, startTime, endTime, 
     startTime,
     endTime,
     duration: eventData.duration_minutes,
-    reward,
+    reward, // Garantido que não será undefined
     waypoint: location ? location.waypoint : eventData.waypoint
   };
 }

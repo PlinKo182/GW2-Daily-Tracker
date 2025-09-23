@@ -30,7 +30,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                 rel="noopener noreferrer"
                 className="text-emerald-400 hover:underline"
               >
-                {eventType.instances[0].reward.name} 
+                {eventType.instances[0].reward.name || 'Unknown Item'} 
                 {itemPrices[eventType.instances[0].reward.itemId] !== undefined ? (
                   <> ({itemPrices[eventType.instances[0].reward.itemId]} gems)</>
                 ) : (
@@ -44,7 +44,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                 rel="noopener noreferrer"
                 className="text-emerald-400 hover:underline"
               >
-                {eventType.instances[0].reward.name} <span className="text-yellow-400">({eventType.instances[0].reward.price})</span>
+                {eventType.instances[0].reward.name || 'Unknown Item'} <span className="text-yellow-400">({eventType.instances[0].reward.price})</span>
               </a>
             ) : (
               <>

@@ -71,15 +71,16 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
               <span className="text-sm">Reward</span>
             </div>
             <div className="text-right">
-              {event.reward?.type === 'item' ? (
+              {/* Correção principal: Verificação segura para event.reward */}
+              {event.reward && event.reward.type === 'item' ? (
                 <a 
                   href={event.reward.link} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-emerald-300 hover:underline block"
                 >
-                  {event.reward.name}
-                  {itemPrices[event.reward.itemId] !== undefined ? (
+                  {event.reward.name || 'Unknown Item'}
+                  {event.reward.itemId && itemPrices[event.reward.itemId] !== undefined ? (
                     <span className="text-yellow-400 text-xs ml-1">
                       ({itemPrices[event.reward.itemId]} gems)
                     </span>
@@ -91,7 +92,7 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
                     <span className="text-gray-500 text-xs ml-1">(Carregando...)</span>
                   )}
                 </a>
-              ) : event.reward?.currency === 'gold' ? (
+              ) : event.reward && event.reward.currency === 'gold' ? (
                 <div className="flex items-center gap-1">
                   <span className="text-yellow-400">{event.reward.amount}</span>
                   <img 
@@ -100,7 +101,7 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
                     className="w-4 h-4"
                   />
                 </div>
-              ) : event.reward?.currency === 'mystic_coin' ? (
+              ) : event.reward && event.reward.currency === 'mystic_coin' ? (
                 <div className="flex items-center gap-1">
                   <span className="text-purple-400">{event.reward.amount}</span>
                   <img 
@@ -110,7 +111,7 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
                   />
                 </div>
               ) : (
-                <span className="text-gray-400">—</span>
+                <span className="text-gray-400">No reward specified</span>
               )}
             </div>
           </div>
@@ -161,6 +162,5 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
     </div>
   );
 };
-console.log(`Event: ${event.name} | Start: ${event.startTime.toLocaleString()} | Now: ${currentTime.toLocaleString()}`);
 
 export default React.memo(EventCard);
