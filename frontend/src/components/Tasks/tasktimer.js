@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
-import { convertUTCTimeToLocal } from '../utils/timeUtils';
+import { convertUTCTimeToLocal } from '../../utils/timeUtils';
 
 const TaskTimer = ({ availability, currentTime }) => {
   const [nextAvailableTime, setNextAvailableTime] = useState(null);
