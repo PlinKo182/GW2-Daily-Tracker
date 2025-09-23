@@ -5,7 +5,8 @@ export const mockData = {
       name: 'Vine Bridge',
       waypoint: '[&BIYHAAA=]',
       availability: {
-        times: ["21:50", "22:50", "23:50"], // Horários em UTC
+        times: ["00:50","01:50","02:50","03:50","04:50","05:50","06:50","07:50","08:50","09:50","10:50","11:50","12:50","13:50","14:50","15:50","16:50",
+          "17:50","18:50","19:50","20:50","21:50", "22:50", "23:50"], // Horários em UTC
         duration: 10 // Duração em minutos
       }
     },
@@ -118,7 +119,7 @@ export const mockData = {
               },
               {
                 "type": "item",
-                "name": "Endless Ley-Line Anomaly Tonic",
+                "name": "Ley-Line Anomaly Tonic",
                 "link": "https://wiki.guildwars2.com/wiki/Endless_Ley-Line_Anomaly_Tonic_(container)",
                 "itemId": 79034
               }
@@ -128,19 +129,35 @@ export const mockData = {
             "map": "Iron Marches",
             "waypoint": "Iron Marches - [&BOYBAAA=]",
             "utc_times": ["02:20", "08:20", "14:20", "20:20"],
-            "rewards": {
-              "amount": 1,
-              "currency": "mystic_coin"
-            }
+            "rewards": [
+              {
+                "amount": 1,
+                "currency": "mystic_coin"
+              },
+              {
+                "type": "item",
+                "name": "Ley-Line Anomaly Tonic",
+                "link": "https://wiki.guildwars2.com/wiki/Endless_Ley-Line_Anomaly_Tonic_(container)",
+                "itemId": 79034
+              }
+            ]
           },
           {
             "map": "Gendarran Fields",
             "waypoint": "Gendarran Fields - [&BOQAAAA=]",
             "utc_times": ["04:20", "10:20", "16:20", "22:20"],
-            "rewards": {
-              "amount": 1,
-              "currency": "mystic_coin"
-            }
+            "rewards": [
+              {
+                "amount": 1,
+                "currency": "mystic_coin"
+              },
+              {
+                "type": "item",
+                "name": "Ley-Line Anomaly Tonic",
+                "link": "https://wiki.guildwars2.com/wiki/Endless_Ley-Line_Anomaly_Tonic_(container)",
+                "itemId": 79034
+              }
+            ]
           }
         ]
       },
