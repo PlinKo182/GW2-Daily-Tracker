@@ -162,7 +162,6 @@ const Dashboard = () => {
     });
   }, []);
 
-  // FUNÇÃO CRITICAMENTE CORRIGIDA - handleEventToggle
   const handleEventToggle = useCallback((eventId, eventKey) => {
     setCompletedEvents(prevEvents => {
       const newCompletedEvents = { ...prevEvents };
@@ -325,6 +324,7 @@ const Dashboard = () => {
           dailyProgress={dailyProgress}
           onTaskToggle={handleTaskToggle}
           calculateCategoryProgress={calculateCategoryProgress}
+          currentTime={currentTime}
         />
 
         <EventsSection 

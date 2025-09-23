@@ -3,7 +3,11 @@ export const mockData = {
     {
       id: 'vine_bridge',
       name: 'Vine Bridge',
-      waypoint: '[&BIYHAAA=]'
+      waypoint: '[&BIYHAAA=]',
+      availability: {
+        times: ["21:50", "22:50", "23:50"], // Horários em UTC
+        duration: 10 // Duração em minutos
+      }
     },
     {
       id: 'prosperity',

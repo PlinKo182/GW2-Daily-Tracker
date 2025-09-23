@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pickaxe, Hammer, Star } from 'lucide-react';
 import { mockData } from '../utils/mockData';
+import TaskTimer from './TaskTimer';
 
 const ProgressBar = React.memo(({ progress }) => (
   <div className="px-6 pb-4">
@@ -17,7 +18,7 @@ const ProgressBar = React.memo(({ progress }) => (
   </div>
 ));
 
-const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) => {
+const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, currentTime }) => {
   const copyToClipboard = useCallback((text) => {
     navigator.clipboard.writeText(text.trim()).then(() => {
       // Poderia adicionar notificação toast aqui
@@ -40,40 +41,52 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress }) 
           <h3 className="text-xl font-bold text-emerald-400">{title}</h3>
         </div>
         <p className="text-sm text-gray-400 mb-4">{description}</p>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {tasks.map((task) => (
-            <label key={task.id} className="flex items-center space-x-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={dailyProgress[category]?.[task.id] || false}
-                onChange={() => onTaskToggle(category, task.id)}
-                className="rounded bg-gray-700 border-gray-600 text-emerald-400 focus:ring-emerald-400/50 focus:ring-2"
-              />
-              <div className="flex-1 flex items-center justify-between">
-                <span className={`text-gray-300 transition-colors ${dailyProgress[category]?.[task.id] ? 'line-through text-gray-500' : ''}`}>
-                  {task.name}
-                </span>
-                {task.waypoint && (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      copyToClipboard(task.waypoint);
-                    }}
-                    className="text-emerald-400 text-xs font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors duration-150"
-                    title="Click to copy waypoint"
-                  >
-                    {task.waypoint}
-                    {/* Removido o ícone ExternalLink */}
-                  </button>
-                )}
-              </div>
-            </label>
+            <div key={task.id} className="group">
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={dailyProgress[category]?.[task.id] || false}
+                  onChange={() => onTaskToggle(category, task.id)}
+                  className="rounded bg-gray-700 border-gray-600 text-emerald-400 focus:ring-emerald-400/50 focus:ring-2"
+                  disabled={task.availability && !dailyProgress[category]?.[task.id]} // Desabilitar se não está disponível
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-gray-300 transition-colors ${dailyProgress[category]?.[task.id] ? 'line-through text-gray-500' : ''}`}>
+                      {task.name}
+                    </span>
+                    {task.waypoint && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          copyToClipboard(task.waypoint);
+                        }}
+                        className="text-emerald-400 text-xs font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors duration-150"
+                        title="Click to copy waypoint"
+                      >
+                        {task.waypoint}
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Timer para tarefas com disponibilidade específica */}
+                  {task.availability && (
+                    <TaskTimer 
+                      availability={task.availability} 
+                      currentTime={currentTime}
+                    />
+                  )}
+                </div>
+              </label>
+            </div>
           ))}
         </div>
       </div>
       <ProgressBar progress={progress} />
     </div>
-  ), [dailyProgress, onTaskToggle, copyToClipboard]);
+  ), [dailyProgress, onTaskToggle, copyToClipboard, currentTime]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
