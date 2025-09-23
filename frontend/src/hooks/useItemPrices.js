@@ -1,4 +1,5 @@
-// useItemPrices.js
+import { useState, useEffect } from 'react';  // Adicionar importação
+
 export const useItemPrices = (events) => {
   const [itemPrices, setItemPrices] = useState({});
 
