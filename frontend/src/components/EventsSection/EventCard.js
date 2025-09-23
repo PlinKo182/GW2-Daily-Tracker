@@ -81,7 +81,7 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
               </a>
             ) : (
               <>
-                <span className={event.reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
+                <span className={event.reward.currency === 'gold' ? 'text-yellow-400' : 'text-yellow-400'}>
                   {event.reward.amount}
                 </span>
                 {event.reward.currency === 'gold' ? (
