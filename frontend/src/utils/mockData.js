@@ -174,8 +174,8 @@ function getPSNAWaypoint() {
 // ✅ Função principal — CORRIGIDA PARA FUSO HORÁRIO
 export const generateEvents = () => {
   const now = new Date();
-  const nowUTC = new Date(now.getTime() + now.getTimezoneOffset() * 60000); // Converte para UTC
-  const twoHoursLaterUTC = new Date(nowUTC.getTime() + 2 * 60 * 60 * 1000);
+  const nowLocal = new Date(now.getTime() - now.getTimezoneOffset() * 60000); // Horário local
+  const twoHoursLaterLocal = new Date(nowLocal.getTime() + 2 * 60 * 60 * 1000);
   const allEvents = [];
 
   for (const [eventKey, eventData] of Object.entries(mockData.eventConfig.events)) {
@@ -184,32 +184,23 @@ export const generateEvents = () => {
         location.utc_times.forEach(utcTime => {
           const [hours, minutes] = utcTime.split(':').map(Number);
           
-          // Cria data em UTC para hoje
-          let startTimeUTC = new Date(Date.UTC(
-            nowUTC.getUTCFullYear(),
-            nowUTC.getUTCMonth(),
-            nowUTC.getUTCDate(),
-            hours,
-            minutes
-          ));
-
+          // Gera evento para hoje em UTC
+          let startDate = new Date(nowLocal);
+          startDate.setUTCHours(hours, minutes, 0, 0);
+          
           // Se já passou hoje, move para amanhã
-          if (startTimeUTC < nowUTC) {
-            startTimeUTC = new Date(startTimeUTC.getTime() + 24 * 60 * 60 * 1000);
+          if (startDate < nowLocal) {
+            startDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
           }
 
-          const endTimeUTC = new Date(startTimeUTC.getTime() + eventData.duration_minutes * 60 * 1000);
+          const endDate = new Date(startDate.getTime() + eventData.duration_minutes * 60 * 1000);
 
-          // Só inclui se estiver nas próximas 2h
-          if (startTimeUTC > twoHoursLaterUTC && startTimeUTC > nowUTC) {
+          // Só inclui se estiver nas próximas 2h locais
+          if (startDate > twoHoursLaterLocal && startDate > nowLocal) {
             return;
           }
 
-          // Converte de volta para local apenas para exibição
-          const startTimeLocal = new Date(startTimeUTC.getTime() - now.getTimezoneOffset() * 60000);
-          const endTimeLocal = new Date(endTimeUTC.getTime() - now.getTimezoneOffset() * 60000);
-
-          const instance = createEventInstance(eventKey, eventData, location, startTimeLocal, endTimeLocal, now, twoHoursLaterUTC);
+          const instance = createEventInstance(eventKey, eventData, location, startDate, endDate, nowLocal, twoHoursLaterLocal);
           if (instance) allEvents.push(instance);
         });
       });
@@ -217,28 +208,20 @@ export const generateEvents = () => {
       eventData.utc_times.forEach(utcTime => {
         const [hours, minutes] = utcTime.split(':').map(Number);
         
-        let startTimeUTC = new Date(Date.UTC(
-          nowUTC.getUTCFullYear(),
-          nowUTC.getUTCMonth(),
-          nowUTC.getUTCDate(),
-          hours,
-          minutes
-        ));
+        let startDate = new Date(nowLocal);
+        startDate.setUTCHours(hours, minutes, 0, 0);
 
-        if (startTimeUTC < nowUTC) {
-          startTimeUTC = new Date(startTimeUTC.getTime() + 24 * 60 * 60 * 1000);
+        if (startDate < nowLocal) {
+          startDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
         }
 
-        const endTimeUTC = new Date(startTimeUTC.getTime() + eventData.duration_minutes * 60 * 1000);
+        const endDate = new Date(startDate.getTime() + eventData.duration_minutes * 60 * 1000);
 
-        if (startTimeUTC > twoHoursLaterUTC && startTimeUTC > nowUTC) {
+        if (startDate > twoHoursLaterLocal && startDate > nowLocal) {
           return;
         }
 
-        const startTimeLocal = new Date(startTimeUTC.getTime() - now.getTimezoneOffset() * 60000);
-        const endTimeLocal = new Date(endTimeUTC.getTime() - now.getTimezoneOffset() * 60000);
-
-        const instance = createEventInstance(eventKey, eventData, null, startTimeLocal, endTimeLocal, now, twoHoursLaterUTC);
+        const instance = createEventInstance(eventKey, eventData, null, startDate, endDate, nowLocal, twoHoursLaterLocal);
         if (instance) allEvents.push(instance);
       });
     }

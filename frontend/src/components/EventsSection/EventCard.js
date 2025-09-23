@@ -161,5 +161,6 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
     </div>
   );
 };
+console.log(`Event: ${event.name} | Start: ${event.startTime.toLocaleString()} | Now: ${currentTime.toLocaleString()}`);
 
 export default React.memo(EventCard);
