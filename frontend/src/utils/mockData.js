@@ -1,3 +1,6 @@
+// utils/mockData.js
+import { convertUTCTimeToLocal } from './timeUtils';
+
 export const mockData = {
   gatheringTasks: [
     {
@@ -77,6 +80,7 @@ export const mockData = {
           "type": "item",
           "name": "Chak Egg Sac",
           "link": "https://wiki.guildwars2.com/wiki/Chak_Egg_Sac",
+          "itemId": 74988, // ← ID CORRETO (API)
           "currency": "gold"
         },
         "utc_times": ["00:00", "03:00", "06:00", "07:00", "11:30", "16:00", "19:00"],
@@ -134,7 +138,8 @@ export const mockData = {
           "type": "item",
           "name": "Spirit Links",
           "link": "https://wiki.guildwars2.com/wiki/Spirit_Links",
-          "itemId": 31051 // ID do item para busca na API
+          "itemId": 31051, // ← Correto
+          "currency": "gold"
         },
         "utc_times": ["01:45", "03:45", "05:45", "07:45", "09:45", "11:45", "13:45", "15:45", "17:45", "19:45", "21:45", "23:45"],
         "waypoint": "Shadow Behemoth - [&BPcAAAA=]"
@@ -154,7 +159,8 @@ export const mockData = {
           "type": "item",
           "name": "Icy Dragon Sword",
           "link": "https://wiki.guildwars2.com/wiki/Icy_Dragon_Sword",
-          "itemId": 31065 // ID do item para busca na API
+          "itemId": 31065, // ← Correto
+          "currency": "gold"
         },
         "utc_times": ["02:30", "05:30", "08:30", "11:30", "14:30", "17:30", "20:30", "23:30"],
         "waypoint": "Claw of Jormag - [&BHoCAAA=]"
@@ -167,7 +173,8 @@ export const mockData = {
           "type": "item",
           "name": "Vial of Liquid Aurillium",
           "link": "https://wiki.guildwars2.com/wiki/Vial_of_Liquid_Aurillium",
-          "itemId": 76063 // ID do item para busca na API
+          "itemId": 76063, // ← Correto
+          "currency": "gold"
         },
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
         "waypoint": "Octovine - [&BMYHAAA=]"
@@ -197,7 +204,7 @@ export const mockData = {
   }
 };
 
-// PSNA (Pact Supply Network Agent) helper functions
+// PSNA helper functions
 function getPSNAName() {
   const psnaData = {
     0: "Repair Station",        // Sunday
@@ -208,22 +215,117 @@ function getPSNAName() {
     5: "Repair Station",      // Friday
     6: "Camp Resolve"         // Saturday
   };
-  
   const today = new Date().getDay();
   return `PSNA: ${psnaData[today]}`;
 }
 
 function getPSNAWaypoint() {
   const psnaWaypoints = {
-    0: "[&BIkHAAA=]",  // Sunday - Repair Station
-    1: "[&BIcHAAA=]",  // Monday - Restoration Refuge
-    2: "[&BH8HAAA=]",  // Tuesday - Camp Resolve
-    3: "[&BH4HAAA=]",  // Wednesday - Town of Prosperity
-    4: "[&BKsHAAA=]",  // Thursday - Blue Oasis
-    5: "[&BJQHAAA=]",  // Friday - Repair Station
-    6: "[&BH8HAAA=]"   // Saturday - Camp Resolve
+    0: "[&BIkHAAA=]",  // Sunday
+    1: "[&BIcHAAA=]",  // Monday
+    2: "[&BH8HAAA=]",  // Tuesday
+    3: "[&BH4HAAA=]",  // Wednesday
+    4: "[&BKsHAAA=]",  // Thursday
+    5: "[&BJQHAAA=]",  // Friday
+    6: "[&BH8HAAA=]"   // Saturday
   };
-  
   const today = new Date().getDay();
   return psnaWaypoints[today];
+}
+
+// ✅ Função principal: gera todos os eventos com tempos normalizados
+export const generateEvents = () => {
+  const now = new Date();
+  const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const allEvents = [];
+
+  for (const [eventKey, eventData] of Object.entries(mockData.eventConfig.events)) {
+    if (eventData.locations) {
+      // Eventos com múltiplas localizações
+      eventData.locations.forEach(location => {
+        location.utc_times.forEach(utcTime => {
+          const startTime = convertUTCTimeToLocal(utcTime);
+          startTime.setMilliseconds(0);
+
+          const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
+          endTime.setMilliseconds(0);
+
+          // Hoje
+          const todayInstance = createEventInstance(eventKey, eventData, location, startTime, endTime, now, twoHoursLater);
+          if (todayInstance) allEvents.push(todayInstance);
+
+          // Amanhã
+          const tomorrowStartTime = new Date(startTime);
+          tomorrowStartTime.setDate(tomorrowStartTime.getDate() + 1);
+          tomorrowStartTime.setMilliseconds(0);
+
+          const tomorrowEndTime = new Date(endTime);
+          tomorrowEndTime.setDate(tomorrowEndTime.getDate() + 1);
+          tomorrowEndTime.setMilliseconds(0);
+
+          const tomorrowInstance = createEventInstance(eventKey, eventData, location, tomorrowStartTime, tomorrowEndTime, now, twoHoursLater);
+          if (tomorrowInstance) allEvents.push(tomorrowInstance);
+        });
+      });
+    } else {
+      // Eventos com local único
+      eventData.utc_times.forEach(utcTime => {
+        const startTime = convertUTCTimeToLocal(utcTime);
+        startTime.setMilliseconds(0);
+
+        const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
+        endTime.setMilliseconds(0);
+
+        // Hoje
+        const todayInstance = createEventInstance(eventKey, eventData, null, startTime, endTime, now, twoHoursLater);
+        if (todayInstance) allEvents.push(todayInstance);
+
+        // Amanhã
+        const tomorrowStartTime = new Date(startTime);
+        tomorrowStartTime.setDate(tomorrowStartTime.getDate() + 1);
+        tomorrowStartTime.setMilliseconds(0);
+
+        const tomorrowEndTime = new Date(endTime);
+        tomorrowEndTime.setDate(tomorrowEndTime.getDate() + 1);
+        tomorrowEndTime.setMilliseconds(0);
+
+        const tomorrowInstance = createEventInstance(eventKey, eventData, null, tomorrowStartTime, tomorrowEndTime, now, twoHoursLater);
+        if (tomorrowInstance) allEvents.push(tomorrowInstance);
+      });
+    }
+  }
+
+  return allEvents.sort((a, b) => a.startTime - b.startTime);
+};
+
+// ✅ Função auxiliar: cria instância de evento
+function createEventInstance(eventKey, eventData, location, startTime, endTime, now, cutoffTime) {
+  // Só inclui se estiver ativo agora OU começar nas próximas 2h
+  if (startTime > cutoffTime && startTime > now) {
+    return null;
+  }
+
+  let reward = null;
+  if (eventData.reward) {
+    reward = { ...eventData.reward };
+  } else if (location?.reward) {
+    reward = { ...location.reward };
+  }
+
+  // Garante link para itens
+  if (reward?.type === 'item' && !reward.link) {
+    reward.link = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(reward.name)}`;
+  }
+
+  return {
+    id: `${eventKey}-${startTime.getTime()}`,
+    eventKey,
+    name: eventData.event_name,
+    location: location ? location.map : eventData.location,
+    startTime,
+    endTime,
+    duration: eventData.duration_minutes,
+    reward,
+    waypoint: location ? location.waypoint : eventData.waypoint
+  };
 }

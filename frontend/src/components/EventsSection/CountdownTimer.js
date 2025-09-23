@@ -7,11 +7,10 @@ const CountdownTimer = ({ startTime, endTime, currentTime }) => {
     const now = currentTime;
     
     if (now >= endTime) {
-      return { active: false, upcoming: false, text: 'Event completed', time: '00:00:00' };
+      return { active: false, upcoming: false, text: 'Event completed', time: '00:00:00', expired: true };
     }
     
     if (now >= startTime) {
-      // Evento ativo - contar para o fim
       const diff = endTime - now;
       const seconds = Math.floor(diff / 1000);
       const hours = Math.floor(seconds / 3600);
@@ -25,7 +24,6 @@ const CountdownTimer = ({ startTime, endTime, currentTime }) => {
         time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
       };
     } else {
-      // Evento futuro - contar para o início
       const diff = startTime - now;
       const seconds = Math.floor(diff / 1000);
       const hours = Math.floor(seconds / 3600);
@@ -45,6 +43,7 @@ const CountdownTimer = ({ startTime, endTime, currentTime }) => {
 
   return (
     <div className={`font-mono mb-4 flex items-center gap-2 ${
+      timeInfo.expired ? 'text-gray-500 line-through' :
       timeInfo.active ? 'text-emerald-300 animate-pulse' : 
       timeInfo.upcoming ? 'text-amber-300' : 'text-gray-400'
     }`}>

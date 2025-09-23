@@ -145,7 +145,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
                 eventType={eventType}
                 onToggle={handleEventToggle}
                 itemPrices={itemPrices}
-                currentTime={currentTime}
               />
             ))}
           </div>
