@@ -295,10 +295,12 @@ export const generateEvents = () => {
   return allEvents.sort((a, b) => a.startTime - b.startTime);
 };
 
-// ✅ Função auxiliar: cria instância de evento
+
 function createEventInstance(eventKey, eventData, location, startTime, endTime, now, cutoffTime) {
-  // Só inclui se estiver ativo agora OU começar nas próximas 2h
-  if (startTime > cutoffTime && startTime > now) {
+  // Mantém eventos que:
+  // 1. Estão ativos AGORA (startTime <= now <= endTime), OU
+  // 2. Começam nas próximas 2 horas (startTime <= cutoffTime)
+  if (startTime > cutoffTime) {
     return null;
   }
 
@@ -309,7 +311,6 @@ function createEventInstance(eventKey, eventData, location, startTime, endTime, 
     reward = { ...location.reward };
   }
 
-  // Garante link para itens
   if (reward?.type === 'item' && !reward.link) {
     reward.link = `https://wiki.guildwars2.com/wiki/${encodeURIComponent(reward.name)}`;
   }
