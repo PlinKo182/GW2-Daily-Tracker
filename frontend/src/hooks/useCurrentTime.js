@@ -1,57 +1,15 @@
-// components/CountdownTimer.jsx
-import React from 'react';
-import { Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-const CountdownTimer = ({ startTime, endTime, currentTime }) => {
-  const calculateTimeLeft = () => {
-    const now = currentTime;
-    
-    if (now >= endTime) {
-      return { active: false, upcoming: false, text: 'Event completed', time: '00:00:00', expired: true };
-    }
-    
-    if (now >= startTime) {
-      const diff = endTime - now;
-      const seconds = Math.floor(diff / 1000);
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const secs = seconds % 60;
-      
-      return {
-        active: true,
-        upcoming: false,
-        text: 'Ends in:',
-        time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-      };
-    } else {
-      const diff = startTime - now;
-      const seconds = Math.floor(diff / 1000);
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const secs = seconds % 60;
-      
-      return {
-        active: false,
-        upcoming: true,
-        text: 'Starts in:',
-        time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-      };
-    }
-  };
+export const useCurrentTime = (interval = 1000) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  const timeInfo = calculateTimeLeft();
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, interval);
 
-  return (
-    <div className={`font-mono mb-4 flex items-center gap-2 ${
-      timeInfo.expired ? 'text-gray-500 line-through' :
-      timeInfo.active ? 'text-emerald-300 animate-pulse' : 
-      timeInfo.upcoming ? 'text-amber-300' : 'text-gray-400'
-    }`}>
-      <Clock className="w-4 h-4" />
-      <span>{timeInfo.text}</span>
-      <span>{timeInfo.time}</span>
-    </div>
-  );
+    return () => clearInterval(timer);
+  }, [interval]);
+
+  return currentTime;
 };
-
-export default React.memo(CountdownTimer);

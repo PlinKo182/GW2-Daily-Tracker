@@ -1,55 +1,53 @@
-// components/CountdownTimer.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 
-const CountdownTimer = ({ startTime, endTime, currentTime }) => {
-  const calculateTimeLeft = () => {
-    const now = currentTime;
+const CountdownTimer = ({ startTime, endTime }) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
     
-    if (now >= endTime) {
-      return { active: false, upcoming: false, text: 'Event completed', time: '00:00:00', expired: true };
+    return () => clearInterval(interval);
+  }, []);
+
+  const getTimeRemaining = (targetTime) => {
+    const difference = targetTime - currentTime;
+    
+    if (difference <= 0) {
+      return { total: 0, hours: 0, minutes: 0, seconds: 0 };
     }
     
-    if (now >= startTime) {
-      const diff = endTime - now;
-      const seconds = Math.floor(diff / 1000);
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const secs = seconds % 60;
-      
-      return {
-        active: true,
-        upcoming: false,
-        text: 'Ends in:',
-        time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-      };
-    } else {
-      const diff = startTime - now;
-      const seconds = Math.floor(diff / 1000);
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const secs = seconds % 60;
-      
-      return {
-        active: false,
-        upcoming: true,
-        text: 'Starts in:',
-        time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-      };
-    }
+    const hours = Math.floor(difference / (1000 * 60 * 60));
+    const minutes = Math.floor((difference / 1000 / 60) % 60);
+    const seconds = Math.floor((difference / 1000) % 60);
+    
+    return { total: difference, hours, minutes, seconds };
   };
 
-  const timeInfo = calculateTimeLeft();
+  const formatTimeRemaining = (timeObj) => {
+    return `${timeObj.hours.toString().padStart(2, '0')}:${timeObj.minutes.toString().padStart(2, '0')}:${timeObj.seconds.toString().padStart(2, '0')}`;
+  };
+
+  const eventActive = startTime <= currentTime && endTime >= currentTime;
+  const eventUpcoming = startTime > currentTime;
+
+  let countdownText = '';
+  if (eventActive) {
+    const remaining = getTimeRemaining(endTime);
+    countdownText = `Ends in: ${formatTimeRemaining(remaining)}`;
+  } else if (eventUpcoming) {
+    const remaining = getTimeRemaining(startTime);
+    countdownText = `Starts in: ${formatTimeRemaining(remaining)}`;
+  } else {
+    countdownText = 'Event completed';
+  }
 
   return (
-    <div className={`font-mono mb-4 flex items-center gap-2 ${
-      timeInfo.expired ? 'text-gray-500 line-through' :
-      timeInfo.active ? 'text-emerald-300 animate-pulse' : 
-      timeInfo.upcoming ? 'text-amber-300' : 'text-gray-400'
-    }`}>
+    <div className={`font-mono mb-4 flex items-center gap-2 ${eventActive ? 'text-emerald-300 animate-pulse' : eventUpcoming ? 'text-amber-300' : 'text-gray-400'}`}>
       <Clock className="w-4 h-4" />
-      <span>{timeInfo.text}</span>
-      <span>{timeInfo.time}</span>
+      {countdownText}
     </div>
   );
 };

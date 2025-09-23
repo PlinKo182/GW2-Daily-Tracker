@@ -1,63 +1,40 @@
-// hooks/useItemPrices.js
 import { useState, useEffect } from 'react';
 
 export const useItemPrices = (events) => {
-  const [prices, setPrices] = useState({});
+  const [itemPrices, setItemPrices] = useState({});
 
   useEffect(() => {
-    const fetchPrices = async () => {
-      // Coleta todos os itemIds únicos, garantindo que sejam números válidos
-      const itemIds = [
-        ...new Set(
-          events
-            .map(event => event.reward?.itemId)
-            .filter(id => typeof id === 'number' && id > 0)
-        )
-      ];
-
-      if (itemIds.length === 0) {
-        // Fallback com IDs corretos
-        const fallback = {
-          31051: 15,   // Spirit Links
-          31065: 25,   // Icy Dragon Sword
-          76063: 120,  // Vial of Liquid Aurillium
-          74988: 8     // Chak Egg Sac
-        };
-        setPrices(fallback);
-        return;
-      }
-
+    const fetchItemPrices = async () => {
+      const itemIds = [];
+      
+      events.forEach(event => {
+        if (event.reward && event.reward.itemId) {
+          itemIds.push(event.reward.itemId);
+        }
+      });
+      
+      const uniqueItemIds = [...new Set(itemIds)];
+      
+      if (uniqueItemIds.length === 0) return;
+      
       try {
-        const response = await fetch(`https://api.guildwars2.com/v2/commerce/prices?ids=${itemIds.join(',')}`);
-        if (!response.ok) throw new Error('API request failed');
-        
+        const response = await fetch(`https://api.guildwars2.com/v2/commerce/prices?ids=${uniqueItemIds.join(',')}`);
         const data = await response.json();
         
-        const priceMap = {};
+        const prices = {};
         data.forEach(item => {
-          if (item.sells?.unit_price) {
-            // Converte para gold (1 gold = 10000 copper)
-            const goldPrice = item.sells.unit_price / 10000;
-            priceMap[item.id] = Math.round(goldPrice);
-          }
+          const copper = item.sells?.unit_price || item.buys?.unit_price || 0;
+          prices[item.id] = copper;
         });
-
-        setPrices(priceMap);
+        
+        setItemPrices(prices);
       } catch (error) {
-        console.error('Erro ao buscar preços:', error);
-        // Fallback com IDs corretos
-        const fallback = {
-          31051: 15,   // Spirit Links
-          31065: 25,   // Icy Dragon Sword
-          76063: 120,  // Vial of Liquid Aurillium
-          74988: 8     // Chak Egg Sac
-        };
-        setPrices(fallback);
+        console.error('Falha ao buscar preços de itens:', error);
       }
     };
 
-    fetchPrices();
+    fetchItemPrices();
   }, [events]);
 
-  return prices;
+  return itemPrices;
 };

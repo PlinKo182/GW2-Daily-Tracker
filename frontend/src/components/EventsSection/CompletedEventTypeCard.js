@@ -1,5 +1,5 @@
-// components/CompletedEventTypeCard.jsx
 import React from 'react';
+import { formatPriceWithImages } from '../../utils/priceUtils';
 
 const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
   return (
@@ -30,11 +30,11 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                 rel="noopener noreferrer"
                 className="text-emerald-400 hover:underline"
               >
-                {eventType.instances[0].reward.name || 'Unknown Item'} 
+                {eventType.instances[0].reward.name} 
                 {itemPrices[eventType.instances[0].reward.itemId] !== undefined ? (
-                  <> ({itemPrices[eventType.instances[0].reward.itemId]} gems)</>
+                  formatPriceWithImages(itemPrices[eventType.instances[0].reward.itemId])
                 ) : (
-                  <span className="text-yellow-400"> (Carregando...)</span>
+                  <span className="text-yellow-400">Carregando...</span>
                 )}
               </a>
             ) : eventType.instances[0].reward.type === 'item' ? (
@@ -44,7 +44,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                 rel="noopener noreferrer"
                 className="text-emerald-400 hover:underline"
               >
-                {eventType.instances[0].reward.name || 'Unknown Item'} <span className="text-yellow-400">({eventType.instances[0].reward.price})</span>
+                {eventType.instances[0].reward.name} <span className="text-yellow-400">({eventType.instances[0].reward.price})</span>
               </a>
             ) : (
               <>
