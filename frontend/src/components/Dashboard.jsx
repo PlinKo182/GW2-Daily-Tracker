@@ -162,36 +162,57 @@ const Dashboard = () => {
     });
   }, []);
 
+  // FUNÇÃO CRITICAMENTE CORRIGIDA - handleEventToggle
   const handleEventToggle = useCallback((eventId, eventKey) => {
-  setCompletedEvents(prevEvents => {
-    const newCompletedEvents = { ...prevEvents };
-    const newCompletedEventTypes = { ...completedEventTypes };
+    setCompletedEvents(prevEvents => {
+      const newCompletedEvents = { ...prevEvents };
+      const newCompletedEventTypes = { ...completedEventTypes };
 
-    if (prevEvents[eventId] || completedEventTypes[eventKey]) {
-      // Uncomplete the event
-      delete newCompletedEvents[eventId];
+      // Verificar se o evento está atualmente marcado como concluído
+      const isCurrentlyCompleted = prevEvents[eventId] || completedEventTypes[eventKey];
+
+      if (isCurrentlyCompleted) {
+        // Remover a conclusão
+        delete newCompletedEvents[eventId];
+        
+        // Para eventos LLA, também limpar o completedEventTypes
+        if (eventKey === "lla") {
+          newCompletedEventTypes["lla"] = false;
+        }
+      } else {
+        // Marcar como concluído
+        newCompletedEvents[eventId] = true;
+
+        // Para eventos LLA, marcar o tipo como concluído
+        if (eventKey === "lla") {
+          newCompletedEventTypes["lla"] = true;
+        }
+      }
+
+      // Atualizar ambos os estados de forma segura
+      setCompletedEventTypes(prevTypes => {
+        const finalCompletedEventTypes = { ...prevTypes };
+        
+        // Aplicar as mudanças específicas do LLA
+        if (eventKey === "lla") {
+          if (isCurrentlyCompleted) {
+            finalCompletedEventTypes["lla"] = false;
+          } else {
+            finalCompletedEventTypes["lla"] = true;
+          }
+        }
+        
+        // Salvar no localStorage com os estados atualizados
+        localStorageAPI.saveEvents(newCompletedEvents, finalCompletedEventTypes);
+        return finalCompletedEventTypes;
+      });
+
+      // Salvar também aqui para garantir
+      localStorageAPI.saveEvents(newCompletedEvents, newCompletedEventTypes);
       
-      if (eventKey === "lla") {
-        newCompletedEventTypes["lla"] = false;
-      }
-    } else {
-      // Complete the event
-      newCompletedEvents[eventId] = true;
-
-      if (eventKey === "lla") {
-        newCompletedEventTypes["lla"] = true;
-      }
-    }
-
-    // Update both states
-    setCompletedEventTypes(newCompletedEventTypes);
-    
-    // Update localStorage
-    localStorageAPI.saveEvents(newCompletedEvents, newCompletedEventTypes);
-    
-    return newCompletedEvents;
-  });
-}, [completedEventTypes]); // Adicione completedEventTypes como dependência
+      return newCompletedEvents;
+    });
+  }, [completedEventTypes]);
 
   const calculateOverallProgress = useCallback(() => {
     let totalTasks = 0;
@@ -209,6 +230,8 @@ const Dashboard = () => {
 
   const calculateCategoryProgress = useCallback((category) => {
     const tasks = dailyProgress[category];
+    if (!tasks) return { completed: 0, total: 0, percentage: 0 };
+    
     const totalTasks = Object.keys(tasks).length;
     const completedTasks = Object.values(tasks).filter(Boolean).length;
     
@@ -225,7 +248,13 @@ const Dashboard = () => {
     fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date, dailyProgress, completedEvents, completedEventTypes, userName })
+      body: JSON.stringify({ 
+        date, 
+        dailyProgress, 
+        completedEvents, 
+        completedEventTypes, 
+        userName 
+      })
     })
       .then(res => res.json())
       .then(data => {
@@ -243,14 +272,16 @@ const Dashboard = () => {
   }, [dailyProgress, completedEvents, completedEventTypes, userName]);
 
   const handleUserNameChange = useCallback((e) => {
-    setUserName(e.target.value);
-    localStorage.setItem('tyriaTracker_userName', e.target.value);
+    const newUserName = e.target.value;
+    setUserName(newUserName);
+    localStorage.setItem('tyriaTracker_userName', newUserName);
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
       <Header currentTime={currentTime} apiStatus={apiStatus} isOnline={isOnline} />
 
+      {/* Notificação */}
       {notification && (
         <div className={`fixed bottom-6 right-6 z-50 min-w-[220px] shadow-lg px-4 py-2 rounded text-sm font-semibold ${
           notification.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
@@ -273,11 +304,12 @@ const Dashboard = () => {
               type="text"
               value={userName}
               onChange={handleUserNameChange}
-              className="px-2 py-1 rounded bg-gray-800 text-white border border-gray-600"
+              className="px-2 py-1 rounded bg-gray-800 text-white border border-gray-600 focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"
               style={{ minWidth: 100 }}
+              placeholder="Seu nome"
             />
             <button
-              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
+              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-gray-900"
               onClick={saveProgressToMongo}
             >
               Save to MongoDB
