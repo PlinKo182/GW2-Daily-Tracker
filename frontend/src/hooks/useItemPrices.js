@@ -1,3 +1,4 @@
+// hooks/useItemPrices.js
 import { useState, useEffect } from 'react';
 
 export const useItemPrices = (events) => {

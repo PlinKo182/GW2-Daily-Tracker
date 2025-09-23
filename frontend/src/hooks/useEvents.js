@@ -1,35 +1,36 @@
+// hooks/useEvents.js
 import { useState, useEffect, useMemo } from 'react';
 import { convertUTCTimeToLocal } from '../utils/timeUtils';
 
 export const useEvents = (mockData, currentTime) => {
   const [allEvents, setAllEvents] = useState([]);
 
-  // Carregar todos os eventos
   useEffect(() => {
     const loadAllEvents = () => {
       const events = [];
-      const now = new Date();
+      const now = currentTime || new Date();
 
       Object.entries(mockData.eventConfig.events).forEach(([key, event]) => {
         if (event.locations) {
           event.locations.forEach(location => {
             location.utc_times.forEach(utcTimeStr => {
-              const eventTime = convertUTCTimeToLocal(utcTimeStr);
+              let eventTime = convertUTCTimeToLocal(utcTimeStr);
               let endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
-              if (endTime < now) {
+              // Avançar para o próximo dia se o evento já terminou
+              while (endTime < now) {
                 eventTime.setDate(eventTime.getDate() + 1);
                 endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
               }
 
               events.push({
-                id: `${key}_${location.map}`,
+                id: `${key}_${location.map}_${eventTime.getTime()}`,
                 eventKey: key,
                 name: event.event_name,
                 location: location.map,
                 waypoint: location.waypoint,
-                startTime: eventTime,
-                endTime: endTime,
+                startTime: new Date(eventTime),
+                endTime: new Date(endTime),
                 duration: event.duration_minutes,
                 reward: location.reward || event.reward
               });
@@ -37,22 +38,23 @@ export const useEvents = (mockData, currentTime) => {
           });
         } else {
           event.utc_times.forEach(utcTimeStr => {
-            const eventTime = convertUTCTimeToLocal(utcTimeStr);
+            let eventTime = convertUTCTimeToLocal(utcTimeStr);
             let endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
 
-            if (endTime < now) {
+            // Avançar para o próximo dia se o evento já terminou
+            while (endTime < now) {
               eventTime.setDate(eventTime.getDate() + 1);
               endTime = new Date(eventTime.getTime() + event.duration_minutes * 60000);
             }
 
             events.push({
-              id: key,
+              id: `${key}_${eventTime.getTime()}`,
               eventKey: key,
               name: event.event_name,
               location: event.location,
               waypoint: event.waypoint,
-              startTime: eventTime,
-              endTime: endTime,
+              startTime: new Date(eventTime),
+              endTime: new Date(endTime),
               duration: event.duration_minutes,
               reward: event.reward
             });
@@ -65,18 +67,19 @@ export const useEvents = (mockData, currentTime) => {
     };
 
     loadAllEvents();
-  }, [mockData]);
+  }, [mockData, currentTime]);
 
-  // Filtrar eventos visíveis
   const eventsData = useMemo(() => {
-    const now = currentTime;
+    const now = currentTime || new Date();
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     
     return allEvents.filter(event => {
+      // Filtrar eventos que já terminaram
       if (event.endTime <= now) {
         return false;
       }
       
+      // Mostrar apenas eventos que começam dentro das próximas 2 horas
       return event.startTime <= twoHoursFromNow;
     });
   }, [allEvents, currentTime]);

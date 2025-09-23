@@ -1,3 +1,4 @@
+//clipboardUtils.js
 export const copyToClipboard = (text) => {
   navigator.clipboard.writeText(text.trim()).catch(() => {
     const textArea = document.createElement('textarea');

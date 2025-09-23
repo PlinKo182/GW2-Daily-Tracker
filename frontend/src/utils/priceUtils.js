@@ -1,3 +1,4 @@
+//priceUtils.js
 export const formatPriceWithImages = (copper) => {
   if (!copper) return null;
   
