@@ -77,7 +77,7 @@ export const mockData = {
           "type": "item",
           "name": "Chak Egg Sac",
           "link": "https://wiki.guildwars2.com/wiki/Chak_Egg_Sac",
-          "itemId": 72021 // ID do item para busca na API
+          "itemId": 72021
         },
         "utc_times": ["00:30", "02:30", "04:30", "06:30", "08:30", "10:30", "12:30", "14:30", "16:30", "18:30", "20:30", "22:30"],
         "waypoint": "Chak Gerent - [&BPUHAAA=]"
@@ -101,16 +101,24 @@ export const mockData = {
             "map": "Timberline Falls",
             "waypoint": "Timberline Falls - [&BEwCAAA=]",
             "utc_times": ["00:20", "06:20", "12:20", "18:20"],
-            "reward": {
-              "amount": 1,
-              "currency": "mystic_coin"
-            }
+            "rewards": [
+              {
+                "amount": 1,
+                "currency": "mystic_coin"
+              },
+              {
+                "type": "item",
+                "name": "Endless Ley-Line Anomaly Tonic",
+                "link": "https://wiki.guildwars2.com/wiki/Endless_Ley-Line_Anomaly_Tonic_(container)",
+                "itemId": 79034
+              }
+            ]
           },
           {
             "map": "Iron Marches",
             "waypoint": "Iron Marches - [&BOYBAAA=]",
             "utc_times": ["02:20", "08:20", "14:20", "20:20"],
-            "reward": {
+            "rewards": {
               "amount": 1,
               "currency": "mystic_coin"
             }
@@ -119,7 +127,7 @@ export const mockData = {
             "map": "Gendarran Fields",
             "waypoint": "Gendarran Fields - [&BOQAAAA=]",
             "utc_times": ["04:20", "10:20", "16:20", "22:20"],
-            "reward": {
+            "rewards": {
               "amount": 1,
               "currency": "mystic_coin"
             }
@@ -145,7 +153,7 @@ export const mockData = {
           "type": "item",
           "name": "Spirit Links",
           "link": "https://wiki.guildwars2.com/wiki/Spirit_Links",
-          "itemId": 31051 // ID do item para busca na API
+          "itemId": 31051
         },
         "utc_times": ["01:45", "03:45", "05:45", "07:45", "09:45", "11:45", "13:45", "15:45", "17:45", "19:45", "21:45", "23:45"],
         "waypoint": "Shadow Behemoth - [&BPcAAAA=]"
@@ -169,7 +177,7 @@ export const mockData = {
           "type": "item",
           "name": "Icy Dragon Sword",
           "link": "https://wiki.guildwars2.com/wiki/Icy_Dragon_Sword",
-          "itemId": 31065 // ID do item para busca na API
+          "itemId": 31065
         },
         "utc_times": ["02:30", "05:30", "08:30", "11:30", "14:30", "17:30", "20:30", "23:30"],
         "waypoint": "Claw of Jormag - [&BHoCAAA=]"
@@ -182,7 +190,7 @@ export const mockData = {
           "type": "item",
           "name": "Vial of Liquid Aurillium",
           "link": "https://wiki.guildwars2.com/wiki/Vial_of_Liquid_Aurillium",
-          "itemId": 76063 // ID do item para busca na API
+          "itemId": 76063
         },
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
         "waypoint": "Octovine - [&BMYHAAA=]"
@@ -212,33 +220,27 @@ export const mockData = {
   }
 };
 
-// PSNA (Pact Supply Network Agent) helper functions
+// --- PSNA (Pact Supply Network Agent) helper functions ---
+
+function getPSNAData() {
+  const psnaSchedule = [
+    { name: "Repair Station",      waypoint: "[&BIkHAAA=]" }, // Sunday
+    { name: "Restoration Refuge",  waypoint: "[&BIcHAAA=]" }, // Monday
+    { name: "Camp Resolve",        waypoint: "[&BH8HAAA=]" }, // Tuesday
+    { name: "Town of Prosperity",  waypoint: "[&BH4HAAA=]" }, // Wednesday
+    { name: "Blue Oasis",          waypoint: "[&BKsHAAA=]" }, // Thursday
+    { name: "Repair Station",      waypoint: "[&BJQHAAA=]" }, // Friday
+    { name: "Camp Resolve",        waypoint: "[&BH8HAAA=]" }  // Saturday
+  ];
+
+  const todayIndex = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+  return psnaSchedule[todayIndex] ?? { name: "Unknown", waypoint: "" };
+}
+
 function getPSNAName() {
-  const psnaData = {
-    0: "Repair Station",        // Sunday
-    1: "Restoration Refuge",   // Monday
-    2: "Camp Resolve",         // Tuesday
-    3: "Town of Prosperity",   // Wednesday
-    4: "Blue Oasis",          // Thursday
-    5: "Repair Station",      // Friday
-    6: "Camp Resolve"         // Saturday
-  };
-  
-  const today = new Date().getDay();
-  return `PSNA: ${psnaData[today]}`;
+  return `PSNA: ${getPSNAData().name}`;
 }
 
 function getPSNAWaypoint() {
-  const psnaWaypoints = {
-    0: "[&BIkHAAA=]",  // Sunday - Repair Station
-    1: "[&BIcHAAA=]",  // Monday - Restoration Refuge
-    2: "[&BH8HAAA=]",  // Tuesday - Camp Resolve
-    3: "[&BH4HAAA=]",  // Wednesday - Town of Prosperity
-    4: "[&BKsHAAA=]",  // Thursday - Blue Oasis
-    5: "[&BJQHAAA=]",  // Friday - Repair Station
-    6: "[&BH8HAAA=]"   // Saturday - Camp Resolve
-  };
-  
-  const today = new Date().getDay();
-  return psnaWaypoints[today];
+  return getPSNAData().waypoint;
 }

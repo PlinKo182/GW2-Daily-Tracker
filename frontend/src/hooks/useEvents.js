@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { convertUTCTimeToLocal } from '../utils/timeUtils';
 
+// useEvents.js - Modifique a parte que cria os eventos
 export const useEvents = (mockData, currentTime) => {
   const [allEvents, setAllEvents] = useState([]);
 
-  // Carregar todos os eventos apenas uma vez
   useEffect(() => {
     const loadAllEvents = () => {
       const events = [];
@@ -16,14 +16,12 @@ export const useEvents = (mockData, currentTime) => {
             location.utc_times.forEach(utcTimeStr => {
               const eventTime = convertUTCTimeToLocal(utcTimeStr);
               
-              // Criar eventos para hoje e amanhã para cobrir todos os cenários
               for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
                 const adjustedEventTime = new Date(eventTime);
                 adjustedEventTime.setDate(adjustedEventTime.getDate() + dayOffset);
                 
                 const endTime = new Date(adjustedEventTime.getTime() + event.duration_minutes * 60000);
                 
-                // Só adicionar se o evento não tiver terminado completamente
                 if (endTime > now) {
                   events.push({
                     id: `${key}_${location.map}_${utcTimeStr}_${dayOffset}`,
@@ -34,7 +32,7 @@ export const useEvents = (mockData, currentTime) => {
                     startTime: new Date(adjustedEventTime),
                     endTime: endTime,
                     duration: event.duration_minutes,
-                    reward: location.reward || event.reward
+                    rewards: location.rewards || event.rewards || [] // Suporte a array
                   });
                 }
               }
@@ -44,7 +42,6 @@ export const useEvents = (mockData, currentTime) => {
           event.utc_times.forEach(utcTimeStr => {
             const eventTime = convertUTCTimeToLocal(utcTimeStr);
             
-            // Criar eventos para hoje e amanhã
             for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
               const adjustedEventTime = new Date(eventTime);
               adjustedEventTime.setDate(adjustedEventTime.getDate() + dayOffset);
@@ -61,7 +58,7 @@ export const useEvents = (mockData, currentTime) => {
                   startTime: new Date(adjustedEventTime),
                   endTime: endTime,
                   duration: event.duration_minutes,
-                  reward: event.reward
+                  rewards: event.rewards || [] // Suporte a array
                 });
               }
             }
@@ -69,7 +66,6 @@ export const useEvents = (mockData, currentTime) => {
         }
       });
 
-      // Ordenar por hora de início
       events.sort((a, b) => a.startTime - b.startTime);
       setAllEvents(events);
     };

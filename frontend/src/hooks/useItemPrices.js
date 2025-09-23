@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-
+// useItemPrices.js
 export const useItemPrices = (events) => {
   const [itemPrices, setItemPrices] = useState({});
 
@@ -8,7 +7,16 @@ export const useItemPrices = (events) => {
       const itemIds = [];
       
       events.forEach(event => {
-        if (event.reward && event.reward.itemId) {
+        // Suporte para array de recompensas
+        if (event.rewards && Array.isArray(event.rewards)) {
+          event.rewards.forEach(reward => {
+            if (reward && reward.itemId) {
+              itemIds.push(reward.itemId);
+            }
+          });
+        }
+        // Backward compatibility para recompensa única
+        else if (event.reward && event.reward.itemId) {
           itemIds.push(event.reward.itemId);
         }
       });
