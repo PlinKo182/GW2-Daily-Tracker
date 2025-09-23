@@ -165,10 +165,18 @@ export const mockData = {
         "event_name": "Dragonstorm",
         "location": "Eye of the North",
         "duration_minutes": 15,
-        "reward": {
-          "amount": 2,
-          "currency": "gold"
-        },
+        "rewards": [  // MÚLTIPLAS RECOMPENSAS
+          {
+            "type": "item",
+            "name": "Pristine Dragon's Right Eye",
+            "link": "https://wiki.guildwars2.com/wiki/Pristine_Dragon%27s_Right_Eye",
+            "itemId": 94982
+          },
+          {
+            "amount": 2,
+            "currency": "gold"
+          }
+        ],
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
         "waypoint": "Dragonstorm - [&BAkMAAA=]"
       },
@@ -178,9 +186,9 @@ export const mockData = {
         "duration_minutes": 10,
         "reward": {
           "type": "item",
-          "name": "Spirit Links",
-          "link": "https://wiki.guildwars2.com/wiki/Spirit_Links",
-          "itemId": 31051
+          "name": "Pristine Dragon's Right Eye",
+          "link": "https://wiki.guildwars2.com/wiki/Pristine_Dragon%27s_Right_Eye",
+          "itemId": 94982
         },
         "utc_times": ["01:45", "03:45", "05:45", "07:45", "09:45", "11:45", "13:45", "15:45", "17:45", "19:45", "21:45", "23:45"],
         "waypoint": "Shadow Behemoth - [&BPcAAAA=]"
