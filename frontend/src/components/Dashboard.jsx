@@ -163,35 +163,35 @@ const Dashboard = () => {
   }, []);
 
   const handleEventToggle = useCallback((eventId, eventKey) => {
-    setCompletedEvents(prevEvents => {
-      setCompletedEventTypes(prevTypes => {
-        let newCompletedEvents = { ...prevEvents };
-        let newCompletedEventTypes = { ...prevTypes };
+  setCompletedEvents(prevEvents => {
+    const newCompletedEvents = { ...prevEvents };
+    const newCompletedEventTypes = { ...completedEventTypes };
 
-        if (prevEvents[eventId] || prevTypes[eventKey]) {
-          // Uncomplete the event
-          delete newCompletedEvents[eventId];
-          
-          if (eventKey === "lla") {
-            newCompletedEventTypes["lla"] = false;
-          }
-        } else {
-          // Complete the event
-          newCompletedEvents[eventId] = true;
-
-          if (eventKey === "lla") {
-            newCompletedEventTypes["lla"] = true;
-          }
-        }
-
-        // Update localStorage
-        localStorageAPI.saveEvents(newCompletedEvents, newCompletedEventTypes);
-        return newCompletedEventTypes;
-      });
+    if (prevEvents[eventId] || completedEventTypes[eventKey]) {
+      // Uncomplete the event
+      delete newCompletedEvents[eventId];
       
-      return newCompletedEvents;
-    });
-  }, []);
+      if (eventKey === "lla") {
+        newCompletedEventTypes["lla"] = false;
+      }
+    } else {
+      // Complete the event
+      newCompletedEvents[eventId] = true;
+
+      if (eventKey === "lla") {
+        newCompletedEventTypes["lla"] = true;
+      }
+    }
+
+    // Update both states
+    setCompletedEventTypes(newCompletedEventTypes);
+    
+    // Update localStorage
+    localStorageAPI.saveEvents(newCompletedEvents, newCompletedEventTypes);
+    
+    return newCompletedEvents;
+  });
+}, [completedEventTypes]); // Adicione completedEventTypes como dependência
 
   const calculateOverallProgress = useCallback(() => {
     let totalTasks = 0;
