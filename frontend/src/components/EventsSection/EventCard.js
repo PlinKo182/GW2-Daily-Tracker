@@ -15,7 +15,7 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
 
   if (eventActive) {
     statusClass = 'bg-emerald-500/20 text-emerald-300';
-    statusText = 'Active';
+    statusText = 'Ongoing';
   } else if (eventUpcoming) {
     statusClass = 'bg-amber-500/20 text-amber-300';
     statusText = 'Upcoming';
