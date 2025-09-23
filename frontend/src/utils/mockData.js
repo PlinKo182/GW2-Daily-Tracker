@@ -174,7 +174,8 @@ function getPSNAWaypoint() {
 // ✅ Função principal — CORRIGIDA PARA FUSO HORÁRIO
 export const generateEvents = () => {
   const now = new Date();
-  const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const nowUTC = new Date(now.getTime() + now.getTimezoneOffset() * 60000); // Converte para UTC
+  const twoHoursLaterUTC = new Date(nowUTC.getTime() + 2 * 60 * 60 * 1000);
   const allEvents = [];
 
   for (const [eventKey, eventData] of Object.entries(mockData.eventConfig.events)) {
@@ -182,48 +183,62 @@ export const generateEvents = () => {
       eventData.locations.forEach(location => {
         location.utc_times.forEach(utcTime => {
           const [hours, minutes] = utcTime.split(':').map(Number);
-          const utcDate = new Date(Date.UTC(
-            now.getUTCFullYear(),
-            now.getUTCMonth(),
-            now.getUTCDate(),
+          
+          // Cria data em UTC para hoje
+          let startTimeUTC = new Date(Date.UTC(
+            nowUTC.getUTCFullYear(),
+            nowUTC.getUTCMonth(),
+            nowUTC.getUTCDate(),
             hours,
             minutes
           ));
-          utcDate.setMilliseconds(0);
 
-          let startTime = utcDate;
-          if (startTime < now) {
-            startTime.setDate(startTime.getDate() + 1);
+          // Se já passou hoje, move para amanhã
+          if (startTimeUTC < nowUTC) {
+            startTimeUTC = new Date(startTimeUTC.getTime() + 24 * 60 * 60 * 1000);
           }
 
-          const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
-          endTime.setMilliseconds(0);
+          const endTimeUTC = new Date(startTimeUTC.getTime() + eventData.duration_minutes * 60 * 1000);
 
-          const instance = createEventInstance(eventKey, eventData, location, startTime, endTime, now, twoHoursLater);
+          // Só inclui se estiver nas próximas 2h
+          if (startTimeUTC > twoHoursLaterUTC && startTimeUTC > nowUTC) {
+            return;
+          }
+
+          // Converte de volta para local apenas para exibição
+          const startTimeLocal = new Date(startTimeUTC.getTime() - now.getTimezoneOffset() * 60000);
+          const endTimeLocal = new Date(endTimeUTC.getTime() - now.getTimezoneOffset() * 60000);
+
+          const instance = createEventInstance(eventKey, eventData, location, startTimeLocal, endTimeLocal, now, twoHoursLaterUTC);
           if (instance) allEvents.push(instance);
         });
       });
     } else {
       eventData.utc_times.forEach(utcTime => {
         const [hours, minutes] = utcTime.split(':').map(Number);
-        const utcDate = new Date(Date.UTC(
-          now.getUTCFullYear(),
-          now.getUTCMonth(),
-          now.getUTCDate(),
+        
+        let startTimeUTC = new Date(Date.UTC(
+          nowUTC.getUTCFullYear(),
+          nowUTC.getUTCMonth(),
+          nowUTC.getUTCDate(),
           hours,
           minutes
         ));
-        utcDate.setMilliseconds(0);
 
-        let startTime = utcDate;
-        if (startTime < now) {
-          startTime.setDate(startTime.getDate() + 1);
+        if (startTimeUTC < nowUTC) {
+          startTimeUTC = new Date(startTimeUTC.getTime() + 24 * 60 * 60 * 1000);
         }
 
-        const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
-        endTime.setMilliseconds(0);
+        const endTimeUTC = new Date(startTimeUTC.getTime() + eventData.duration_minutes * 60 * 1000);
 
-        const instance = createEventInstance(eventKey, eventData, null, startTime, endTime, now, twoHoursLater);
+        if (startTimeUTC > twoHoursLaterUTC && startTimeUTC > nowUTC) {
+          return;
+        }
+
+        const startTimeLocal = new Date(startTimeUTC.getTime() - now.getTimezoneOffset() * 60000);
+        const endTimeLocal = new Date(endTimeUTC.getTime() - now.getTimezoneOffset() * 60000);
+
+        const instance = createEventInstance(eventKey, eventData, null, startTimeLocal, endTimeLocal, now, twoHoursLaterUTC);
         if (instance) allEvents.push(instance);
       });
     }
