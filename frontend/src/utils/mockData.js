@@ -55,6 +55,10 @@ export const mockData = {
         "event_name": "Triple Trouble",
         "location": "Bloodtide Coast",
         "duration_minutes": 30,
+        "reward": {
+          "amount": 2,
+          "currency": "gold"
+        },
         "utc_times": ["01:00", "04:00", "08:00", "12:30", "17:00", "20:00"],
         "waypoint": "Triple Trouble - [&BKoBAAA=]"
       },
@@ -69,6 +73,12 @@ export const mockData = {
         "event_name": "Chak Gerent",
         "location": "Tangled Depths",
         "duration_minutes": 20,
+        "reward": {
+          "type": "item",
+          "name": "Chak Egg Sac",
+          "link": "https://wiki.guildwars2.com/wiki/Chak_Egg_Sac",
+          "itemId": 72021 // ID do item para busca na API
+        },
         "utc_times": ["00:30", "02:30", "04:30", "06:30", "08:30", "10:30", "12:30", "14:30", "16:30", "18:30", "20:30", "22:30"],
         "waypoint": "Chak Gerent - [&BPUHAAA=]"
       },
@@ -76,6 +86,10 @@ export const mockData = {
         "event_name": "Tequatl",
         "location": "Sparkfly Fen",
         "duration_minutes": 15,
+        "reward": {
+          "amount": 1,
+          "currency": "gold"
+        },
         "utc_times": ["00:00", "03:00", "06:00", "07:00", "11:30", "16:00", "19:00"],
         "waypoint": "Tequatl - [&BNABAAA=]"
       },
@@ -140,6 +154,10 @@ export const mockData = {
         "event_name": "Great Jungle Wurm",
         "location": "Caledon Forest",
         "duration_minutes": 10,
+        "reward": {
+          "amount": 2,
+          "currency": "gold"
+        },
         "utc_times": ["01:15", "03:15", "05:15", "07:15", "09:15", "11:15", "13:15", "15:15", "17:15", "19:15", "21:15", "23:15"],
         "waypoint": "Great Jungle Wurm - [&BEEFAAA=]"
       },
