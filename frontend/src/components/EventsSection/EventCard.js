@@ -18,63 +18,70 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
 
     if (reward.type === 'item' && reward.itemId) {
       return (
-        <div key={index} className="flex items-center gap-1 text-sm">
-          <a 
-            href={reward.link} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-emerald-400 hover:underline"
-          >
-            <span className="hover:underline">{reward.name}</span>
+        <div key={index} className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-2">
+            <a 
+              href={reward.link} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-emerald-400 hover:underline"
+            >
+              <span className="hover:underline">{reward.name}</span>
+            </a>
+          </div>
+          <div className="flex items-center gap-1">
             {itemPrices[reward.itemId] !== undefined ? (
-              <span className="ml-1">
-                {formatPriceWithImages(itemPrices[reward.itemId])}
-              </span>
+              formatPriceWithImages(itemPrices[reward.itemId])
             ) : (
-              <span className="text-yellow-400 ml-1">Loading...</span>
+              <span className="text-yellow-400 text-xs">Loading...</span>
             )}
-          </a>
+          </div>
         </div>
       );
     } else if (reward.type === 'item') {
       return (
-        <div key={index} className="flex items-center gap-1 text-sm">
-          <a 
-            href={reward.link} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-emerald-400 hover:underline"
-          >
-            <span className="hover:underline">{reward.name}</span>
-            <span className="text-yellow-400 ml-1">({reward.price})</span>
-          </a>
+        <div key={index} className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-2">
+            <a 
+              href={reward.link} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-emerald-400 hover:underline"
+            >
+              <span className="hover:underline">{reward.name}</span>
+            </a>
+          </div>
+          <span className="text-yellow-400">({reward.price})</span>
         </div>
       );
     } else if (reward.amount && reward.currency) {
       return (
-        <div key={index} className="flex items-center gap-1 text-sm">
-          <span className={reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
-            {reward.amount}
-          </span>
-          {reward.currency === 'gold' ? (
-            <>
-              <img 
-                src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
-                alt="Gold coin" 
-                className="w-4 h-4 object-contain" 
-              />
-              <span className="text-gray-400 text-xs">gold</span>
-            </>
-          ) : (
-            <>
-              <img 
-                src="https://wiki.guildwars2.com/images/b/b5/Mystic_Coin.png" 
-                alt="Mystic Coin" 
-                className="w-4 h-4 object-contain" 
-              />
-              <span className="text-gray-400 text-xs">mystic coin(s)</span>
-            </>
-          )}
+        <div key={index} className="flex items-center justify-between text-sm">
+          <span className="text-gray-400">Currency reward:</span>
+          <div className="flex items-center gap-1">
+            <span className={reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
+              {reward.amount}
+            </span>
+            {reward.currency === 'gold' ? (
+              <>
+                <img 
+                  src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
+                  alt="Gold coin" 
+                  className="w-4 h-4 object-contain" 
+                />
+                <span className="text-gray-400 text-xs">gold</span>
+              </>
+            ) : (
+              <>
+                <img 
+                  src="https://wiki.guildwars2.com/images/b/b5/Mystic_Coin.png" 
+                  alt="Mystic Coin" 
+                  className="w-4 h-4 object-contain" 
+                />
+                <span className="text-gray-400 text-xs">mystic coin</span>
+              </>
+            )}
+          </div>
         </div>
       );
     }
@@ -84,14 +91,13 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
 
   // Função para renderizar todas as recompensas
   const renderRewards = () => {
-    // Garantir que rewards seja um array
     const rewards = Array.isArray(event.rewards) ? event.rewards : [];
     
     if (rewards.length === 0) return null;
 
     return (
       <div className="mt-3">
-        <div className="text-xs text-gray-400 font-semibold mb-1">Rewards:</div>
+        <div className="text-xs text-gray-400 font-semibold mb-2">Rewards:</div>
         <div className="space-y-2">
           {rewards.map((reward, index) => renderSingleReward(reward, index))}
         </div>

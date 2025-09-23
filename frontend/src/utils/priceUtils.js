@@ -6,36 +6,36 @@ export const formatPriceWithImages = (copper) => {
   const copperRemaining = copper % 100;
   
   return (
-    <div className="flex items-center gap-1 text-yellow-400">
+    <div className="flex items-center gap-1 text-yellow-400 text-sm">
       {gold > 0 && (
-        <>
-          <span>{gold}</span>
+        <span className="flex items-center gap-1">
+          {gold}
           <img 
             src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
-            alt="Gold coin" 
-            className="w-4 h-4 object-contain" 
+            alt="Gold" 
+            className="w-3 h-3 object-contain" 
           />
-        </>
+        </span>
       )}
       {silver > 0 && (
-        <>
-          <span>{silver}</span>
+        <span className="flex items-center gap-1">
+          {silver}
           <img 
             src="https://wiki.guildwars2.com/images/3/3c/Silver_coin.png" 
-            alt="Silver coin" 
-            className="w-4 h-4 object-contain" 
+            alt="Silver" 
+            className="w-3 h-3 object-contain" 
           />
-        </>
+        </span>
       )}
       {copperRemaining > 0 && (
-        <>
-          <span>{copperRemaining}</span>
+        <span className="flex items-center gap-1">
+          {copperRemaining}
           <img 
             src="https://wiki.guildwars2.com/images/e/eb/Copper_coin.png" 
-            alt="Copper coin" 
-            className="w-4 h-4 object-contain" 
+            alt="Copper" 
+            className="w-3 h-3 object-contain" 
           />
-        </>
+        </span>
       )}
     </div>
   );
