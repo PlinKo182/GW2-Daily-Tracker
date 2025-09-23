@@ -1,17 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
-
 const CountdownTimer = ({ startTime, endTime }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-
+  const [isCompleted, setIsCompleted] = useState(false);
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTime(new Date());
+      const now = new Date();
+      setCurrentTime(now);
+      
+      // Check if the event has ended
+      if (endTime <= now && !isCompleted) {
+        setIsCompleted(true);
+      }
+      
+      // Reset completed state if we're in a new event cycle
+      if (startTime > now && isCompleted) {
+        setIsCompleted(false);
+      }
     }, 1000);
     
     return () => clearInterval(interval);
-  }, []);
-
+  }, [startTime, endTime, isCompleted]);
   const getTimeRemaining = (targetTime) => {
     const difference = targetTime - currentTime;
     
@@ -25,14 +34,11 @@ const CountdownTimer = ({ startTime, endTime }) => {
     
     return { total: difference, hours, minutes, seconds };
   };
-
   const formatTimeRemaining = (timeObj) => {
     return `${timeObj.hours.toString().padStart(2, '0')}:${timeObj.minutes.toString().padStart(2, '0')}:${timeObj.seconds.toString().padStart(2, '0')}`;
   };
-
   const eventActive = startTime <= currentTime && endTime >= currentTime;
   const eventUpcoming = startTime > currentTime;
-
   let countdownText = '';
   if (eventActive) {
     const remaining = getTimeRemaining(endTime);
@@ -43,7 +49,6 @@ const CountdownTimer = ({ startTime, endTime }) => {
   } else {
     countdownText = 'Event completed';
   }
-
   return (
     <div className={`font-mono mb-4 flex items-center gap-2 ${eventActive ? 'text-emerald-300 animate-pulse' : eventUpcoming ? 'text-amber-300' : 'text-gray-400'}`}>
       <Clock className="w-4 h-4" />
@@ -51,5 +56,4 @@ const CountdownTimer = ({ startTime, endTime }) => {
     </div>
   );
 };
-
 export default React.memo(CountdownTimer);
