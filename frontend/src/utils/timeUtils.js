@@ -1,4 +1,3 @@
-//timeUtils.js
 export const convertUTCTimeToLocal = (utcTimeString) => {
   const now = new Date();
   const [hours, minutes] = utcTimeString.split(':').map(Number);
@@ -10,8 +9,10 @@ export const convertUTCTimeToLocal = (utcTimeString) => {
     hours, 
     minutes
   ));
-  
-  return new Date(utcDate);
+
+  const localDate = new Date(utcDate);
+  localDate.setMilliseconds(0); // ← Normaliza aqui também!
+  return localDate;
 };
 
 export const formatTime = (date) => {
