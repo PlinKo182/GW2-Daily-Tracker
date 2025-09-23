@@ -220,27 +220,33 @@ export const mockData = {
   }
 };
 
-// --- PSNA (Pact Supply Network Agent) helper functions ---
-
-function getPSNAData() {
-  const psnaSchedule = [
-    { name: "Repair Station",      waypoint: "[&BIkHAAA=]" }, // Sunday
-    { name: "Restoration Refuge",  waypoint: "[&BIcHAAA=]" }, // Monday
-    { name: "Camp Resolve",        waypoint: "[&BH8HAAA=]" }, // Tuesday
-    { name: "Town of Prosperity",  waypoint: "[&BH4HAAA=]" }, // Wednesday
-    { name: "Blue Oasis",          waypoint: "[&BKsHAAA=]" }, // Thursday
-    { name: "Repair Station",      waypoint: "[&BJQHAAA=]" }, // Friday
-    { name: "Camp Resolve",        waypoint: "[&BH8HAAA=]" }  // Saturday
-  ];
-
-  const todayIndex = new Date().getDay(); // 0 = Sunday, 6 = Saturday
-  return psnaSchedule[todayIndex] ?? { name: "Unknown", waypoint: "" };
-}
-
+// PSNA (Pact Supply Network Agent) helper functions
 function getPSNAName() {
-  return `PSNA: ${getPSNAData().name}`;
+  const psnaData = {
+    0: "Repair Station",        // Sunday
+    1: "Restoration Refuge",   // Monday
+    2: "Camp Resolve",         // Tuesday
+    3: "Town of Prosperity",   // Wednesday
+    4: "Blue Oasis",          // Thursday
+    5: "Repair Station",      // Friday
+    6: "Camp Resolve"         // Saturday
+  };
+  
+  const today = new Date().getDay();
+  return `PSNA: ${psnaData[today]}`;
 }
 
 function getPSNAWaypoint() {
-  return getPSNAData().waypoint;
+  const psnaWaypoints = {
+    0: "[&BIkHAAA=]",  // Sunday - Repair Station
+    1: "[&BIcHAAA=]",  // Monday - Restoration Refuge
+    2: "[&BH8HAAA=]",  // Tuesday - Camp Resolve
+    3: "[&BH4HAAA=]",  // Wednesday - Town of Prosperity
+    4: "[&BKsHAAA=]",  // Thursday - Blue Oasis
+    5: "[&BJQHAAA=]",  // Friday - Repair Station
+    6: "[&BH8HAAA=]"   // Saturday - Camp Resolve
+  };
+  
+  const today = new Date().getDay();
+  return psnaWaypoints[today];
 }
