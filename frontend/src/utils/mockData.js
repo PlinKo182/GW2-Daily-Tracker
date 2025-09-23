@@ -1,55 +1,21 @@
 // utils/mockData.js
-import { convertUTCTimeToLocal } from './timeUtils';
-
 export const mockData = {
   gatheringTasks: [
-    {
-      id: 'vine_bridge',
-      name: 'Vine Bridge',
-      waypoint: '[&BIYHAAA=]'
-    },
-    {
-      id: 'prosperity',
-      name: 'Prosperity',
-      waypoint: '[&BHoHAAA=]'
-    },
-    {
-      id: 'destinys_gorge',
-      name: "Destiny's Gorge",
-      waypoint: '[&BJMKAAA=]'
-    }
+    { id: 'vine_bridge', name: 'Vine Bridge', waypoint: '[&BIYHAAA=]' },
+    { id: 'prosperity', name: 'Prosperity', waypoint: '[&BHoHAAA=]' },
+    { id: 'destinys_gorge', name: "Destiny's Gorge", waypoint: '[&BJMKAAA=]' }
   ],
 
   craftingTasks: [
-    {
-      id: 'mithrillium',
-      name: 'Lump of Mithrillium'
-    },
-    {
-      id: 'elonian_cord',
-      name: 'Spool of Thick Elonian Cord'
-    },
-    {
-      id: 'spirit_residue',
-      name: 'Glob of Elder Spirit Residue'
-    },
-    {
-      id: 'gossamer',
-      name: 'Gossamer Stuffing'
-    }
+    { id: 'mithrillium', name: 'Lump of Mithrillium' },
+    { id: 'elonian_cord', name: 'Spool of Thick Elonian Cord' },
+    { id: 'spirit_residue', name: 'Glob of Elder Spirit Residue' },
+    { id: 'gossamer', name: 'Gossamer Stuffing' }
   ],
 
   specialTasks: [
-    {
-      id: 'psna',
-      name: getPSNAName(),
-      waypoint: getPSNAWaypoint()
-    },
-    {
-      id: 'home_instance',
-      name: 'Home Instance',
-      waypoint: '[&BLQEAAA=]'
-    }
+    { id: 'psna', name: getPSNAName(), waypoint: getPSNAWaypoint() },
+    { id: 'home_instance', name: 'Home Instance', waypoint: '[&BLQEAAA=]' }
   ],
 
   eventConfig: {
@@ -58,10 +24,7 @@ export const mockData = {
         "event_name": "Triple Trouble",
         "location": "Bloodtide Coast",
         "duration_minutes": 30,
-        "reward": {
-          "amount": 2,
-          "currency": "gold"
-        },
+        "reward": { "amount": 2, "currency": "gold" },
         "utc_times": ["01:00", "04:00", "08:00", "12:30", "17:00", "20:00"],
         "waypoint": "Triple Trouble - [&BKoBAAA=]"
       },
@@ -80,7 +43,7 @@ export const mockData = {
           "type": "item",
           "name": "Chak Egg Sac",
           "link": "https://wiki.guildwars2.com/wiki/Chak_Egg_Sac",
-          "itemId": 74988, // ← ID CORRETO (API)
+          "itemId": 74988,
           "currency": "gold"
         },
         "utc_times": ["00:00", "03:00", "06:00", "07:00", "11:30", "16:00", "19:00"],
@@ -94,28 +57,19 @@ export const mockData = {
             "map": "Timberline Falls",
             "waypoint": "Timberline Falls - [&BEwCAAA=]",
             "utc_times": ["00:20", "06:20", "12:20", "18:20"],
-            "reward": {
-              "amount": 1,
-              "currency": "mystic_coin"
-            }
+            "reward": { "amount": 1, "currency": "mystic_coin" }
           },
           {
             "map": "Iron Marches",
             "waypoint": "Iron Marches - [&BOYBAAA=]",
             "utc_times": ["02:20", "08:20", "14:20", "20:20"],
-            "reward": {
-              "amount": 1,
-              "currency": "mystic_coin"
-            }
+            "reward": { "amount": 1, "currency": "mystic_coin" }
           },
           {
             "map": "Gendarran Fields",
             "waypoint": "Gendarran Fields - [&BOQAAAA=]",
             "utc_times": ["04:20", "10:20", "16:20", "22:20"],
-            "reward": {
-              "amount": 1,
-              "currency": "mystic_coin"
-            }
+            "reward": { "amount": 1, "currency": "mystic_coin" }
           }
         ]
       },
@@ -123,10 +77,7 @@ export const mockData = {
         "event_name": "Dragonstorm",
         "location": "Eye of the North",
         "duration_minutes": 15,
-        "reward": {
-          "amount": 2,
-          "currency": "gold"
-        },
+        "reward": { "amount": 2, "currency": "gold" },
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
         "waypoint": "Dragonstorm - [&BAkMAAA=]"
       },
@@ -138,7 +89,7 @@ export const mockData = {
           "type": "item",
           "name": "Spirit Links",
           "link": "https://wiki.guildwars2.com/wiki/Spirit_Links",
-          "itemId": 31051, // ← Correto
+          "itemId": 31051,
           "currency": "gold"
         },
         "utc_times": ["01:45", "03:45", "05:45", "07:45", "09:45", "11:45", "13:45", "15:45", "17:45", "19:45", "21:45", "23:45"],
@@ -159,7 +110,7 @@ export const mockData = {
           "type": "item",
           "name": "Icy Dragon Sword",
           "link": "https://wiki.guildwars2.com/wiki/Icy_Dragon_Sword",
-          "itemId": 31065, // ← Correto
+          "itemId": 31065,
           "currency": "gold"
         },
         "utc_times": ["02:30", "05:30", "08:30", "11:30", "14:30", "17:30", "20:30", "23:30"],
@@ -173,7 +124,7 @@ export const mockData = {
           "type": "item",
           "name": "Vial of Liquid Aurillium",
           "link": "https://wiki.guildwars2.com/wiki/Vial_of_Liquid_Aurillium",
-          "itemId": 76063, // ← Correto
+          "itemId": 76063,
           "currency": "gold"
         },
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
@@ -204,36 +155,23 @@ export const mockData = {
   }
 };
 
-// PSNA helper functions
 function getPSNAName() {
   const psnaData = {
-    0: "Repair Station",        // Sunday
-    1: "Restoration Refuge",   // Monday
-    2: "Camp Resolve",         // Tuesday
-    3: "Town of Prosperity",   // Wednesday
-    4: "Blue Oasis",          // Thursday
-    5: "Repair Station",      // Friday
-    6: "Camp Resolve"         // Saturday
+    0: "Repair Station", 1: "Restoration Refuge", 2: "Camp Resolve",
+    3: "Town of Prosperity", 4: "Blue Oasis", 5: "Repair Station", 6: "Camp Resolve"
   };
-  const today = new Date().getDay();
-  return `PSNA: ${psnaData[today]}`;
+  return `PSNA: ${psnaData[new Date().getDay()]}`;
 }
 
 function getPSNAWaypoint() {
   const psnaWaypoints = {
-    0: "[&BIkHAAA=]",  // Sunday
-    1: "[&BIcHAAA=]",  // Monday
-    2: "[&BH8HAAA=]",  // Tuesday
-    3: "[&BH4HAAA=]",  // Wednesday
-    4: "[&BKsHAAA=]",  // Thursday
-    5: "[&BJQHAAA=]",  // Friday
-    6: "[&BH8HAAA=]"   // Saturday
+    0: "[&BIkHAAA=]", 1: "[&BIcHAAA=]", 2: "[&BH8HAAA=]", 3: "[&BH4HAAA=]",
+    4: "[&BKsHAAA=]", 5: "[&BJQHAAA=]", 6: "[&BH8HAAA=]"
   };
-  const today = new Date().getDay();
-  return psnaWaypoints[today];
+  return psnaWaypoints[new Date().getDay()];
 }
 
-// ✅ Função principal: gera todos os eventos com tempos normalizados
+// ✅ Função principal — CORRIGIDA PARA FUSO HORÁRIO
 export const generateEvents = () => {
   const now = new Date();
   const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
@@ -251,29 +189,18 @@ export const generateEvents = () => {
             hours,
             minutes
           ));
+          utcDate.setMilliseconds(0);
 
           let startTime = utcDate;
           if (startTime < now) {
-            startTime = new Date(startTime);
             startTime.setDate(startTime.getDate() + 1);
           }
 
           const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
-          
-          // ✅ CORREÇÃO SIMPLES: Mostra eventos que começam nas próximas 2 horas
-          if (startTime <= twoHoursLater) {
-            allEvents.push({
-              id: `${eventKey}-${startTime.getTime()}`,
-              eventKey,
-              name: eventData.event_name,
-              location: location.map,
-              startTime,
-              endTime,
-              duration: eventData.duration_minutes,
-              reward: location.reward ? { ...location.reward } : null,
-              waypoint: location.waypoint
-            });
-          }
+          endTime.setMilliseconds(0);
+
+          const instance = createEventInstance(eventKey, eventData, location, startTime, endTime, now, twoHoursLater);
+          if (instance) allEvents.push(instance);
         });
       });
     } else {
@@ -286,29 +213,18 @@ export const generateEvents = () => {
           hours,
           minutes
         ));
+        utcDate.setMilliseconds(0);
 
         let startTime = utcDate;
         if (startTime < now) {
-          startTime = new Date(startTime);
           startTime.setDate(startTime.getDate() + 1);
         }
 
         const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
-        
-        // ✅ CORREÇÃO SIMPLES: Mostra eventos que começam nas próximas 2 horas
-        if (startTime <= twoHoursLater) {
-          allEvents.push({
-            id: `${eventKey}-${startTime.getTime()}`,
-            eventKey,
-            name: eventData.event_name,
-            location: eventData.location,
-            startTime,
-            endTime,
-            duration: eventData.duration_minutes,
-            reward: eventData.reward ? { ...eventData.reward } : null,
-            waypoint: eventData.waypoint
-          });
-        }
+        endTime.setMilliseconds(0);
+
+        const instance = createEventInstance(eventKey, eventData, null, startTime, endTime, now, twoHoursLater);
+        if (instance) allEvents.push(instance);
       });
     }
   }
@@ -316,19 +232,8 @@ export const generateEvents = () => {
   return allEvents.sort((a, b) => a.startTime - b.startTime);
 };
 
-// components/EventsSection.jsx - Adicione isto temporariamente
-console.log('Debug events:', {
-  currentTime: currentTime.toISOString(),
-  generatedEvents: eventsData.length,
-  allEvents: allEvents.length,
-  filteredEvents: filteredEvents.length,
-  mockDataEvents: Object.keys(mockData.eventConfig.events).length
-});
-
 function createEventInstance(eventKey, eventData, location, startTime, endTime, now, cutoffTime) {
-  if (startTime > cutoffTime) {
-    return null;
-  }
+  if (startTime > cutoffTime && startTime > now) return null;
 
   let reward = null;
   if (eventData.reward) {

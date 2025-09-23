@@ -31,7 +31,6 @@ export const useItemPrices = (events) => {
         setPrices(priceMap);
       } catch (error) {
         console.error('Erro ao buscar preços:', error);
-        // Fallback manual
         const fallback = {
           31051: 15,   // Spirit Links
           31065: 25,   // Icy Dragon Sword

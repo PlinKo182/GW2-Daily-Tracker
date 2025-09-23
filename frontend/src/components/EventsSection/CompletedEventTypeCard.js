@@ -1,6 +1,5 @@
 // components/CompletedEventTypeCard.jsx
 import React from 'react';
-import { formatPriceWithImages } from '../../utils/priceUtils';
 
 const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
   return (

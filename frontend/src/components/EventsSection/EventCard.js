@@ -6,7 +6,6 @@ import CountdownTimer from './CountdownTimer';
 const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) => {
   const isExpired = event.endTime <= currentTime;
 
-  // Se expirou e não está completado manualmente, não renderizar
   if (isExpired && !isCompleted) {
     return null;
   }
@@ -34,7 +33,6 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
       }`}
     >
       <div className="p-5">
-        {/* Header */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
             <h3 className="text-lg font-bold text-white mb-1">{event.name}</h3>
@@ -60,16 +58,13 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
           </button>
         </div>
 
-        {/* Countdown Timer */}
         <CountdownTimer 
           startTime={event.startTime}
           endTime={event.endTime}
           currentTime={currentTime}
         />
 
-        {/* Event Details */}
         <div className="space-y-3">
-          {/* Reward */}
           <div className="flex items-center justify-between bg-gray-900/50 rounded-lg p-3">
             <div className="flex items-center text-gray-400">
               <Gift className="w-4 h-4 mr-2" />
@@ -120,7 +115,6 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
             </div>
           </div>
 
-          {/* Time Info */}
           <div className="flex items-center justify-between bg-gray-900/50 rounded-lg p-3">
             <div className="flex items-center text-gray-400">
               <Clock className="w-4 h-4 mr-2" />
@@ -134,7 +128,6 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
             </div>
           </div>
 
-          {/* Waypoint */}
           {event.waypoint && (
             <div className="bg-gray-900/50 rounded-lg p-3">
               <div className="text-gray-400 text-sm mb-1">Waypoint</div>
@@ -145,7 +138,6 @@ const EventCard = ({ event, isCompleted, onToggle, itemPrices, currentTime }) =>
           )}
         </div>
 
-        {/* Status Badge */}
         <div className="mt-4">
           {isCompleted ? (
             <div className="bg-emerald-900/50 text-emerald-300 px-3 py-2 rounded-lg text-center text-sm font-medium">

@@ -14,7 +14,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
   const { allEvents, eventsData } = useEvents(mockData, currentTime);
   const itemPrices = useItemPrices(allEvents);
 
-  // Filtrar eventos não concluídos
   const filteredEvents = useMemo(() => {
     return eventsData.filter(event => {
       const isManuallyCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
@@ -22,7 +21,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
     });
   }, [eventsData, completedEvents, completedEventTypes]);
 
-  // Agrupar eventos concluídos por tipo
   const completedEventsByType = useMemo(() => {
     const eventsByType = {};
     
@@ -59,7 +57,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
 
   return (
     <div className="mb-12">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Calendar className="w-8 h-8 text-emerald-400" />
         <h2 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
@@ -67,7 +64,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </h2>
       </div>
 
-      {/* Stats and Controls */}
       <div className="mb-8 p-6 bg-gray-800 rounded-xl border border-gray-700">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -102,7 +98,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </div>
       </div>
 
-      {/* Active and Upcoming Events */}
       {filteredEvents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map(event => (
@@ -124,7 +119,6 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle }) 
         </div>
       )}
 
-      {/* Completed Events Section */}
       {showCompleted && completedEventsByType.length > 0 && (
         <div className="mt-12 pt-8 border-t border-gray-700">
           <div className="flex items-center gap-3 mb-6">
