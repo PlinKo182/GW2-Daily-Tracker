@@ -59,7 +59,7 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
         <div key={index} className="flex items-center justify-between text-sm">
           <span className="text-gray-400">Currency reward:</span>
           <div className="flex items-center gap-1">
-            <span className={reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
+            <span className={reward.currency === 'gold' ? 'text-yellow-400' : 'text-yellow-400'}>
               {reward.amount}
             </span>
             {reward.currency === 'gold' ? (
