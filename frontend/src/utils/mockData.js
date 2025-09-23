@@ -73,12 +73,18 @@ export const mockData = {
         "event_name": "Chak Gerent",
         "location": "Tangled Depths",
         "duration_minutes": 20,
-        "reward": {
-          "type": "item",
-          "name": "Chak Egg Sac",
-          "link": "https://wiki.guildwars2.com/wiki/Chak_Egg_Sac",
-          "itemId": 72021
-        },
+        "rewards": [  // MÚLTIPLAS RECOMPENSAS
+          {
+            "type": "item",
+            "name": "Chak Egg Sac",
+            "link": "https://wiki.guildwars2.com/wiki/Chak_Egg_Sac",
+            "itemId": 72021
+          },
+          {
+            "amount": 1,
+            "currency": "gold"
+          }
+        ],
         "utc_times": ["00:30", "02:30", "04:30", "06:30", "08:30", "10:30", "12:30", "14:30", "16:30", "18:30", "20:30", "22:30"],
         "waypoint": "Chak Gerent - [&BPUHAAA=]"
       },

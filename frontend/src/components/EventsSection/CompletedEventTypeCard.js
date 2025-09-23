@@ -7,12 +7,12 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
   }
 
   // Função para renderizar uma única recompensa
-  const renderReward = (reward, index) => {
+  const renderSingleReward = (reward, index) => {
     if (!reward) return null;
 
     if (reward.type === 'item' && reward.itemId) {
       return (
-        <div key={index} className="flex items-center gap-1 text-sm mt-1">
+        <div key={index} className="flex items-center gap-1 text-sm">
           <a 
             href={reward.link} 
             target="_blank" 
@@ -25,14 +25,14 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                 {formatPriceWithImages(itemPrices[reward.itemId])}
               </span>
             ) : (
-              <span className="text-yellow-400 ml-1">Carregando...</span>
+              <span className="text-yellow-400 ml-1">Loading...</span>
             )}
           </a>
         </div>
       );
     } else if (reward.type === 'item') {
       return (
-        <div key={index} className="flex items-center gap-1 text-sm mt-1">
+        <div key={index} className="flex items-center gap-1 text-sm">
           <a 
             href={reward.link} 
             target="_blank" 
@@ -46,24 +46,29 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
       );
     } else if (reward.amount && reward.currency) {
       return (
-        <div key={index} className="flex items-center gap-1 text-sm mt-1">
+        <div key={index} className="flex items-center gap-1 text-sm">
           <span className={reward.currency === 'gold' ? 'text-yellow-400' : 'text-purple-400'}>
             {reward.amount}
           </span>
           {reward.currency === 'gold' ? (
-            <img 
-              src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
-              alt="Gold coin" 
-              className="w-4 h-4 object-contain" 
-            />
+            <>
+              <img 
+                src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
+                alt="Gold coin" 
+                className="w-4 h-4 object-contain" 
+              />
+              <span className="text-gray-400 text-xs">gold</span>
+            </>
           ) : (
-            <img 
-              src="https://wiki.guildwars2.com/images/b/b5/Mystic_Coin.png" 
-              alt="Mystic Coin" 
-              className="w-4 h-4 object-contain" 
-            />
+            <>
+              <img 
+                src="https://wiki.guildwars2.com/images/b/b5/Mystic_Coin.png" 
+                alt="Mystic Coin" 
+                className="w-4 h-4 object-contain" 
+              />
+              <span className="text-gray-400 text-xs">mystic coin(s)</span>
+            </>
           )}
-          <span className="text-gray-400 text-xs">({reward.currency})</span>
         </div>
       );
     }
@@ -71,16 +76,28 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
     return null;
   };
 
-  // Obter a primeira instância para mostrar informações (assumindo que todas as instâncias têm as mesmas recompensas)
-  const firstInstance = eventType.instances[0];
-  
-  // Suporte para recompensa única (backward compatibility) e múltiplas recompensas
-  const rewards = Array.isArray(firstInstance.rewards) ? firstInstance.rewards : 
-                 firstInstance.reward ? [firstInstance.reward] : [];
+  // Função para renderizar todas as recompensas
+  const renderRewards = () => {
+    const firstInstance = eventType.instances[0];
+    if (!firstInstance) return null;
+    
+    // Garantir que rewards seja um array
+    const rewards = Array.isArray(firstInstance.rewards) ? firstInstance.rewards : [];
+    
+    if (rewards.length === 0) return null;
+
+    return (
+      <div className="mt-3">
+        <div className="text-xs text-gray-400 font-semibold mb-1">Rewards:</div>
+        <div className="space-y-2">
+          {rewards.map((reward, index) => renderSingleReward(reward, index))}
+        </div>
+      </div>
+    );
+  };
 
   const handleToggle = () => {
     if (eventType.instances.length > 0) {
-      // Usar a primeira instância para desfazer a marcação
       onToggle(eventType.instances[0].id, eventType.eventKey);
     }
   };
@@ -104,15 +121,8 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
           {eventType.instances.length} occurrence(s) marked as completed
         </div>
 
-        {/* SEÇÃO DE RECOMPENSAS ATUALIZADA PARA MÚLTIPLAS RECOMPENSAS */}
-        {rewards.length > 0 && (
-          <div className="mt-3">
-            <div className="text-xs text-gray-400 font-semibold mb-1">Rewards:</div>
-            <div className="space-y-1">
-              {rewards.map((reward, index) => renderReward(reward, index))}
-            </div>
-          </div>
-        )}
+        {/* EXIBIR MÚLTIPLAS RECOMPENSAS */}
+        {renderRewards()}
       </div>
       
       <div className="px-6 pb-4">

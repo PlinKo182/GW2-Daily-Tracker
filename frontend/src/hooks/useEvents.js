@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { convertUTCTimeToLocal } from '../utils/timeUtils';
 
-// useEvents.js - Modifique a parte que cria os eventos
 export const useEvents = (mockData, currentTime) => {
   const [allEvents, setAllEvents] = useState([]);
 
@@ -23,6 +22,12 @@ export const useEvents = (mockData, currentTime) => {
                 const endTime = new Date(adjustedEventTime.getTime() + event.duration_minutes * 60000);
                 
                 if (endTime > now) {
+                  // SUPORTE PARA MÚLTIPLAS RECOMPENSAS
+                  const rewards = location.rewards || 
+                                 (location.reward ? [location.reward] : 
+                                 event.rewards || 
+                                 (event.reward ? [event.reward] : []));
+                  
                   events.push({
                     id: `${key}_${location.map}_${utcTimeStr}_${dayOffset}`,
                     eventKey: key,
@@ -32,7 +37,7 @@ export const useEvents = (mockData, currentTime) => {
                     startTime: new Date(adjustedEventTime),
                     endTime: endTime,
                     duration: event.duration_minutes,
-                    rewards: location.rewards || event.rewards || [] // Suporte a array
+                    rewards: rewards // SEMPRE UM ARRAY
                   });
                 }
               }
@@ -49,6 +54,9 @@ export const useEvents = (mockData, currentTime) => {
               const endTime = new Date(adjustedEventTime.getTime() + event.duration_minutes * 60000);
               
               if (endTime > now) {
+                // SUPORTE PARA MÚLTIPLAS RECOMPENSAS
+                const rewards = event.rewards || (event.reward ? [event.reward] : []);
+                
                 events.push({
                   id: `${key}_${utcTimeStr}_${dayOffset}`,
                   eventKey: key,
@@ -58,7 +66,7 @@ export const useEvents = (mockData, currentTime) => {
                   startTime: new Date(adjustedEventTime),
                   endTime: endTime,
                   duration: event.duration_minutes,
-                  rewards: event.rewards || [] // Suporte a array
+                  rewards: rewards // SEMPRE UM ARRAY
                 });
               }
             }
@@ -73,17 +81,11 @@ export const useEvents = (mockData, currentTime) => {
     loadAllEvents();
   }, [mockData]);
 
-  // Filtrar eventos visíveis - CORREÇÃO CRÍTICA AQUI
   const eventsData = useMemo(() => {
     const now = currentTime;
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     
     return allEvents.filter(event => {
-      // MOSTRAR eventos que:
-      // 1. Começaram dentro das próximas 2 horas E não terminaram
-      // 2. OU estão em andamento (ongoing) - mesmo que tenham começado há mais de 2 horas
-      // 3. E não terminaram completamente
-      
       const startsWithinTwoHours = event.startTime <= twoHoursFromNow;
       const isOngoing = event.startTime <= now && event.endTime > now;
       const notEnded = event.endTime > now;

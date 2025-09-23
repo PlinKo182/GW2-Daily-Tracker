@@ -1,4 +1,3 @@
-// EventCard.js - Modifique a seção de recompensas
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
@@ -14,7 +13,7 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
   const eventUpcoming = event.startTime > now;
 
   // Função para renderizar uma única recompensa
-  const renderReward = (reward, index) => {
+  const renderSingleReward = (reward, index) => {
     if (!reward) return null;
 
     if (reward.type === 'item' && reward.itemId) {
@@ -32,7 +31,7 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
                 {formatPriceWithImages(itemPrices[reward.itemId])}
               </span>
             ) : (
-              <span className="text-yellow-400 ml-1">Carregando...</span>
+              <span className="text-yellow-400 ml-1">Loading...</span>
             )}
           </a>
         </div>
@@ -58,19 +57,24 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
             {reward.amount}
           </span>
           {reward.currency === 'gold' ? (
-            <img 
-              src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
-              alt="Gold coin" 
-              className="w-4 h-4 object-contain" 
-            />
+            <>
+              <img 
+                src="https://wiki.guildwars2.com/images/d/d1/Gold_coin.png" 
+                alt="Gold coin" 
+                className="w-4 h-4 object-contain" 
+              />
+              <span className="text-gray-400 text-xs">gold</span>
+            </>
           ) : (
-            <img 
-              src="https://wiki.guildwars2.com/images/b/b5/Mystic_Coin.png" 
-              alt="Mystic Coin" 
-              className="w-4 h-4 object-contain" 
-            />
+            <>
+              <img 
+                src="https://wiki.guildwars2.com/images/b/b5/Mystic_Coin.png" 
+                alt="Mystic Coin" 
+                className="w-4 h-4 object-contain" 
+              />
+              <span className="text-gray-400 text-xs">mystic coin(s)</span>
+            </>
           )}
-          <span className="text-gray-400 text-xs">({reward.currency})</span>
         </div>
       );
     }
@@ -78,9 +82,22 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
     return null;
   };
 
-  // Suporte para recompensa única (backward compatibility) e múltiplas
-  const rewards = Array.isArray(event.rewards) ? event.rewards : 
-                 event.reward ? [event.reward] : [];
+  // Função para renderizar todas as recompensas
+  const renderRewards = () => {
+    // Garantir que rewards seja um array
+    const rewards = Array.isArray(event.rewards) ? event.rewards : [];
+    
+    if (rewards.length === 0) return null;
+
+    return (
+      <div className="mt-3">
+        <div className="text-xs text-gray-400 font-semibold mb-1">Rewards:</div>
+        <div className="space-y-2">
+          {rewards.map((reward, index) => renderSingleReward(reward, index))}
+        </div>
+      </div>
+    );
+  };
 
   let statusClass = '';
   let statusText = '';
@@ -129,22 +146,15 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
           {event.startTime ? formatTime(event.startTime) : '--:--'} - {event.endTime ? formatTime(event.endTime) : '--:--'}
         </div>
 
-        {/* SEÇÃO DE RECOMPENSAS ATUALIZADA */}
-        {rewards.length > 0 && (
-          <div className="mt-3 space-y-2">
-            <div className="text-xs text-gray-400 font-semibold">Rewards:</div>
-            <div className="space-y-1">
-              {rewards.map((reward, index) => renderReward(reward, index))}
-            </div>
-          </div>
-        )}
+        {/* EXIBIR MÚLTIPLAS RECOMPENSAS */}
+        {renderRewards()}
       </div>
       
       <div className="px-6 pb-4">
         <div className="flex justify-between items-center">
           <button
             onClick={() => event.waypoint && copyToClipboard(event.waypoint)}
-            className="text-emergent-400 hover:underline text-sm font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors duration-150"
+            className="text-emerald-400 hover:underline text-sm font-mono hover:bg-gray-700 px-2 py-1 rounded transition-colors duration-150"
             title="Click to copy waypoint"
           >
             {event.waypoint || 'No waypoint'}
