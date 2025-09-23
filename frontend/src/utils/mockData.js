@@ -251,19 +251,29 @@ export const generateEvents = () => {
             hours,
             minutes
           ));
-          utcDate.setMilliseconds(0);
 
-          // Se o horário já passou hoje, use amanhã
           let startTime = utcDate;
           if (startTime < now) {
+            startTime = new Date(startTime);
             startTime.setDate(startTime.getDate() + 1);
           }
 
           const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
-          endTime.setMilliseconds(0);
-
-          const todayInstance = createEventInstance(eventKey, eventData, location, startTime, endTime, now, twoHoursLater);
-          if (todayInstance) allEvents.push(todayInstance);
+          
+          // ✅ CORREÇÃO SIMPLES: Mostra eventos que começam nas próximas 2 horas
+          if (startTime <= twoHoursLater) {
+            allEvents.push({
+              id: `${eventKey}-${startTime.getTime()}`,
+              eventKey,
+              name: eventData.event_name,
+              location: location.map,
+              startTime,
+              endTime,
+              duration: eventData.duration_minutes,
+              reward: location.reward ? { ...location.reward } : null,
+              waypoint: location.waypoint
+            });
+          }
         });
       });
     } else {
@@ -276,18 +286,29 @@ export const generateEvents = () => {
           hours,
           minutes
         ));
-        utcDate.setMilliseconds(0);
 
         let startTime = utcDate;
         if (startTime < now) {
+          startTime = new Date(startTime);
           startTime.setDate(startTime.getDate() + 1);
         }
 
         const endTime = new Date(startTime.getTime() + eventData.duration_minutes * 60 * 1000);
-        endTime.setMilliseconds(0);
-
-        const todayInstance = createEventInstance(eventKey, eventData, null, startTime, endTime, now, twoHoursLater);
-        if (todayInstance) allEvents.push(todayInstance);
+        
+        // ✅ CORREÇÃO SIMPLES: Mostra eventos que começam nas próximas 2 horas
+        if (startTime <= twoHoursLater) {
+          allEvents.push({
+            id: `${eventKey}-${startTime.getTime()}`,
+            eventKey,
+            name: eventData.event_name,
+            location: eventData.location,
+            startTime,
+            endTime,
+            duration: eventData.duration_minutes,
+            reward: eventData.reward ? { ...eventData.reward } : null,
+            waypoint: eventData.waypoint
+          });
+        }
       });
     }
   }
@@ -295,11 +316,16 @@ export const generateEvents = () => {
   return allEvents.sort((a, b) => a.startTime - b.startTime);
 };
 
+// components/EventsSection.jsx - Adicione isto temporariamente
+console.log('Debug events:', {
+  currentTime: currentTime.toISOString(),
+  generatedEvents: eventsData.length,
+  allEvents: allEvents.length,
+  filteredEvents: filteredEvents.length,
+  mockDataEvents: Object.keys(mockData.eventConfig.events).length
+});
 
 function createEventInstance(eventKey, eventData, location, startTime, endTime, now, cutoffTime) {
-  // Mantém eventos que:
-  // 1. Estão ativos AGORA (startTime <= now <= endTime), OU
-  // 2. Começam nas próximas 2 horas (startTime <= cutoffTime)
   if (startTime > cutoffTime) {
     return null;
   }
