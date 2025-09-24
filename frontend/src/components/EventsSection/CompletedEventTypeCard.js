@@ -63,7 +63,6 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                   alt="Gold coin" 
                   className="w-4 h-4 object-contain" 
                 />
-                <span className="text-gray-400 text-xs">gold</span>
               </>
             ) : (
               <>
@@ -72,7 +71,6 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                   alt="Mystic Coin" 
                   className="w-4 h-4 object-contain" 
                 />
-                <span className="text-gray-400 text-xs">mystic coin</span>
               </>
             )}
           </div>
