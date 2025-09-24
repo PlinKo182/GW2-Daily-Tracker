@@ -60,7 +60,7 @@ export const mockData = {
             name: "Chak Egg Sac",
             link: "https://wiki.guildwars2.com/wiki/Chak_Egg_Sac",
             itemId: 72021
-          },
+          }
         ],
         utc_times: ["00:30","02:30","04:30","06:30","08:30","10:30","12:30","14:30","16:30","18:30","20:30","22:30"],
         waypoint: "Chak Gerent - [&BPUHAAA=]"
@@ -84,13 +84,13 @@ export const mockData = {
             waypoint: "Timberline Falls - [&BEwCAAA=]",
             utc_times: ["00:20","06:20","12:20","18:20"],
             rewards: [
-              { amount: 1, currency: "mystic_coin" },
               {
                 type: "item",
                 name: "Ley-Line Anomaly Tonic",
                 link: "https://wiki.guildwars2.com/wiki/Endless_Ley-Line_Anomaly_Tonic_(container)",
                 itemId: 79034
-              }
+              },
+              { amount: 1, currency: "mystic_coin" }
             ]
           },
           {
@@ -98,13 +98,13 @@ export const mockData = {
             waypoint: "Iron Marches - [&BOYBAAA=]",
             utc_times: ["02:20","08:20","14:20","20:20"],
             rewards: [
-              { amount: 1, currency: "mystic_coin" },
               {
                 type: "item",
                 name: "Ley-Line Anomaly Tonic",
                 link: "https://wiki.guildwars2.com/wiki/Endless_Ley-Line_Anomaly_Tonic_(container)",
                 itemId: 79034
-              }
+              },
+              { amount: 1, currency: "mystic_coin" }
             ]
           },
           {
@@ -112,13 +112,13 @@ export const mockData = {
             waypoint: "Gendarran Fields - [&BOQAAAA=]",
             utc_times: ["04:20","10:20","16:20","22:20"],
             rewards: [
-              { amount: 1, currency: "mystic_coin" },
               {
                 type: "item",
                 name: "Ley-Line Anomaly Tonic",
                 link: "https://wiki.guildwars2.com/wiki/Endless_Ley-Line_Anomaly_Tonic_(container)",
                 itemId: 79034
-              }
+              },
+              { amount: 1, currency: "mystic_coin" }
             ]
           }
         ]
@@ -199,7 +199,9 @@ export const mockData = {
   }
 };
 
+// -------------------------
 // PSNA helpers
+// -------------------------
 function getPSNAName() {
   const psnaData = {
     0: "Repair Station",       // Sunday
@@ -225,3 +227,24 @@ function getPSNAWaypoint() {
   };
   return psnaWaypoints[new Date().getDay()];
 }
+
+// -------------------------
+// Reorder Rewards (garante item primeiro)
+// -------------------------
+function reorderRewards(data) {
+  Object.values(data.eventConfig.events).forEach(event => {
+    if (event.rewards && event.rewards.length > 1) {
+      event.rewards.sort((a, b) => (a.type === 'item' ? -1 : 1));
+    }
+    if (event.locations) {
+      event.locations.forEach(loc => {
+        if (loc.rewards && loc.rewards.length > 1) {
+          loc.rewards.sort((a, b) => (a.type === 'item' ? -1 : 1));
+        }
+      });
+    }
+  });
+}
+
+// executa logo ao carregar
+reorderRewards(mockData);
