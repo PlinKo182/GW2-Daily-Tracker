@@ -1,76 +1,59 @@
-// Header.jsx - CORREÇÃO
 import React from 'react';
-import { MapPin, Wifi, WifiOff, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { formatTimeWithSeconds } from '../utils/timeUtils';
 
 const Header = ({ currentTime, apiStatus, isOnline }) => {
-  const formatTime = (date) => {
-    const timeString = date.toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      second: '2-digit'
-    });
-    
-    const dateString = date.toLocaleDateString([], {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    
-    return `${dateString} - ${timeString}`;
-  };
-
   const getStatusDisplay = () => {
-    // Primeiro verifica se está offline
     if (!isOnline) {
-      return (
-        <div className="flex items-center gap-2 text-amber-400">
-          <WifiOff className="w-4 h-4" />
-          <span className="text-xs">Offline Mode</span>
-        </div>
-      );
+      return {
+        text: 'Offline',
+        className: 'bg-red-500/20 text-red-300'
+      };
     }
-
-    // Se está online, verifica o status da API
+    
     switch (apiStatus) {
-      case 'checking':
-        return (
-          <div className="flex items-center gap-2 text-blue-400">
-            <RefreshCw className="w-4 h-4 animate-spin" />
-            <span className="text-xs">Checking API...</span>
-          </div>
-        );
       case 'online':
-        return (
-          <div className="flex items-center gap-2 text-emerald-400">
-            <CheckCircle className="w-4 h-4" />
-            <span className="text-xs">API Connected</span>
-          </div>
-        );
-      case 'offline':
+        return {
+          text: 'Online',
+          className: 'bg-emerald-500/20 text-emerald-300'
+        };
+      case 'unavailable':
+        return {
+          text: 'Online (API Unavailable)',
+          className: 'bg-amber-500/20 text-amber-300'
+        };
+      case 'checking':
+        return {
+          text: 'Checking...',
+          className: 'bg-gray-500/20 text-gray-300'
+        };
       default:
-        return (
-          <div className="flex items-center gap-2 text-amber-400">
-            <AlertCircle className="w-4 h-4" />
-            <span className="text-xs">Online (API Unavailable)</span>
-          </div>
-        );
+        return {
+          text: 'Unknown',
+          className: 'bg-gray-500/20 text-gray-300'
+        };
     }
   };
+
+  const status = getStatusDisplay();
 
   return (
-    <header className="bg-gray-800 border-b border-gray-700 py-4 px-6">
-      <div className="flex items-center justify-between max-w-7xl mx-auto">
-        <div className="flex items-center gap-3">
-          <div className="text-emerald-400">
-            <MapPin className="w-8 h-8" />
+    <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-40 backdrop-blur-sm bg-gray-800/95">
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
+              Tyria Tracker
+            </h1>
+            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${status.className}`}>
+              {status.text}
+            </div>
           </div>
-          <h1 className="text-xl font-bold">Tyria Tracker</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          {getStatusDisplay()}
-          <div className="text-sm text-gray-400">
-            {formatTime(currentTime)}
+          
+          <div className="text-right">
+            <div className="text-sm text-gray-400">Current Time</div>
+            <div className="text-lg font-mono text-emerald-400">
+              {formatTimeWithSeconds(currentTime)}
+            </div>
           </div>
         </div>
       </div>
@@ -78,4 +61,4 @@ const Header = ({ currentTime, apiStatus, isOnline }) => {
   );
 };
 
-export default Header;
+export default React.memo(Header);

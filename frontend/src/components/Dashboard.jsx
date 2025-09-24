@@ -124,10 +124,23 @@ const Dashboard = () => {
     }
 
     try {
-      const response = await api.healthCheck();
-      setApiStatus(response ? 'online' : 'offline');
+      // Test direct GW2 API connection instead of your api.healthCheck()
+      const response = await fetch('https://api.guildwars2.com/v2/build', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setApiStatus(data && data.id ? 'online' : 'unavailable');
+      } else {
+        setApiStatus('unavailable');
+      }
     } catch (error) {
-      setApiStatus('offline');
+      console.error('API check failed:', error);
+      setApiStatus('unavailable');
     }
   };
 
