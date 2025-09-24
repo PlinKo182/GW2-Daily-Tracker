@@ -181,19 +181,21 @@ const Dashboard = () => {
   setCompletedEvents(prevEvents => {
     const currentEventTypes = completedEventTypes;
     
-    // Verificar o status atual de forma mais precisa
+    // Check current completion status from both states
     const isEventCompleted = prevEvents[eventId] || false;
     const isEventTypeCompleted = currentEventTypes[eventKey] || false;
     
     // Determinar se está atualmente completo
-    const isCurrentlyCompleted = isEventCompleted || isEventTypeCompleted;
+    // Para eventos LLA, usar a lógica de tipo; para outros, usar evento individual
+    const isCurrentlyCompleted = eventKey === "lla" ? isEventTypeCompleted : isEventCompleted;
     
     console.log('Current completion status:', {
       eventId,
       eventKey,
       isEventCompleted,
       isEventTypeCompleted,
-      isCurrentlyCompleted
+      isCurrentlyCompleted,
+      eventType: eventKey === "lla" ? "LLA" : "Normal"
     });
 
     let newCompletedEvents = { ...prevEvents };
@@ -202,30 +204,22 @@ const Dashboard = () => {
     if (isCurrentlyCompleted) {
       // REMOVER completude - lógica corrigida
       if (eventKey === "lla") {
-        // Para LLA, apenas remover se não houver outros eventos LLA completos
-        const hasOtherLLAEvents = Object.keys(prevEvents).some(id => 
-          id.includes("lla") && id !== eventId
-        );
-        
-        if (!hasOtherLLAEvents) {
-          delete newCompletedEventTypes[eventKey];
-        }
-        delete newCompletedEvents[eventId];
+        // Para LLA: remover o tipo de evento
+        delete newCompletedEventTypes[eventKey];
+        console.log('Removing LLA event type completion:', eventKey);
       } else {
-        // Para eventos normais, remover apenas este evento específico
+        // Para eventos normais: remover apenas este evento específico
         delete newCompletedEvents[eventId];
-        // Não remover do eventTypes para eventos não-LLA
+        console.log('Removing individual event completion:', eventId);
       }
-      
-      console.log('Removing completion for:', { eventId, eventKey });
     } else {
       // MARCAR como completo
       if (eventKey === "lla") {
-        // Para LLA, marcar o tipo de evento como completo
+        // Para LLA: marcar o tipo de evento como completo
         newCompletedEventTypes[eventKey] = true;
         console.log('Marking LLA event type as completed:', eventKey);
       } else {
-        // Para outros eventos, marcar individualmente
+        // Para outros eventos: marcar individualmente
         newCompletedEvents[eventId] = true;
         console.log('Marking individual event as completed:', eventId);
       }
@@ -236,10 +230,10 @@ const Dashboard = () => {
       newCompletedEventTypes
     });
 
-    // Atualizar ambos os estados
+    // Update both states separately
     setCompletedEventTypes(newCompletedEventTypes);
     
-    // Salvar no localStorage
+    // Save to localStorage
     localStorageAPI.saveEvents(newCompletedEvents, newCompletedEventTypes);
     
     return newCompletedEvents;

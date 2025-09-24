@@ -21,21 +21,24 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
   console.log('allEvents count:', allEvents?.length);
   console.log('eventsData count:', eventsData?.length);
 
-  // Filtrar eventos não concluídos para mostrar na seção principal
-  const filteredEvents = useMemo(() => {
-    if (!eventsData || !Array.isArray(eventsData)) return [];
+  // Filtrar eventos não concluídos para mostrar na seção principal - VERSÃO CORRIGIDA
+const filteredEvents = useMemo(() => {
+  if (!eventsData || !Array.isArray(eventsData)) return [];
+  
+  return eventsData.filter(event => {
+    if (!event || !event.id || !event.eventKey) return true;
     
-    return eventsData.filter(event => {
-      if (!event || !event.id || !event.eventKey) return true;
-      
-      // Verificar se NÃO está concluído
-      const isCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
-      console.log(`Event ${event.id} (${event.eventKey}) - completed:`, isCompleted);
-      return !isCompleted;
-    });
-  }, [eventsData, completedEvents, completedEventTypes]);
+    // Lógica corrigida: para LLA usar completedEventTypes, para outros usar completedEvents
+    const isCompleted = event.eventKey === "lla" 
+      ? completedEventTypes[event.eventKey] 
+      : completedEvents[event.id];
+    
+    console.log(`Event ${event.id} (${event.eventKey}) - completed:`, isCompleted);
+    return !isCompleted;
+  });
+}, [eventsData, completedEvents, completedEventTypes]);
 
-  // Obter eventos concluídos - VERSÃO CORRIGIDA
+// Obter eventos concluídos - VERSÃO CORRIGIDA
 const completedEventsByType = useMemo(() => {
   if (!allEvents || !Array.isArray(allEvents)) return [];
   
@@ -44,10 +47,10 @@ const completedEventsByType = useMemo(() => {
   allEvents.forEach(event => {
     if (!event || !event.eventKey || !event.id) return;
     
-    // Verificar completude de forma mais precisa
-    const isEventCompleted = completedEvents[event.id];
-    const isEventTypeCompleted = completedEventTypes[event.eventKey];
-    const isCompleted = isEventCompleted || isEventTypeCompleted;
+    // Lógica corrigida: para LLA usar completedEventTypes, para outros usar completedEvents
+    const isCompleted = event.eventKey === "lla" 
+      ? completedEventTypes[event.eventKey] 
+      : completedEvents[event.id];
     
     if (isCompleted) {
       if (!eventsByType[event.eventKey]) {
@@ -67,6 +70,9 @@ const completedEventsByType = useMemo(() => {
       }
     }
   });
+  
+  console.log('completedEventsByType found:', Object.values(eventsByType).length, 'types');
+  console.log('eventsByType details:', eventsByType);
   
   return Object.values(eventsByType);
 }, [allEvents, completedEvents, completedEventTypes]);
