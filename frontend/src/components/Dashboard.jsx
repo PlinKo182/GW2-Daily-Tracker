@@ -27,7 +27,6 @@ const Dashboard = () => {
     }
   });
 
-  const [completedEvents, setCompletedEvents] = useState({});
   const [completedEventTypes, setCompletedEventTypes] = useState({});
   const [currentTime, setCurrentTime] = useState(new Date());
   const [apiStatus, setApiStatus] = useState('checking');
@@ -69,7 +68,6 @@ const Dashboard = () => {
       };
 
       setDailyProgress(resetProgress);
-      setCompletedEvents({});
       setCompletedEventTypes({});
 
       // Clear localStorage
@@ -153,9 +151,8 @@ const Dashboard = () => {
       setDailyProgress(savedProgressData.dailyProgress);
     }
 
-    if (savedEventsData) {
-      setCompletedEvents(savedEventsData.completedEvents || {});
-      setCompletedEventTypes(savedEventsData.completedEventTypes || {});
+    if (savedEventsData && savedEventsData.completedEventTypes) {
+      setCompletedEventTypes(savedEventsData.completedEventTypes);
     }
   };
 
@@ -176,77 +173,36 @@ const Dashboard = () => {
   }, []);
 
   const handleEventToggle = useCallback((eventId, eventKey) => {
-  console.log('Toggling event:', { eventId, eventKey });
-  
-  setCompletedEvents(prevEvents => {
-    const currentEventTypes = completedEventTypes;
+    console.log('Toggling event type:', eventKey);
     
-    // Verificar se é um evento LLA
-    const isLLA = eventKey === "lla";
-    
-    // Para eventos LLA, verificar completedEventTypes; para outros, verificar completedEvents
-    const isEventCompleted = prevEvents[eventId] || false;
-    const isEventTypeCompleted = currentEventTypes[eventKey] || false;
-    
-    // Lógica definitiva: para LLA usar tipo, para outros usar evento individual
-    const isCurrentlyCompleted = isLLA ? isEventTypeCompleted : isEventCompleted;
-    
-    console.log('Current completion status:', {
-      eventId,
-      eventKey,
-      isLLA,
-      isEventCompleted,
-      isEventTypeCompleted,
-      isCurrentlyCompleted
-    });
+    setCompletedEventTypes(prevTypes => {
+      const isCurrentlyCompleted = prevTypes[eventKey];
+      
+      console.log('Current completion status:', {
+        eventKey,
+        isCurrentlyCompleted
+      });
 
-    let newCompletedEvents = { ...prevEvents };
-    let newCompletedEventTypes = { ...currentEventTypes };
+      const newCompletedEventTypes = { ...prevTypes };
 
-    if (isCurrentlyCompleted) {
-      // REMOVER completude
-      if (isLLA) {
-        // Para LLA: remover o tipo de evento
+      if (isCurrentlyCompleted) {
+        // REMOVER completude - eliminar o tipo de evento
         delete newCompletedEventTypes[eventKey];
-        // Também remover todos os eventos LLA individuais
-        Object.keys(newCompletedEvents).forEach(id => {
-          if (id.includes("lla")) {
-            delete newCompletedEvents[id];
-          }
-        });
-        console.log('Removing LLA event type completion:', eventKey);
+        console.log('Removing event type completion:', eventKey);
       } else {
-        // Para eventos normais: remover apenas este evento específico
-        delete newCompletedEvents[eventId];
-        console.log('Removing individual event completion:', eventId);
-      }
-    } else {
-      // MARCAR como completo
-      if (isLLA) {
-        // Para LLA: marcar o tipo de evento como completo
+        // MARCAR como completo - todos os eventos deste tipo
         newCompletedEventTypes[eventKey] = true;
-        console.log('Marking LLA event type as completed:', eventKey);
-      } else {
-        // Para outros eventos: marcar individualmente
-        newCompletedEvents[eventId] = true;
-        console.log('Marking individual event as completed:', eventId);
+        console.log('Marking event type as completed:', eventKey);
       }
-    }
 
-    console.log('New states:', {
-      newCompletedEvents: Object.keys(newCompletedEvents).length,
-      newCompletedEventTypes: Object.keys(newCompletedEventTypes).length
+      console.log('New completedEventTypes:', newCompletedEventTypes);
+
+      // Save to localStorage (agora só precisamos de completedEventTypes)
+      localStorageAPI.saveEvents({}, newCompletedEventTypes);
+      
+      return newCompletedEventTypes;
     });
-
-    // Update both states separately
-    setCompletedEventTypes(newCompletedEventTypes);
-    
-    // Save to localStorage
-    localStorageAPI.saveEvents(newCompletedEvents, newCompletedEventTypes);
-    
-    return newCompletedEvents;
-  });
-}, [completedEventTypes]);
+  }, []);
 
   const calculateOverallProgress = useCallback(() => {
     let totalTasks = 0;
@@ -285,7 +241,6 @@ const Dashboard = () => {
       body: JSON.stringify({ 
         date, 
         dailyProgress, 
-        completedEvents, 
         completedEventTypes, 
         userName 
       })
@@ -303,7 +258,7 @@ const Dashboard = () => {
         setNotification({ type: 'error', message: 'Connection error: ' + error.message });
         setTimeout(() => setNotification(null), 4000);
       });
-  }, [dailyProgress, completedEvents, completedEventTypes, userName]);
+  }, [dailyProgress, completedEventTypes, userName]);
 
   const handleUserNameChange = useCallback((e) => {
     const newUserName = e.target.value;
@@ -314,11 +269,9 @@ const Dashboard = () => {
   // Debug effect
   useEffect(() => {
     console.log('=== DASHBOARD STATE UPDATE ===');
-    console.log('completedEvents:', completedEvents);
     console.log('completedEventTypes:', completedEventTypes);
-    console.log('completedEvents count:', Object.keys(completedEvents).length);
     console.log('completedEventTypes count:', Object.keys(completedEventTypes).length);
-  }, [completedEvents, completedEventTypes]);
+  }, [completedEventTypes]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
@@ -372,7 +325,6 @@ const Dashboard = () => {
         />
 
         <EventsSection 
-          completedEvents={completedEvents}
           completedEventTypes={completedEventTypes}
           onEventToggle={handleEventToggle}
           currentTime={currentTime}
