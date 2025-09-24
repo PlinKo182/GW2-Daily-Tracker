@@ -164,49 +164,26 @@ const Dashboard = () => {
 
   const handleEventToggle = useCallback((eventId, eventKey) => {
     setCompletedEvents(prevEvents => {
+      const isCurrentlyCompleted = prevEvents[eventId] || completedEventTypes[eventKey];
       const newCompletedEvents = { ...prevEvents };
       const newCompletedEventTypes = { ...completedEventTypes };
-
-      // Verificar se o evento está atualmente marcado como concluído
-      const isCurrentlyCompleted = prevEvents[eventId] || completedEventTypes[eventKey];
 
       if (isCurrentlyCompleted) {
         // Remover a conclusão
         delete newCompletedEvents[eventId];
-        
-        // Para eventos LLA, também limpar o completedEventTypes
         if (eventKey === "lla") {
-          newCompletedEventTypes["lla"] = false;
+          newCompletedEventTypes[eventKey] = false;
         }
       } else {
         // Marcar como concluído
         newCompletedEvents[eventId] = true;
-
-        // Para eventos LLA, marcar o tipo como concluído
         if (eventKey === "lla") {
-          newCompletedEventTypes["lla"] = true;
+          newCompletedEventTypes[eventKey] = true;
         }
       }
 
-      // Atualizar ambos os estados de forma segura
-      setCompletedEventTypes(prevTypes => {
-        const finalCompletedEventTypes = { ...prevTypes };
-        
-        // Aplicar as mudanças específicas do LLA
-        if (eventKey === "lla") {
-          if (isCurrentlyCompleted) {
-            finalCompletedEventTypes["lla"] = false;
-          } else {
-            finalCompletedEventTypes["lla"] = true;
-          }
-        }
-        
-        // Salvar no localStorage com os estados atualizados
-        localStorageAPI.saveEvents(newCompletedEvents, finalCompletedEventTypes);
-        return finalCompletedEventTypes;
-      });
-
-      // Salvar também aqui para garantir
+      // Atualizar ambos os estados e salvar
+      setCompletedEventTypes(newCompletedEventTypes);
       localStorageAPI.saveEvents(newCompletedEvents, newCompletedEventTypes);
       
       return newCompletedEvents;
@@ -275,6 +252,15 @@ const Dashboard = () => {
     setUserName(newUserName);
     localStorage.setItem('tyriaTracker_userName', newUserName);
   }, []);
+
+  // Debug effect
+  useEffect(() => {
+    console.log('=== DASHBOARD STATE UPDATE ===');
+    console.log('completedEvents:', completedEvents);
+    console.log('completedEventTypes:', completedEventTypes);
+    console.log('completedEvents count:', Object.keys(completedEvents).length);
+    console.log('completedEventTypes count:', Object.keys(completedEventTypes).length);
+  }, [completedEvents, completedEventTypes]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
