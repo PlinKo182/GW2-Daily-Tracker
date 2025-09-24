@@ -4,9 +4,7 @@
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
+      "config": { "distDir": "build" }
     },
     {
       "src": "backend/server.py",
@@ -14,20 +12,12 @@
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/server.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
-    }
+    { "src": "/api/(.*)", "dest": "/backend/server.py" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
   ],
-  "build": {
-    "env": {
-      "REACT_APP_BACKEND_URL": "https://tyria-tracker.vercel.app"
-    }
-  },
-  "installCommand": "cd frontend && yarn install",
-  "buildCommand": "cd frontend && yarn build"
+  "installCommand": "cd frontend && yarn install --frozen-lockfile",
+  "buildCommand": "cd frontend && yarn build",
+  "env": {
+    "REACT_APP_BACKEND_URL": "https://tyria-tracker.vercel.app"
+  }
 }
