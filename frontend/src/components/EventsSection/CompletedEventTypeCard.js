@@ -7,6 +7,10 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
     return null;
   }
 
+  // Verificar se é LLA para mostrar mensagem diferente
+  const isLLA = eventType.eventKey === "lla";
+  const firstInstance = eventType.instances[0];
+
   // Função para renderizar uma única recompensa
   const renderSingleReward = (reward, index) => {
     if (!reward) return null;
@@ -33,30 +37,12 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
           </div>
         </div>
       );
-    } else if (reward.type === 'item') {
-      return (
-        <div key={index} className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
-            <a 
-              href={reward.link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-emerald-400 hover:underline"
-            >
-              <span className="hover:underline">{reward.name}</span>
-            </a>
-          </div>
-          <span className="text-yellow-400">({reward.price})</span>
-        </div>
-      );
     } else if (reward.amount && reward.currency) {
       return (
         <div key={index} className="flex items-center justify-between text-sm">
           <span className="text-gray-400">Currency reward:</span>
           <div className="flex items-center gap-1">
-            <span className={reward.currency === 'gold' ? 'text-yellow-400' : 'text-yellow-400'}>
-              {reward.amount}
-            </span>
+            <span className="text-yellow-400">{reward.amount}</span>
             {reward.currency === 'gold' ? (
               <>
                 <img 
@@ -64,7 +50,6 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                   alt="Gold coin" 
                   className="w-4 h-4 object-contain" 
                 />
-                <span className="text-gray-400 text-xs">gold</span>
               </>
             ) : (
               <>
@@ -73,7 +58,6 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                   alt="Mystic Coin" 
                   className="w-4 h-4 object-contain" 
                 />
-                <span className="text-gray-400 text-xs">mystic coin</span>
               </>
             )}
           </div>
@@ -86,7 +70,6 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
 
   // Função para renderizar todas as recompensas
   const renderRewards = () => {
-    const firstInstance = eventType.instances[0];
     if (!firstInstance) return null;
     
     const rewards = Array.isArray(firstInstance.rewards) ? firstInstance.rewards : [];
@@ -106,6 +89,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
   const handleToggle = () => {
     console.log('Toggling completed event:', eventType.eventKey, eventType.instances[0]?.id);
     if (eventType.instances.length > 0) {
+      // Para LLA, usar o primeiro evento; para outros, usar o primeiro também (já que cada um é individual)
       onToggle(eventType.instances[0].id, eventType.eventKey);
     }
   };
@@ -122,7 +106,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
       <div className="p-6 flex-grow pt-12">
         <h3 className="text-xl font-bold text-emerald-400 mb-2">{eventType.name || 'Unknown Event'}</h3>
         <div className="text-sm text-gray-400 mb-4">
-          Completed manually ({eventType.instances.length} instances)
+          {isLLA ? 'All instances completed' : `Completed (${eventType.instances.length} instance${eventType.instances.length > 1 ? 's' : ''})`}
         </div>
 
         {/* EXIBIR MÚLTIPLAS RECOMPENSAS */}
@@ -135,7 +119,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
             Click checkbox to undo
           </span>
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300">
-            Manually Completed
+            {isLLA ? 'All Completed' : 'Manually Completed'}
           </span>
         </div>
       </div>

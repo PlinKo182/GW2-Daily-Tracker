@@ -185,14 +185,18 @@ const Dashboard = () => {
     const isLLA = eventKey === "lla";
     
     // Para eventos LLA, verificar completedEventTypes; para outros, verificar completedEvents
-    const isCurrentlyCompleted = isLLA 
-      ? currentEventTypes[eventKey] 
-      : prevEvents[eventId];
+    const isEventCompleted = prevEvents[eventId] || false;
+    const isEventTypeCompleted = currentEventTypes[eventKey] || false;
+    
+    // Lógica definitiva: para LLA usar tipo, para outros usar evento individual
+    const isCurrentlyCompleted = isLLA ? isEventTypeCompleted : isEventCompleted;
     
     console.log('Current completion status:', {
       eventId,
       eventKey,
       isLLA,
+      isEventCompleted,
+      isEventTypeCompleted,
       isCurrentlyCompleted
     });
 
@@ -204,6 +208,12 @@ const Dashboard = () => {
       if (isLLA) {
         // Para LLA: remover o tipo de evento
         delete newCompletedEventTypes[eventKey];
+        // Também remover todos os eventos LLA individuais
+        Object.keys(newCompletedEvents).forEach(id => {
+          if (id.includes("lla")) {
+            delete newCompletedEvents[id];
+          }
+        });
         console.log('Removing LLA event type completion:', eventKey);
       } else {
         // Para eventos normais: remover apenas este evento específico
@@ -224,8 +234,8 @@ const Dashboard = () => {
     }
 
     console.log('New states:', {
-      newCompletedEvents,
-      newCompletedEventTypes
+      newCompletedEvents: Object.keys(newCompletedEvents).length,
+      newCompletedEventTypes: Object.keys(newCompletedEventTypes).length
     });
 
     // Update both states separately

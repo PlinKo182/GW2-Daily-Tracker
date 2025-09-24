@@ -21,14 +21,14 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
   console.log('allEvents count:', allEvents?.length);
   console.log('eventsData count:', eventsData?.length);
 
-  // Filtrar eventos não concluídos para mostrar na seção principal - VERSÃO CORRIGIDA
+  // Filtrar eventos não concluídos para mostrar na seção principal - VERSÃO DEFINITIVA
   const filteredEvents = useMemo(() => {
     if (!eventsData || !Array.isArray(eventsData)) return [];
     
     return eventsData.filter(event => {
       if (!event || !event.id || !event.eventKey) return true;
       
-      // Lógica corrigida: para LLA usar completedEventTypes, para outros usar completedEvents
+      // Lógica definitiva: para LLA usar completedEventTypes, para outros usar completedEvents
       const isLLA = event.eventKey === "lla";
       const isCompleted = isLLA 
         ? completedEventTypes[event.eventKey] 
@@ -39,45 +39,48 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
     });
   }, [eventsData, completedEvents, completedEventTypes]);
 
-  // Obter eventos concluídos - VERSÃO CORRIGIDA
-  const completedEventsByType = useMemo(() => {
+  // Obter eventos concluídos - VERSÃO DEFINITIVA (SEM AGRUPAMENTO POR TIPO)
+  const completedEventsList = useMemo(() => {
     if (!allEvents || !Array.isArray(allEvents)) return [];
     
-    const eventsByType = {};
+    const completedList = [];
     
     allEvents.forEach(event => {
       if (!event || !event.eventKey || !event.id) return;
       
-      // Lógica corrigida: para LLA usar completedEventTypes, para outros usar completedEvents
+      // Lógica definitiva: para LLA usar completedEventTypes, para outros usar completedEvents
       const isLLA = event.eventKey === "lla";
       const isCompleted = isLLA 
         ? completedEventTypes[event.eventKey] 
         : completedEvents[event.id];
       
       if (isCompleted) {
-        if (!eventsByType[event.eventKey]) {
-          eventsByType[event.eventKey] = {
-            eventKey: event.eventKey,
-            name: event.name || 'Unknown Event',
-            instances: []
-          };
-        }
-        
-        // Só adicionar se não existir ainda
-        const existingInstance = eventsByType[event.eventKey].instances.find(
-          inst => inst.id === event.id
-        );
-        if (!existingInstance) {
-          eventsByType[event.eventKey].instances.push(event);
-        }
+        completedList.push(event);
       }
     });
     
-    console.log('completedEventsByType found:', Object.values(eventsByType).length, 'types');
-    console.log('eventsByType details:', eventsByType);
+    console.log('completedEventsList found:', completedList.length, 'events');
     
-    return Object.values(eventsByType);
+    return completedList;
   }, [allEvents, completedEvents, completedEventTypes]);
+
+  // Agrupar eventos completos por tipo apenas para exibição
+  const groupedCompletedEvents = useMemo(() => {
+    const groups = {};
+    
+    completedEventsList.forEach(event => {
+      if (!groups[event.eventKey]) {
+        groups[event.eventKey] = {
+          eventKey: event.eventKey,
+          name: event.name || 'Unknown Event',
+          instances: []
+        };
+      }
+      groups[event.eventKey].instances.push(event);
+    });
+    
+    return Object.values(groups);
+  }, [completedEventsList]);
 
   const handleEventToggle = useCallback((eventId, eventKey) => {
     console.log('Toggling event in EventsSection:', eventId, eventKey);
@@ -108,7 +111,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
         </div>
         
         {/* BOTÃO SEMPRE VISÍVEL SE HOUVER EVENTOS COMPLETOS */}
-        {completedEventsByType.length > 0 ? (
+        {completedEventsList.length > 0 ? (
           <button
             onClick={() => setShowCompleted(!showCompleted)}
             className="flex items-center gap-2 bg-gray-700 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
@@ -121,7 +124,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
             ) : (
               <>
                 <Eye className="w-4 h-4" />
-                Show Completed ({completedEventsByType.length})
+                Show Completed ({completedEventsList.length})
               </>
             )}
           </button>
@@ -157,7 +160,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
       )}
       
       {/* SEÇÃO DE EVENTOS COMPLETOS (APENAS QUANDO VISÍVEL) */}
-      {showCompleted && completedEventsByType.length > 0 && (
+      {showCompleted && completedEventsList.length > 0 && (
         <div className="mt-12">
           <div className="flex items-center gap-3 mb-6">
             <h3 className="text-2xl font-bold text-emerald-400">Completed Events</h3>
@@ -171,7 +174,7 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {completedEventsByType.map(eventType => (
+            {groupedCompletedEvents.map(eventType => (
               <CompletedEventTypeCard 
                 key={eventType.eventKey} 
                 eventType={eventType}
