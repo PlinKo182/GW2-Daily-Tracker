@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pickaxe, Hammer, Star } from 'lucide-react';
 import { mockData } from '../utils/mockData';
-import TaskTimer from '../Tasks/TaskTimer';
+import TaskTimer from '../Tasks/tasktimer';
 
 const ProgressBar = React.memo(({ progress }) => (
   <div className="px-6 pb-4">
