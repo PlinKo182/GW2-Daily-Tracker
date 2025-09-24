@@ -3,6 +3,7 @@ import { formatPriceWithImages } from '../../utils/priceUtils';
 
 const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
   if (!eventType || !eventType.instances || eventType.instances.length === 0) {
+    console.log('CompletedEventTypeCard: No instances for eventType', eventType);
     return null;
   }
 
@@ -63,6 +64,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                   alt="Gold coin" 
                   className="w-4 h-4 object-contain" 
                 />
+                <span className="text-gray-400 text-xs">gold</span>
               </>
             ) : (
               <>
@@ -71,6 +73,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
                   alt="Mystic Coin" 
                   className="w-4 h-4 object-contain" 
                 />
+                <span className="text-gray-400 text-xs">mystic coin</span>
               </>
             )}
           </div>
@@ -101,6 +104,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
   };
 
   const handleToggle = () => {
+    console.log('Toggling completed event:', eventType.eventKey, eventType.instances[0]?.id);
     if (eventType.instances.length > 0) {
       onToggle(eventType.instances[0].id, eventType.eventKey);
     }
@@ -118,7 +122,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
       <div className="p-6 flex-grow pt-12">
         <h3 className="text-xl font-bold text-emerald-400 mb-2">{eventType.name || 'Unknown Event'}</h3>
         <div className="text-sm text-gray-400 mb-4">
-          Completed manually
+          Completed manually ({eventType.instances.length} instances)
         </div>
 
         {/* EXIBIR MÚLTIPLAS RECOMPENSAS */}

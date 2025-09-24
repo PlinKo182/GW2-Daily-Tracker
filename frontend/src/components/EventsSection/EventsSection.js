@@ -22,63 +22,65 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
   console.log('eventsData count:', eventsData?.length);
 
   // Filtrar eventos não concluídos para mostrar na seção principal - VERSÃO CORRIGIDA
-const filteredEvents = useMemo(() => {
-  if (!eventsData || !Array.isArray(eventsData)) return [];
-  
-  return eventsData.filter(event => {
-    if (!event || !event.id || !event.eventKey) return true;
+  const filteredEvents = useMemo(() => {
+    if (!eventsData || !Array.isArray(eventsData)) return [];
     
-    // Lógica corrigida: para LLA usar completedEventTypes, para outros usar completedEvents
-    const isCompleted = event.eventKey === "lla" 
-      ? completedEventTypes[event.eventKey] 
-      : completedEvents[event.id];
-    
-    console.log(`Event ${event.id} (${event.eventKey}) - completed:`, isCompleted);
-    return !isCompleted;
-  });
-}, [eventsData, completedEvents, completedEventTypes]);
-
-// Obter eventos concluídos - VERSÃO CORRIGIDA
-const completedEventsByType = useMemo(() => {
-  if (!allEvents || !Array.isArray(allEvents)) return [];
-  
-  const eventsByType = {};
-  
-  allEvents.forEach(event => {
-    if (!event || !event.eventKey || !event.id) return;
-    
-    // Lógica corrigida: para LLA usar completedEventTypes, para outros usar completedEvents
-    const isCompleted = event.eventKey === "lla" 
-      ? completedEventTypes[event.eventKey] 
-      : completedEvents[event.id];
-    
-    if (isCompleted) {
-      if (!eventsByType[event.eventKey]) {
-        eventsByType[event.eventKey] = {
-          eventKey: event.eventKey,
-          name: event.name || 'Unknown Event',
-          instances: []
-        };
-      }
+    return eventsData.filter(event => {
+      if (!event || !event.id || !event.eventKey) return true;
       
-      // Só adicionar se não existir ainda
-      const existingInstance = eventsByType[event.eventKey].instances.find(
-        inst => inst.id === event.id
-      );
-      if (!existingInstance) {
-        eventsByType[event.eventKey].instances.push(event);
+      // Lógica corrigida: para LLA usar completedEventTypes, para outros usar completedEvents
+      const isLLA = event.eventKey === "lla";
+      const isCompleted = isLLA 
+        ? completedEventTypes[event.eventKey] 
+        : completedEvents[event.id];
+      
+      console.log(`Event ${event.id} (${event.eventKey}) - isLLA: ${isLLA}, completed:`, isCompleted);
+      return !isCompleted;
+    });
+  }, [eventsData, completedEvents, completedEventTypes]);
+
+  // Obter eventos concluídos - VERSÃO CORRIGIDA
+  const completedEventsByType = useMemo(() => {
+    if (!allEvents || !Array.isArray(allEvents)) return [];
+    
+    const eventsByType = {};
+    
+    allEvents.forEach(event => {
+      if (!event || !event.eventKey || !event.id) return;
+      
+      // Lógica corrigida: para LLA usar completedEventTypes, para outros usar completedEvents
+      const isLLA = event.eventKey === "lla";
+      const isCompleted = isLLA 
+        ? completedEventTypes[event.eventKey] 
+        : completedEvents[event.id];
+      
+      if (isCompleted) {
+        if (!eventsByType[event.eventKey]) {
+          eventsByType[event.eventKey] = {
+            eventKey: event.eventKey,
+            name: event.name || 'Unknown Event',
+            instances: []
+          };
+        }
+        
+        // Só adicionar se não existir ainda
+        const existingInstance = eventsByType[event.eventKey].instances.find(
+          inst => inst.id === event.id
+        );
+        if (!existingInstance) {
+          eventsByType[event.eventKey].instances.push(event);
+        }
       }
-    }
-  });
-  
-  console.log('completedEventsByType found:', Object.values(eventsByType).length, 'types');
-  console.log('eventsByType details:', eventsByType);
-  
-  return Object.values(eventsByType);
-}, [allEvents, completedEvents, completedEventTypes]);
+    });
+    
+    console.log('completedEventsByType found:', Object.values(eventsByType).length, 'types');
+    console.log('eventsByType details:', eventsByType);
+    
+    return Object.values(eventsByType);
+  }, [allEvents, completedEvents, completedEventTypes]);
 
   const handleEventToggle = useCallback((eventId, eventKey) => {
-    console.log('Toggling event:', eventId, eventKey);
+    console.log('Toggling event in EventsSection:', eventId, eventKey);
     onEventToggle(eventId, eventKey);
   }, [onEventToggle]);
 
