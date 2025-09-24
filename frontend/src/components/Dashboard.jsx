@@ -163,32 +163,58 @@ const Dashboard = () => {
   }, []);
 
   const handleEventToggle = useCallback((eventId, eventKey) => {
+    console.log('Toggling event:', { eventId, eventKey });
+    
     setCompletedEvents(prevEvents => {
-      const isCurrentlyCompleted = prevEvents[eventId] || completedEventTypes[eventKey];
-      const newCompletedEvents = { ...prevEvents };
-      const newCompletedEventTypes = { ...completedEventTypes };
+      setCompletedEventTypes(prevEventTypes => {
+        // Check current completion status from both states
+        const isEventCompleted = prevEvents[eventId] || false;
+        const isEventTypeCompleted = prevEventTypes[eventKey] || false;
+        const isCurrentlyCompleted = isEventCompleted || isEventTypeCompleted;
+        
+        console.log('Current completion status:', {
+          eventId,
+          eventKey,
+          isEventCompleted,
+          isEventTypeCompleted,
+          isCurrentlyCompleted
+        });
 
-      if (isCurrentlyCompleted) {
-        // Remover a conclusão
-        delete newCompletedEvents[eventId];
-        if (eventKey === "lla") {
-          newCompletedEventTypes[eventKey] = false;
-        }
-      } else {
-        // Marcar como concluído
-        newCompletedEvents[eventId] = true;
-        if (eventKey === "lla") {
-          newCompletedEventTypes[eventKey] = true;
-        }
-      }
+        let newCompletedEvents = { ...prevEvents };
+        let newCompletedEventTypes = { ...prevEventTypes };
 
-      // Atualizar ambos os estados e salvar
-      setCompletedEventTypes(newCompletedEventTypes);
-      localStorageAPI.saveEvents(newCompletedEvents, newCompletedEventTypes);
-      
-      return newCompletedEvents;
+        if (isCurrentlyCompleted) {
+          // Remove completion - clear from both states
+          delete newCompletedEvents[eventId];
+          delete newCompletedEventTypes[eventKey];
+          console.log('Removing completion for:', { eventId, eventKey });
+        } else {
+          // Mark as completed
+          if (eventKey === "lla") {
+            // For LLA events, mark the entire event type as completed
+            newCompletedEventTypes[eventKey] = true;
+            console.log('Marking LLA event type as completed:', eventKey);
+          } else {
+            // For other events, mark individual event as completed
+            newCompletedEvents[eventId] = true;
+            console.log('Marking individual event as completed:', eventId);
+          }
+        }
+
+        console.log('New states:', {
+          newCompletedEvents,
+          newCompletedEventTypes
+        });
+
+        // Save to localStorage
+        localStorageAPI.saveEvents(newCompletedEvents, newCompletedEventTypes);
+        
+        // Update the second state and return the first
+        setCompletedEventTypes(newCompletedEventTypes);
+        return newCompletedEvents;
+      });
     });
-  }, [completedEventTypes]);
+  }, []);
 
   const calculateOverallProgress = useCallback(() => {
     let totalTasks = 0;

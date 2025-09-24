@@ -1,3 +1,4 @@
+// Header.jsx - CORREÇÃO
 import React from 'react';
 import { MapPin, Wifi, WifiOff, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 
@@ -42,8 +43,8 @@ const Header = ({ currentTime, apiStatus, isOnline }) => {
       case 'online':
         return (
           <div className="flex items-center gap-2 text-emerald-400">
-            <Wifi className="w-4 h-4" />
-            <span className="text-xs">Online & Connected</span>
+            <CheckCircle className="w-4 h-4" />
+            <span className="text-xs">API Connected</span>
           </div>
         );
       case 'offline':
