@@ -18,7 +18,7 @@ const ProgressBar = React.memo(({ progress }) => (
   </div>
 ));
 
-// Componente TaskCard memoizado individualmente
+// Componente TaskCard memoizado individualmente - CORRIGIDO
 const TaskCard = React.memo(({ 
   title, 
   icon: Icon, 
@@ -47,7 +47,7 @@ const TaskCard = React.memo(({
                 checked={dailyProgress[category]?.[task.id] || false}
                 onChange={() => onTaskToggle(category, task.id)}
                 className="rounded bg-gray-700 border-gray-600 text-emerald-400 focus:ring-emerald-400/50 focus:ring-2"
-                disabled={task.availability && !dailyProgress[category]?.[task.id]}
+                // REMOVIDA a propriedade disabled - checkbox sempre disponível
               />
               <div className="flex-1">
                 <div className="flex items-center justify-between">
