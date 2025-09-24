@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { convertUTCTimeToLocal } from '../utils/timeUtils';
 
-export const useEvents = (mockData, currentTime) => {
+export const useEvents = (mockData, currentTime, completedEvents = {}, completedEventTypes = {}) => {
   const [allEvents, setAllEvents] = useState([]);
 
   useEffect(() => {
@@ -10,6 +10,12 @@ export const useEvents = (mockData, currentTime) => {
       const now = new Date();
 
       Object.entries(mockData.eventConfig.events).forEach(([key, event]) => {
+        // VERIFICAR SE ESTE TIPO DE EVENTO ESTÁ MARCADO COMO CONCLUÍDO
+        const isEventTypeCompleted = completedEventTypes[key];
+        if (isEventTypeCompleted) {
+          return; // Pular completamente eventos deste tipo se marcados como concluídos
+        }
+
         if (event.locations) {
           event.locations.forEach(location => {
             location.utc_times.forEach(utcTimeStr => {
@@ -21,7 +27,11 @@ export const useEvents = (mockData, currentTime) => {
                 
                 const endTime = new Date(adjustedEventTime.getTime() + event.duration_minutes * 60000);
                 
-                if (endTime > now) {
+                // VERIFICAR SE ESTE EVENTO ESPECÍFICO ESTÁ CONCLUÍDO
+                const eventId = `${key}_${location.map}_${utcTimeStr}_${dayOffset}`;
+                const isEventCompleted = completedEvents[eventId];
+                
+                if (endTime > now && !isEventCompleted) {
                   // SUPORTE PARA MÚLTIPLAS RECOMPENSAS
                   const rewards = location.rewards || 
                                  (location.reward ? [location.reward] : 
@@ -29,7 +39,7 @@ export const useEvents = (mockData, currentTime) => {
                                  (event.reward ? [event.reward] : []));
                   
                   events.push({
-                    id: `${key}_${location.map}_${utcTimeStr}_${dayOffset}`,
+                    id: eventId,
                     eventKey: key,
                     name: event.event_name,
                     location: location.map,
@@ -53,12 +63,16 @@ export const useEvents = (mockData, currentTime) => {
               
               const endTime = new Date(adjustedEventTime.getTime() + event.duration_minutes * 60000);
               
-              if (endTime > now) {
+              // VERIFICAR SE ESTE EVENTO ESPECÍFICO ESTÁ CONCLUÍDO
+              const eventId = `${key}_${utcTimeStr}_${dayOffset}`;
+              const isEventCompleted = completedEvents[eventId];
+              
+              if (endTime > now && !isEventCompleted) {
                 // SUPORTE PARA MÚLTIPLAS RECOMPENSAS
                 const rewards = event.rewards || (event.reward ? [event.reward] : []);
                 
                 events.push({
-                  id: `${key}_${utcTimeStr}_${dayOffset}`,
+                  id: eventId,
                   eventKey: key,
                   name: event.event_name,
                   location: event.location,
@@ -79,7 +93,7 @@ export const useEvents = (mockData, currentTime) => {
     };
 
     loadAllEvents();
-  }, [mockData]);
+  }, [mockData, completedEvents, completedEventTypes]); // ADICIONAR DEPENDÊNCIAS
 
   const eventsData = useMemo(() => {
     const now = currentTime;

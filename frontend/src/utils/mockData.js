@@ -66,7 +66,7 @@ export const mockData = {
         waypoint: "Chak Gerent - [&BPUHAAA=]"
       },
       tt_tequatl: {
-        event_name: "Tequatl",
+        event_name: "Tequatl the Sunless",
         location: "Sparkfly Fen",
         duration_minutes: 15,
         rewards: [
@@ -174,7 +174,8 @@ export const mockData = {
             name: "Icy Dragon Sword",
             link: "https://wiki.guildwars2.com/wiki/Icy_Dragon_Sword",
             itemId: 31065
-          }
+          },
+          { amount: 1, currency: "gold" }
         ],
         utc_times: ["02:30","05:30","08:30","11:30","14:30","17:30","20:30","23:30"],
         waypoint: "Claw of Jormag - [&BHoCAAA=]"

@@ -12,7 +12,8 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
   // Adicione verificação de segurança para currentTime
   const safeCurrentTime = currentTime || new Date();
   
-  const { allEvents, eventsData } = useEvents(mockData, safeCurrentTime);
+  // PASSAR completedEvents E completedEventTypes PARA O HOOK
+  const { allEvents, eventsData } = useEvents(mockData, safeCurrentTime, completedEvents, completedEventTypes);
   const itemPrices = useItemPrices(allEvents);
 
   // Filtrar eventos não concluídos manualmente COM VERIFICAÇÃO DE SEGURANÇA
