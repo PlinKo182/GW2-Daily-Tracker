@@ -35,38 +35,41 @@ const EventsSection = ({ completedEvents, completedEventTypes, onEventToggle, cu
     });
   }, [eventsData, completedEvents, completedEventTypes]);
 
-  // Obter eventos concluídos - CORREÇÃO CRÍTICA
-  const completedEventsByType = useMemo(() => {
-    if (!allEvents || !Array.isArray(allEvents)) return [];
+  // Obter eventos concluídos - VERSÃO CORRIGIDA
+const completedEventsByType = useMemo(() => {
+  if (!allEvents || !Array.isArray(allEvents)) return [];
+  
+  const eventsByType = {};
+  
+  allEvents.forEach(event => {
+    if (!event || !event.eventKey || !event.id) return;
     
-    const eventsByType = {};
-    let completedCount = 0;
+    // Verificar completude de forma mais precisa
+    const isEventCompleted = completedEvents[event.id];
+    const isEventTypeCompleted = completedEventTypes[event.eventKey];
+    const isCompleted = isEventCompleted || isEventTypeCompleted;
     
-    allEvents.forEach(event => {
-      if (!event || !event.eventKey || !event.id) return;
+    if (isCompleted) {
+      if (!eventsByType[event.eventKey]) {
+        eventsByType[event.eventKey] = {
+          eventKey: event.eventKey,
+          name: event.name || 'Unknown Event',
+          instances: []
+        };
+      }
       
-      const isCompleted = completedEventTypes[event.eventKey] || completedEvents[event.id];
-      
-      if (isCompleted) {
-        completedCount++;
-        if (!eventsByType[event.eventKey]) {
-          eventsByType[event.eventKey] = {
-            eventKey: event.eventKey,
-            name: event.name || 'Unknown Event',
-            instances: []
-          };
-        }
-        
+      // Só adicionar se não existir ainda
+      const existingInstance = eventsByType[event.eventKey].instances.find(
+        inst => inst.id === event.id
+      );
+      if (!existingInstance) {
         eventsByType[event.eventKey].instances.push(event);
       }
-    });
-    
-    console.log('completedEventsByType found:', Object.values(eventsByType).length, 'types');
-    console.log('total completed events:', completedCount);
-    console.log('eventsByType details:', eventsByType);
-    
-    return Object.values(eventsByType);
-  }, [allEvents, completedEvents, completedEventTypes]);
+    }
+  });
+  
+  return Object.values(eventsByType);
+}, [allEvents, completedEvents, completedEventTypes]);
 
   const handleEventToggle = useCallback((eventId, eventKey) => {
     console.log('Toggling event:', eventId, eventKey);
