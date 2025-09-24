@@ -122,10 +122,6 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
         <div className="text-sm text-gray-400 mb-4">
           Completed manually
         </div>
-        
-        <div className="text-xs text-gray-400 mb-2">
-          {eventType.instances.length} occurrence(s) marked as completed
-        </div>
 
         {/* EXIBIR MÚLTIPLAS RECOMPENSAS */}
         {renderRewards()}
