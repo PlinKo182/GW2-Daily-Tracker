@@ -121,7 +121,7 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
       <div className="p-6 flex-grow pt-12">
         <h3 className="text-xl font-bold text-emerald-400 mb-2">{eventType.name || 'Unknown Event'}</h3>
         <div className="text-sm text-gray-400 mb-4">
-          All instances completed
+          Daily reward claimed
         </div>
 
         {/* EXIBIR MÚLTIPLAS RECOMPENSAS */}
