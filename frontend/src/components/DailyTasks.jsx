@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { Pickaxe, Hammer, Star } from 'lucide-react';
-import { mockData } from '../utils/mockData';
+import { tasksData } from '../utils/tasksData';
 import TaskTimer from './Tasks/TaskTimer';
 
 const ProgressBar = React.memo(({ progress }) => (
@@ -18,7 +18,7 @@ const ProgressBar = React.memo(({ progress }) => (
   </div>
 ));
 
-// Componente TaskCard memoizado individualmente - CORRIGIDO
+// Componente TaskCard memoizado individualmente
 const TaskCard = React.memo(({ 
   title, 
   icon: Icon, 
@@ -47,7 +47,6 @@ const TaskCard = React.memo(({
                 checked={dailyProgress[category]?.[task.id] || false}
                 onChange={() => onTaskToggle(category, task.id)}
                 className="rounded bg-gray-700 border-gray-600 text-emerald-400 focus:ring-emerald-400/50 focus:ring-2"
-                // REMOVIDA a propriedade disabled - checkbox sempre disponível
               />
               <div className="flex-1">
                 <div className="flex items-center justify-between">
@@ -106,7 +105,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, cu
         title="Daily Gathering"
         icon={Pickaxe}
         description="Visit these waypoints for daily gathering"
-        tasks={mockData.gatheringTasks}
+        tasks={tasksData.gatheringTasks}
         category="gathering"
         progress={calculateCategoryProgress('gathering')}
         dailyProgress={dailyProgress}
@@ -119,7 +118,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, cu
         title="Daily Crafting"
         icon={Hammer}
         description="Craft these items daily"
-        tasks={mockData.craftingTasks}
+        tasks={tasksData.craftingTasks}
         category="crafting"
         progress={calculateCategoryProgress('crafting')}
         dailyProgress={dailyProgress}
@@ -132,7 +131,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, cu
         title="Daily Specials"
         icon={Star}
         description="PSNA and Home Instance tasks"
-        tasks={mockData.specialTasks}
+        tasks={tasksData.specialTasks}
         category="specials"
         progress={calculateCategoryProgress('specials')}
         dailyProgress={dailyProgress}

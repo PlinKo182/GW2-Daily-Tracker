@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Eye, EyeOff, Undo } from 'lucide-react';
-import { mockData } from '../../utils/mockData';
 import { useEvents } from '../../hooks/useEvents';
 import { useItemPrices } from '../../hooks/useItemPrices';
 import EventCard from './EventCard';
@@ -11,7 +10,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
   
   const safeCurrentTime = currentTime || new Date();
   
-  const { allEvents, eventsData } = useEvents(mockData, safeCurrentTime);
+  const { allEvents, eventsData } = useEvents(null, safeCurrentTime);
   const itemPrices = useItemPrices(allEvents);
 
   // DEBUG: Verificar o que está nos estados

@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { convertUTCTimeToLocal } from '../utils/timeUtils';
+import { eventsData } from '../utils/eventsData';
 
-export const useEvents = (mockData, currentTime) => {
+export const useEvents = (_, currentTime) => {
   const [allEvents, setAllEvents] = useState([]);
 
   useEffect(() => {
@@ -9,69 +10,45 @@ export const useEvents = (mockData, currentTime) => {
       const events = [];
       const now = new Date();
 
-      Object.entries(mockData.eventConfig.events).forEach(([key, event]) => {
-        if (event.locations) {
-          event.locations.forEach(location => {
-            location.utc_times.forEach(utcTimeStr => {
+      Object.entries(eventsData).forEach(([category, subcategories]) => {
+        Object.entries(subcategories).forEach(([subcategory, eventTypes]) => {
+          Object.entries(eventTypes).forEach(([eventName, eventData]) => {
+            const eventKey = `${category}_${subcategory}_${eventName}`.replace(/\s+/g, '_').toLowerCase().replace(/[^\w]/g, '_');
+            
+            // Skip if no UTC times or duration
+            if (!eventData.utc_times || !eventData.duration_minutes) {
+              return;
+            }
+
+            eventData.utc_times.forEach(utcTimeStr => {
               const eventTime = convertUTCTimeToLocal(utcTimeStr);
               
               for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
                 const adjustedEventTime = new Date(eventTime);
                 adjustedEventTime.setDate(adjustedEventTime.getDate() + dayOffset);
                 
-                const endTime = new Date(adjustedEventTime.getTime() + event.duration_minutes * 60000);
+                const endTime = new Date(adjustedEventTime.getTime() + eventData.duration_minutes * 60000);
                 
                 if (endTime > now) {
-                  // SUPORTE PARA MÚLTIPLAS RECOMPENSAS
-                  const rewards = location.rewards || 
-                                 (location.reward ? [location.reward] : 
-                                 event.rewards || 
-                                 (event.reward ? [event.reward] : []));
+                  // Convert rewards to consistent format
+                  const rewards = processRewards(eventData.rewards);
                   
                   events.push({
-                    id: `${key}_${location.map}_${utcTimeStr}_${dayOffset}`,
-                    eventKey: key,
-                    name: event.event_name,
-                    location: location.map,
-                    waypoint: location.waypoint,
+                    id: `${eventKey}_${utcTimeStr}_${dayOffset}`,
+                    eventKey: eventKey,
+                    name: eventName,
+                    location: subcategory,
+                    waypoint: eventData.waypoint || '',
                     startTime: new Date(adjustedEventTime),
                     endTime: endTime,
-                    duration: event.duration_minutes,
-                    rewards: rewards // SEMPRE UM ARRAY
+                    duration: eventData.duration_minutes,
+                    rewards: rewards
                   });
                 }
               }
             });
           });
-        } else {
-          event.utc_times.forEach(utcTimeStr => {
-            const eventTime = convertUTCTimeToLocal(utcTimeStr);
-            
-            for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
-              const adjustedEventTime = new Date(eventTime);
-              adjustedEventTime.setDate(adjustedEventTime.getDate() + dayOffset);
-              
-              const endTime = new Date(adjustedEventTime.getTime() + event.duration_minutes * 60000);
-              
-              if (endTime > now) {
-                // SUPORTE PARA MÚLTIPLAS RECOMPENSAS
-                const rewards = event.rewards || (event.reward ? [event.reward] : []);
-                
-                events.push({
-                  id: `${key}_${utcTimeStr}_${dayOffset}`,
-                  eventKey: key,
-                  name: event.event_name,
-                  location: event.location,
-                  waypoint: event.waypoint,
-                  startTime: new Date(adjustedEventTime),
-                  endTime: endTime,
-                  duration: event.duration_minutes,
-                  rewards: rewards // SEMPRE UM ARRAY
-                });
-              }
-            }
-          });
-        }
+        });
       });
 
       events.sort((a, b) => a.startTime - b.startTime);
@@ -79,7 +56,7 @@ export const useEvents = (mockData, currentTime) => {
     };
 
     loadAllEvents();
-  }, [mockData]);
+  }, []);
 
   const eventsData = useMemo(() => {
     const now = currentTime;
@@ -95,4 +72,32 @@ export const useEvents = (mockData, currentTime) => {
   }, [allEvents, currentTime]);
 
   return { allEvents, eventsData };
+};
+
+// Helper function to process rewards into consistent format
+const processRewards = (rawRewards) => {
+  if (!rawRewards) return [];
+  
+  const rewards = [];
+  
+  // Handle item reward
+  if (rawRewards.item && rawRewards.item.name) {
+    rewards.push({
+      type: 'item',
+      name: rawRewards.item.name,
+      link: rawRewards.item.link || '',
+      itemId: rawRewards.item.itemId || null
+    });
+  }
+  
+  // Handle currency reward
+  if (rawRewards.currency && rawRewards.currency.amount) {
+    rewards.push({
+      type: 'currency',
+      amount: rawRewards.currency.amount,
+      currency: rawRewards.currency.type === 'mystic_coin' ? 'mystic' : rawRewards.currency.type
+    });
+  }
+  
+  return rewards;
 };
