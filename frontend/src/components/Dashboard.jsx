@@ -4,7 +4,6 @@ import DailyProgress from './DailyProgress';
 import DailyTasks from './DailyTasks';
 import EventsSection from './EventsSection/EventsSection';
 import Footer from './Footer';
-import { mockData } from '../utils/mockData';
 import api, { localStorageAPI } from '../services/api';
 
 const Dashboard = () => {

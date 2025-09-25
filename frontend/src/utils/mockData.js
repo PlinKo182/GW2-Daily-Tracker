@@ -218,7 +218,7 @@ function getPSNAName() {
 function getPSNAWaypoint() {
   const psnaWaypoints = {
     0: "[&BIkHAAA=]", // Sunday
-    1: "[&BIcHAAA=]", // Monday
+    1: "[&BKsHAAA=]", // Monday
     2: "[&BH8HAAA=]", // Tuesday
     3: "[&BH4HAAA=]", // Wednesday
     4: "[&BKsHAAA=]", // Thursday
