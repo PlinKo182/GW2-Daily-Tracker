@@ -191,6 +191,7 @@ export const eventsData = {
         }
       }
     },
+},
   "Living World Season 1": {
     "Eye of the North": {
       "Twisted Marionette (Public)": {
