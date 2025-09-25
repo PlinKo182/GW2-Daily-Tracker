@@ -310,7 +310,7 @@ export const eventsData = {
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
         "waypoint": "[&BAIIAAA=]",
         "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
+          "item": { "type": "item", "name": "Vial of Liquid Aurillium", "https://wiki.guildwars2.com/wiki/Vial_of_Liquid_Aurillium": "", "itemId": 76063 },
           "currency": { "amount": null, "type": "" }
         }
       },
@@ -652,44 +652,6 @@ export const eventsData = {
     }
   },
   "End of Dragons": {
-    "Cantha: Day and night": {
-      "Day": {
-        "duration_minutes": 55,
-        "utc_times": ["00:40", "02:40", "04:40", "06:40", "08:40", "10:40", "12:40", "14:40", "16:40", "18:40", "20:40", "22:40"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Dusk": {
-        "duration_minutes": 5,
-        "utc_times": ["01:35", "03:35", "05:35", "07:35", "09:35", "11:35", "13:35", "15:35", "17:35", "19:35", "21:35", "23:35"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Night": {
-        "duration_minutes": 55,
-        "utc_times": ["00:00", "01:40", "03:40", "05:40", "07:40", "09:40", "11:40", "13:40", "15:40", "17:40", "19:40", "21:40", "23:40"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Dawn": {
-        "duration_minutes": 5,
-        "utc_times": ["00:35", "02:35", "04:35", "06:35", "08:35", "10:35", "12:35", "14:35", "16:35", "18:35", "20:35", "22:35"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      }
-    },
     "Seitung Province": {
       "Aetherblade Assault": {
         "duration_minutes": 30,
