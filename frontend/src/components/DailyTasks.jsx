@@ -1,7 +1,7 @@
 // components/DailyTasks.jsx
 import React, { useCallback } from 'react';
 import { Pickaxe, Hammer, Star } from 'lucide-react';
-import { mockData } from '../utils/tasksData'; // Importar de tasksData
+import { tasksData } from '../utils/tasksData'; // Corrigido: agora importa tasksData
 import TaskTimer from './Tasks/TaskTimer';
 
 const ProgressBar = React.memo(({ progress }) => (
