@@ -3,44 +3,6 @@
 
 export const eventsData = {
   "Core Tyria": {
-    "Day and night": {
-      "Day": {
-        "duration_minutes": 70,
-        "utc_times": ["00:30", "02:30", "04:30", "06:30", "08:30", "10:30", "12:30", "14:30", "16:30", "18:30", "20:30", "22:30"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Dusk": {
-        "duration_minutes": 5,
-        "utc_times": ["01:40", "03:40", "05:40", "07:40", "09:40", "11:40", "13:40", "15:40", "17:40", "19:40", "21:40", "23:40"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Night": {
-        "duration_minutes": 40,
-        "utc_times": ["00:00", "01:45", "03:45", "05:45", "07:45", "09:45", "11:45", "13:45", "15:45", "17:45", "19:45", "21:45", "23:45"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Dawn": {
-        "duration_minutes": 5,
-        "utc_times": ["00:25", "02:25", "04:25", "06:25", "08:25", "10:25", "12:25", "14:25", "16:25", "18:25", "20:25", "22:25"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      }
-    },
     "World bosses": {
       "Admiral Taidha Covington": {
         "duration_minutes": 15,
@@ -229,83 +191,6 @@ export const eventsData = {
         }
       }
     },
-    "EU PvP Tournaments": {
-      "Automated Tournament: Balthazar's Brawl": {
-        "duration_minutes": 60,
-        "utc_times": ["12:00"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Automated Tournament: Grenth's Game": {
-        "duration_minutes": 60,
-        "utc_times": ["15:00"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Automated Tournament: Melandru's Matchup": {
-        "duration_minutes": 60,
-        "utc_times": ["18:00"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Automated Tournament: Lyssa's Legions": {
-        "duration_minutes": 60,
-        "utc_times": ["21:00"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      }
-    },
-    "NA PvP Tournaments": {
-      "Automated Tournament: Balthazar's Brawl": {
-        "duration_minutes": 60,
-        "utc_times": ["21:00"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Automated Tournament: Grenth's Game": {
-        "duration_minutes": 60,
-        "utc_times": ["00:00"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Automated Tournament: Melandru's Matchup": {
-        "duration_minutes": 60,
-        "utc_times": ["03:00"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      },
-      "Automated Tournament: Lyssa's Legions": {
-        "duration_minutes": 60,
-        "utc_times": ["09:00"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "type": "", "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      }
-    }
-  },
   "Living World Season 1": {
     "Eye of the North": {
       "Twisted Marionette (Public)": {

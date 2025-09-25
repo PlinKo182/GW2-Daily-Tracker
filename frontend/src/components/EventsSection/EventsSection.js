@@ -1,7 +1,7 @@
 // components/EventsSection/EventsSection.js
 import React, { useState, useMemo, useCallback } from 'react';
 import { Eye, EyeOff, Undo } from 'lucide-react';
-import { eventsData } from '../../utils/eventsData'; // Importar eventsData diretamente
+import { eventsData } from '../../utils/eventsData';
 import { useEvents } from '../../hooks/useEvents';
 import { useItemPrices } from '../../hooks/useItemPrices';
 import EventCard from './EventCard';
