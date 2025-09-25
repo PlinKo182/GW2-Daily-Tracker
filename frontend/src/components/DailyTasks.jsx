@@ -1,6 +1,7 @@
+// components/DailyTasks.jsx
 import React, { useCallback } from 'react';
 import { Pickaxe, Hammer, Star } from 'lucide-react';
-import { tasksData } from '../utils/tasksData';
+import { mockData } from '../utils/tasksData'; // Importar de tasksData
 import TaskTimer from './Tasks/TaskTimer';
 
 const ProgressBar = React.memo(({ progress }) => (
@@ -18,7 +19,6 @@ const ProgressBar = React.memo(({ progress }) => (
   </div>
 ));
 
-// Componente TaskCard memoizado individualmente
 const TaskCard = React.memo(({ 
   title, 
   icon: Icon, 
@@ -105,7 +105,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, cu
         title="Daily Gathering"
         icon={Pickaxe}
         description="Visit these waypoints for daily gathering"
-        tasks={tasksData.gatheringTasks}
+        tasks={mockData.gatheringTasks}
         category="gathering"
         progress={calculateCategoryProgress('gathering')}
         dailyProgress={dailyProgress}
@@ -118,7 +118,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, cu
         title="Daily Crafting"
         icon={Hammer}
         description="Craft these items daily"
-        tasks={tasksData.craftingTasks}
+        tasks={mockData.craftingTasks}
         category="crafting"
         progress={calculateCategoryProgress('crafting')}
         dailyProgress={dailyProgress}
@@ -131,7 +131,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, cu
         title="Daily Specials"
         icon={Star}
         description="PSNA and Home Instance tasks"
-        tasks={tasksData.specialTasks}
+        tasks={mockData.specialTasks}
         category="specials"
         progress={calculateCategoryProgress('specials')}
         dailyProgress={dailyProgress}

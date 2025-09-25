@@ -1,8 +1,8 @@
+// hooks/useEvents.js
 import { useState, useEffect, useMemo } from 'react';
 import { convertUTCTimeToLocal } from '../utils/timeUtils';
-import { eventsData } from '../utils/eventsData';
 
-export const useEvents = (_, currentTime) => {
+export const useEvents = (eventsData, currentTime) => {
   const [allEvents, setAllEvents] = useState([]);
 
   useEffect(() => {
@@ -10,55 +10,98 @@ export const useEvents = (_, currentTime) => {
       const events = [];
       const now = new Date();
 
-      Object.entries(eventsData).forEach(([category, subcategories]) => {
-        Object.entries(subcategories).forEach(([subcategory, eventTypes]) => {
-          Object.entries(eventTypes).forEach(([eventName, eventData]) => {
-            const eventKey = `${category}_${subcategory}_${eventName}`.replace(/\s+/g, '_').toLowerCase().replace(/[^\w]/g, '_');
-            
-            // Skip if no UTC times or duration
-            if (!eventData.utc_times || !eventData.duration_minutes) {
-              return;
-            }
+      // Função para converter recompensas de objeto para array
+      const convertRewardsToArray = (rewardsObj) => {
+        const rewardsArray = [];
+        
+        if (rewardsObj) {
+          // Adicionar item se existir
+          if (rewardsObj.item && (rewardsObj.item.name || rewardsObj.item.type)) {
+            rewardsArray.push({
+              type: 'item',
+              name: rewardsObj.item.name || '',
+              link: rewardsObj.item.link || '',
+              itemId: rewardsObj.item.itemId || null,
+              price: rewardsObj.item.price || ''
+            });
+          }
+          
+          // Adicionar currency se existir
+          if (rewardsObj.currency && rewardsObj.currency.amount) {
+            rewardsArray.push({
+              type: 'currency',
+              amount: rewardsObj.currency.amount,
+              currency: rewardsObj.currency.type || 'gold'
+            });
+          }
+        }
+        
+        return rewardsArray;
+      };
 
-            eventData.utc_times.forEach(utcTimeStr => {
-              const eventTime = convertUTCTimeToLocal(utcTimeStr);
+      // Processar estrutura de 3 níveis: Categoria -> Subcategoria -> Evento
+      const processEventsData = (eventsData) => {
+        Object.entries(eventsData).forEach(([category, subcategories]) => {
+          Object.entries(subcategories).forEach(([subcategory, eventsGroup]) => {
+            Object.entries(eventsGroup).forEach(([eventName, eventData]) => {
+              // Criar eventKey único
+              const eventKey = `${category}_${subcategory}_${eventName}`
+                .toLowerCase()
+                .replace(/\s+/g, '_')
+                .replace(/[^a-z0-9_]/g, '');
               
-              for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
-                const adjustedEventTime = new Date(eventTime);
-                adjustedEventTime.setDate(adjustedEventTime.getDate() + dayOffset);
-                
-                const endTime = new Date(adjustedEventTime.getTime() + eventData.duration_minutes * 60000);
-                
-                if (endTime > now) {
-                  // Convert rewards to consistent format
-                  const rewards = processRewards(eventData.rewards);
+              // Processar cada horário UTC do evento
+              if (eventData.utc_times && Array.isArray(eventData.utc_times)) {
+                eventData.utc_times.forEach(utcTimeStr => {
+                  const eventTime = convertUTCTimeToLocal(utcTimeStr);
                   
-                  events.push({
-                    id: `${eventKey}_${utcTimeStr}_${dayOffset}`,
-                    eventKey: eventKey,
-                    name: eventName,
-                    location: subcategory,
-                    waypoint: eventData.waypoint || '',
-                    startTime: new Date(adjustedEventTime),
-                    endTime: endTime,
-                    duration: eventData.duration_minutes,
-                    rewards: rewards
-                  });
-                }
+                  // Considerar hoje e amanhã (para eventos que cruzam a meia-noite)
+                  for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
+                    const adjustedEventTime = new Date(eventTime);
+                    adjustedEventTime.setDate(adjustedEventTime.getDate() + dayOffset);
+                    
+                    const endTime = new Date(adjustedEventTime.getTime() + (eventData.duration_minutes || 15) * 60000);
+                    
+                    // Só adicionar se o evento ainda não terminou
+                    if (endTime > now) {
+                      const rewards = convertRewardsToArray(eventData.rewards);
+                      
+                      events.push({
+                        id: `${eventKey}_${utcTimeStr}_${dayOffset}`,
+                        eventKey: eventKey,
+                        name: eventName,
+                        location: `${category} - ${subcategory}`,
+                        waypoint: eventData.waypoint || '',
+                        startTime: new Date(adjustedEventTime),
+                        endTime: endTime,
+                        duration: eventData.duration_minutes || 15,
+                        rewards: rewards
+                      });
+                    }
+                  }
+                });
               }
             });
           });
         });
-      });
+      };
 
+      // Processar os eventos do eventsData
+      if (eventsData) {
+        processEventsData(eventsData);
+      }
+
+      // Ordenar eventos por hora de início
       events.sort((a, b) => a.startTime - b.startTime);
       setAllEvents(events);
     };
 
     loadAllEvents();
-  }, []);
+  }, [eventsData]);
 
-  const eventsData = useMemo(() => {
+  const eventsDataFiltered = useMemo(() => {
+    if (!currentTime) return [];
+    
     const now = currentTime;
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     
@@ -71,33 +114,5 @@ export const useEvents = (_, currentTime) => {
     });
   }, [allEvents, currentTime]);
 
-  return { allEvents, eventsData };
-};
-
-// Helper function to process rewards into consistent format
-const processRewards = (rawRewards) => {
-  if (!rawRewards) return [];
-  
-  const rewards = [];
-  
-  // Handle item reward
-  if (rawRewards.item && rawRewards.item.name) {
-    rewards.push({
-      type: 'item',
-      name: rawRewards.item.name,
-      link: rawRewards.item.link || '',
-      itemId: rawRewards.item.itemId || null
-    });
-  }
-  
-  // Handle currency reward
-  if (rawRewards.currency && rawRewards.currency.amount) {
-    rewards.push({
-      type: 'currency',
-      amount: rawRewards.currency.amount,
-      currency: rawRewards.currency.type === 'mystic_coin' ? 'mystic' : rawRewards.currency.type
-    });
-  }
-  
-  return rewards;
+  return { allEvents, eventsData: eventsDataFiltered };
 };

@@ -1,10 +1,12 @@
+// components/Dashboard.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Header from './Header';
 import DailyProgress from './DailyProgress';
 import DailyTasks from './DailyTasks';
 import EventsSection from './EventsSection/EventsSection';
 import Footer from './Footer';
-import api, { localStorageAPI } from '../services/api';
+import { mockData } from '../utils/tasksData'; // Importar tasksData para as tarefas
+import { localStorageAPI } from '../services/api';
 
 const Dashboard = () => {
   const [notification, setNotification] = useState(null);
@@ -121,7 +123,7 @@ const Dashboard = () => {
     }
 
     try {
-      // Test direct GW2 API connection instead of your api.healthCheck()
+      // Test direct GW2 API connection
       const response = await fetch('https://api.guildwars2.com/v2/build', {
         method: 'GET',
         headers: {
@@ -196,7 +198,7 @@ const Dashboard = () => {
 
       console.log('New completedEventTypes:', newCompletedEventTypes);
 
-      // Save to localStorage (agora só precisamos de completedEventTypes)
+      // Save to localStorage
       localStorageAPI.saveEvents({}, newCompletedEventTypes);
       
       return newCompletedEventTypes;

@@ -1,5 +1,7 @@
+// components/EventsSection/EventsSection.js
 import React, { useState, useMemo, useCallback } from 'react';
 import { Eye, EyeOff, Undo } from 'lucide-react';
+import { eventsData } from '../../utils/eventsData'; // Importar eventsData diretamente
 import { useEvents } from '../../hooks/useEvents';
 import { useItemPrices } from '../../hooks/useItemPrices';
 import EventCard from './EventCard';
@@ -10,21 +12,21 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
   
   const safeCurrentTime = currentTime || new Date();
   
-  const { allEvents, eventsData } = useEvents(null, safeCurrentTime);
+  // Usar eventsData diretamente em vez de mockData
+  const { allEvents, eventsData: filteredEvents } = useEvents(eventsData, safeCurrentTime);
   const itemPrices = useItemPrices(allEvents);
 
   // DEBUG: Verificar o que está nos estados
   console.log('=== EVENTS SECTION DEBUG ===');
   console.log('completedEventTypes:', completedEventTypes);
   console.log('allEvents count:', allEvents?.length);
-  console.log('eventsData count:', eventsData?.length);
+  console.log('filteredEvents count:', filteredEvents?.length);
 
-  // Filtrar eventos não concluídos para mostrar na seção principal - CORRIGIDO
-  const filteredEvents = useMemo(() => {
-    if (!eventsData || !Array.isArray(eventsData)) return [];
+  // Filtrar eventos não concluídos para mostrar na seção principal
+  const filteredEventsData = useMemo(() => {
+    if (!filteredEvents || !Array.isArray(filteredEvents)) return [];
     
-    return eventsData.filter(event => {
-      // Verificação mais robusta para evitar undefined
+    return filteredEvents.filter(event => {
       if (!event || typeof event !== 'object' || !event.eventKey || !event.id) {
         console.log('Filtering out invalid event:', event);
         return false;
@@ -34,16 +36,15 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
       console.log(`Event ${event.id} (${event.eventKey}) - completed:`, isCompleted);
       return !isCompleted;
     });
-  }, [eventsData, completedEventTypes]);
+  }, [filteredEvents, completedEventTypes]);
 
-  // Obter eventos concluídos - CORRIGIDO
+  // Obter eventos concluídos
   const completedEventsByType = useMemo(() => {
     if (!allEvents || !Array.isArray(allEvents)) return [];
     
     const eventsByType = {};
     
     allEvents.forEach(event => {
-      // Verificação mais robusta para evitar undefined
       if (!event || typeof event !== 'object' || !event.eventKey || !event.id) {
         console.log('Skipping invalid event in completedEventsByType:', event);
         return;
@@ -60,7 +61,6 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
           };
         }
         
-        // Adicionar instância (para mostrar informações específicas)
         eventsByType[event.eventKey].instances.push(event);
       }
     });
@@ -76,7 +76,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
   }, [onEventToggle]);
 
   // Renderização mais segura
-  const hasEventsData = eventsData && Array.isArray(eventsData);
+  const hasEventsData = filteredEvents && Array.isArray(filteredEvents);
   const hasAllEvents = allEvents && Array.isArray(allEvents);
 
   if (!hasEventsData || !hasAllEvents) {
@@ -102,7 +102,6 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
           Showing events within the next 2 hours
         </div>
         
-        {/* BOTÃO SEMPRE VISÍVEL SE HOUVER EVENTOS COMPLETOS */}
         {completedEventsByType.length > 0 ? (
           <button
             onClick={() => setShowCompleted(!showCompleted)}
@@ -128,10 +127,9 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
       </div>
       
       {/* SEÇÃO DE EVENTOS ATIVOS/UPCOMING */}
-      {filteredEvents.length > 0 ? (
+      {filteredEventsData.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map(event => {
-            // Verificação adicional no map para segurança extra
+          {filteredEventsData.map(event => {
             if (!event || !event.id) {
               console.log('Skipping invalid event in map:', event);
               return null;
@@ -151,7 +149,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
       ) : (
         <div className="text-center py-8 text-gray-400">
           <p>No events in the next 2 hours.</p>
-          {eventsData.length > 0 && (
+          {filteredEvents.length > 0 && (
             <p className="text-sm mt-4 text-amber-400">
               All upcoming events have been marked as completed.
             </p>
@@ -159,7 +157,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
         </div>
       )}
       
-      {/* SEÇÃO DE EVENTOS COMPLETOS (APENAS QUANDO VISÍVEL) */}
+      {/* SEÇÃO DE EVENTOS COMPLETOS */}
       {showCompleted && completedEventsByType.length > 0 && (
         <div className="mt-12">
           <div className="flex items-center gap-3 mb-6">
