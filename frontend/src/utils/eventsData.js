@@ -310,7 +310,7 @@ export const eventsData = {
         "utc_times": ["01:00", "03:00", "05:00", "07:00", "09:00", "11:00", "13:00", "15:00", "17:00", "19:00", "21:00", "23:00"],
         "waypoint": "[&BAIIAAA=]",
         "rewards": {
-          "item": { "type": "item", "name": "Vial of Liquid Aurillium", "https://wiki.guildwars2.com/wiki/Vial_of_Liquid_Aurillium": "", "itemId": 76063 },
+          "item": {"name": "Vial of Liquid Aurillium", "https://wiki.guildwars2.com/wiki/Vial_of_Liquid_Aurillium": "", "itemId": 76063 },
           "currency": { "amount": null, "type": "" }
         }
       },
