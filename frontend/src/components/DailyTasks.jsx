@@ -86,10 +86,7 @@ const TaskCard = React.memo(({
 
 const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, currentTime }) => {
   const copyToClipboard = useCallback((text) => {
-    navigator.clipboard.writeText(text.trim()).then(() => {
-      // Poderia adicionar notificação toast aqui
-    }).catch(() => {
-      // Fallback para navegadores antigos
+    navigator.clipboard.writeText(text.trim()).catch(() => {
       const textArea = document.createElement('textarea');
       textArea.value = text.trim();
       document.body.appendChild(textArea);
@@ -105,7 +102,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, cu
         title="Daily Gathering"
         icon={Pickaxe}
         description="Visit these waypoints for daily gathering"
-        tasks={mockData.gatheringTasks}
+        tasks={tasksData.gatheringTasks}
         category="gathering"
         progress={calculateCategoryProgress('gathering')}
         dailyProgress={dailyProgress}
@@ -118,7 +115,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, cu
         title="Daily Crafting"
         icon={Hammer}
         description="Craft these items daily"
-        tasks={mockData.craftingTasks}
+        tasks={tasksData.craftingTasks}
         category="crafting"
         progress={calculateCategoryProgress('crafting')}
         dailyProgress={dailyProgress}
@@ -131,7 +128,7 @@ const DailyTasks = ({ dailyProgress, onTaskToggle, calculateCategoryProgress, cu
         title="Daily Specials"
         icon={Star}
         description="PSNA and Home Instance tasks"
-        tasks={mockData.specialTasks}
+        tasks={tasksData.specialTasks}
         category="specials"
         progress={calculateCategoryProgress('specials')}
         dailyProgress={dailyProgress}

@@ -5,7 +5,6 @@ import DailyProgress from './DailyProgress';
 import DailyTasks from './DailyTasks';
 import EventsSection from './EventsSection/EventsSection';
 import Footer from './Footer';
-import { mockData } from '../utils/tasksData'; // Importar tasksData para as tarefas
 import { localStorageAPI } from '../services/api';
 
 const Dashboard = () => {

@@ -12,7 +12,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
   
   const safeCurrentTime = currentTime || new Date();
   
-  // Usar eventsData diretamente em vez de mockData
+  // Usar eventsData
   const { allEvents, eventsData: filteredEvents } = useEvents(eventsData, safeCurrentTime);
   const itemPrices = useItemPrices(allEvents);
 
