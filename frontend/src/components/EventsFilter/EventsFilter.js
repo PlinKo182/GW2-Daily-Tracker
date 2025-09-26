@@ -8,10 +8,43 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
   const [selectedFilters, setSelectedFilters] = useState(currentFilters || {});
   const [isSaving, setIsSaving] = useState(false);
 
+  // Contar eventos por categoria
+  const countEventsInCategory = (categoryData) => {
+    let count = 0;
+    
+    const countRecursive = (data) => {
+      if (data.utc_times && Array.isArray(data.utc_times)) {
+        count++;
+        return;
+      }
+      
+      if (typeof data === 'object' && data !== null) {
+        Object.values(data).forEach(value => {
+          if (typeof value === 'object' && value !== null) {
+            countRecursive(value);
+          }
+        });
+      }
+    };
+    
+    if (typeof categoryData === 'object' && categoryData !== null) {
+      countRecursive(categoryData);
+    }
+    
+    return count;
+  };
+
   // Inicializar filtros quando currentFilters mudar
   useEffect(() => {
     if (currentFilters && Object.keys(currentFilters).length > 0) {
       setSelectedFilters(currentFilters);
+    } else {
+      // Inicializar com todas as categorias selecionadas
+      const initialFilters = {};
+      Object.keys(eventsData).forEach(category => {
+        initialFilters[category] = true;
+      });
+      setSelectedFilters(initialFilters);
     }
   }, [currentFilters]);
 
@@ -97,22 +130,23 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {Object.keys(eventsData).map(category => (
-                  <label key={category} className="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={!!selectedFilters[category]}
-                      onChange={() => handleCategoryToggle(category)}
-                      className="rounded bg-gray-600 border-gray-500 text-emerald-400 focus:ring-emerald-400"
-                    />
-                    <span className="text-gray-200 flex-1">{category}</span>
-                    <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
-                      {Object.keys(eventsData[category]).reduce((count, subcategory) => 
-                        count + Object.keys(eventsData[category][subcategory]).length, 0
-                      )} events
-                    </span>
-                  </label>
-                ))}
+                {Object.keys(eventsData).map(category => {
+                  const eventCount = countEventsInCategory(eventsData[category]);
+                  return (
+                    <label key={category} className="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!selectedFilters[category]}
+                        onChange={() => handleCategoryToggle(category)}
+                        className="rounded bg-gray-600 border-gray-500 text-emerald-400 focus:ring-emerald-400"
+                      />
+                      <span className="text-gray-200 flex-1">{category}</span>
+                      <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
+                        {eventCount} events
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 

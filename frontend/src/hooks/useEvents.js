@@ -16,7 +16,7 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
         
         if (rewardsObj) {
           // Adicionar item se existir
-          if (rewardsObj.item && (rewardsObj.item.name || rewardsObj.item.type)) {
+          if (rewardsObj.item && (rewardsObj.item.name || rewardsObj.item.type || rewardsObj.item.itemId)) {
             rewardsArray.push({
               type: 'item',
               name: rewardsObj.item.name || '',
@@ -39,56 +39,75 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
         return rewardsArray;
       };
 
-      // Processar estrutura de 3 níveis: Categoria -> Subcategoria -> Evento
-      const processEventsData = (eventsData) => {
-        Object.entries(eventsData).forEach(([category, subcategories]) => {
-          // Verificar se a categoria está ativa nos filtros (se não estiver definida, assume true)
-          if (eventFilters[category] === false) {
-            console.log(`Skipping category due to filter: ${category}`);
-            return; // Pular categoria se não estiver selecionada
-          }
-
-          Object.entries(subcategories).forEach(([subcategory, eventsGroup]) => {
-            Object.entries(eventsGroup).forEach(([eventName, eventData]) => {
-              // Criar eventKey único
-              const eventKey = `${category}_${subcategory}_${eventName}`
-                .toLowerCase()
-                .replace(/\s+/g, '_')
-                .replace(/[^a-z0-9_]/g, '');
+      // Função recursiva para processar toda a estrutura hierárquica
+      const processCategory = (categoryData, categoryPath, currentLevel = 0) => {
+        // Se chegarmos no nível do evento (que tem utc_times)
+        if (categoryData.utc_times && Array.isArray(categoryData.utc_times)) {
+          const eventName = categoryPath[categoryPath.length - 1];
+          const subcategory = categoryPath.length > 1 ? categoryPath[categoryPath.length - 2] : 'General';
+          const category = categoryPath[0];
+          
+          // Criar eventKey único baseado no caminho completo
+          const eventKey = categoryPath.join('_')
+            .toLowerCase()
+            .replace(/\s+/g, '_')
+            .replace(/[^a-z0-9_]/g, '');
+          
+          // Processar cada horário UTC do evento
+          categoryData.utc_times.forEach(utcTimeStr => {
+            const eventTime = convertUTCTimeToLocal(utcTimeStr);
+            
+            // Considerar hoje e amanhã (para eventos que cruzam a meia-noite)
+            for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
+              const adjustedEventTime = new Date(eventTime);
+              adjustedEventTime.setDate(adjustedEventTime.getDate() + dayOffset);
               
-              // Processar cada horário UTC do evento
-              if (eventData.utc_times && Array.isArray(eventData.utc_times)) {
-                eventData.utc_times.forEach(utcTimeStr => {
-                  const eventTime = convertUTCTimeToLocal(utcTimeStr);
-                  
-                  // Considerar hoje e amanhã (para eventos que cruzam a meia-noite)
-                  for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
-                    const adjustedEventTime = new Date(eventTime);
-                    adjustedEventTime.setDate(adjustedEventTime.getDate() + dayOffset);
-                    
-                    const endTime = new Date(adjustedEventTime.getTime() + (eventData.duration_minutes || 15) * 60000);
-                    
-                    // Só adicionar se o evento ainda não terminou
-                    if (endTime > now) {
-                      const rewards = convertRewardsToArray(eventData.rewards);
-                      
-                      events.push({
-                        id: `${eventKey}_${utcTimeStr}_${dayOffset}`,
-                        eventKey: eventKey,
-                        name: eventName,
-                        location: `${category} - ${subcategory}`,
-                        waypoint: eventData.waypoint || '',
-                        startTime: new Date(adjustedEventTime),
-                        endTime: endTime,
-                        duration: eventData.duration_minutes || 15,
-                        rewards: rewards
-                      });
-                    }
-                  }
+              const endTime = new Date(adjustedEventTime.getTime() + (categoryData.duration_minutes || 15) * 60000);
+              
+              // Só adicionar se o evento ainda não terminou
+              if (endTime > now) {
+                const rewards = convertRewardsToArray(categoryData.rewards);
+                
+                events.push({
+                  id: `${eventKey}_${utcTimeStr}_${dayOffset}`,
+                  eventKey: eventKey,
+                  name: eventName,
+                  location: `${category} - ${subcategory}`,
+                  waypoint: categoryData.waypoint || '',
+                  startTime: new Date(adjustedEventTime),
+                  endTime: endTime,
+                  duration: categoryData.duration_minutes || 15,
+                  rewards: rewards,
+                  category: category,
+                  subcategory: subcategory
                 });
               }
-            });
+            }
           });
+          return;
+        }
+        
+        // Se for um objeto, continuar processando recursivamente
+        if (typeof categoryData === 'object' && categoryData !== null) {
+          Object.entries(categoryData).forEach(([key, value]) => {
+            processCategory(value, [...categoryPath, key], currentLevel + 1);
+          });
+        }
+      };
+
+      // Processar todos os eventos começando do nível mais alto
+      const processEventsData = (eventsData) => {
+        Object.entries(eventsData).forEach(([category, categoryData]) => {
+          // Verificar se a categoria está ativa nos filtros
+          if (eventFilters[category] === false) {
+            console.log(`Skipping category due to filter: ${category}`);
+            return;
+          }
+
+          // Processar recursivamente a categoria
+          if (typeof categoryData === 'object' && categoryData !== null) {
+            processCategory(categoryData, [category]);
+          }
         });
       };
 
@@ -104,7 +123,7 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
     };
 
     loadAllEvents();
-  }, [eventsData, eventFilters]); // Adicionar eventFilters como dependência
+  }, [eventsData, eventFilters]);
 
   const eventsDataFiltered = useMemo(() => {
     if (!currentTime) return [];
