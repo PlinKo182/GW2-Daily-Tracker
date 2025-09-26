@@ -8,17 +8,12 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
   const [selectedFilters, setSelectedFilters] = useState(currentFilters || {});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Inicializar filtros com todas as categorias selecionadas por padrão
+  // Inicializar filtros quando currentFilters mudar
   useEffect(() => {
-    if (!currentFilters || Object.keys(currentFilters).length === 0) {
-      const initialFilters = {};
-      Object.keys(eventsData).forEach(category => {
-        initialFilters[category] = true;
-      });
-      setSelectedFilters(initialFilters);
-      onFilterChange(initialFilters);
+    if (currentFilters && Object.keys(currentFilters).length > 0) {
+      setSelectedFilters(currentFilters);
     }
-  }, [currentFilters, onFilterChange]);
+  }, [currentFilters]);
 
   const handleCategoryToggle = (category) => {
     const newFilters = {
@@ -46,7 +41,6 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
 
   const saveFilters = () => {
     setIsSaving(true);
-    localStorage.setItem('tyriaTracker_eventFilters', JSON.stringify(selectedFilters));
     
     setTimeout(() => {
       setIsSaving(false);

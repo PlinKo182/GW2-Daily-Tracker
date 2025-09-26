@@ -6,23 +6,25 @@ import { useEvents } from '../../hooks/useEvents';
 import { useItemPrices } from '../../hooks/useItemPrices';
 import EventCard from './EventCard';
 import CompletedEventTypeCard from './CompletedEventTypeCard';
+import EventsFilter from '../EventsFilter/EventsFilter';
 
-const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventFilters = {} }) => {
+const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventFilters, onEventFilterChange }) => {
   const [showCompleted, setShowCompleted] = useState(false);
   
   const safeCurrentTime = currentTime || new Date();
   
-  // Hook de eventos com filtros
+  // Usar eventsData com filtros
   const { allEvents, eventsData: filteredEvents } = useEvents(eventsData, safeCurrentTime, eventFilters);
   const itemPrices = useItemPrices(allEvents);
 
-  // DEBUG
+  // DEBUG: Verificar o que está nos estados
   console.log('=== EVENTS SECTION DEBUG ===');
   console.log('completedEventTypes:', completedEventTypes);
   console.log('allEvents count:', allEvents?.length);
   console.log('filteredEvents count:', filteredEvents?.length);
+  console.log('eventFilters:', eventFilters);
 
-  // Filtrar eventos não concluídos
+  // Filtrar eventos não concluídos para mostrar na seção principal
   const filteredEventsData = useMemo(() => {
     if (!filteredEvents || !Array.isArray(filteredEvents)) return [];
     
@@ -38,7 +40,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
     });
   }, [filteredEvents, completedEventTypes]);
 
-  // Eventos concluídos agrupados
+  // Obter eventos concluídos
   const completedEventsByType = useMemo(() => {
     if (!allEvents || !Array.isArray(allEvents)) return [];
     
@@ -75,13 +77,20 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
     onEventToggle(eventId, eventKey);
   }, [onEventToggle]);
 
+  // Renderização mais segura
   const hasEventsData = filteredEvents && Array.isArray(filteredEvents);
   const hasAllEvents = allEvents && Array.isArray(allEvents);
 
   if (!hasEventsData || !hasAllEvents) {
     return (
       <div className="mb-12">
-        <h2 className="text-3xl font-bold mb-6">Events & World Bosses</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold">Events & World Bosses</h2>
+          <EventsFilter 
+            onFilterChange={onEventFilterChange}
+            currentFilters={eventFilters}
+          />
+        </div>
         <div className="text-center py-8 text-gray-400">
           <div className="animate-pulse">
             <div className="h-4 bg-gray-700 rounded w-1/4 mx-auto mb-2"></div>
@@ -94,38 +103,45 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
 
   return (
     <div className="mb-12">
-      <h2 className="text-3xl font-bold mb-6">Events & World Bosses</h2>
-      
-      <div className="mb-6 flex justify-between items-center">
-        <div className="text-sm text-gray-400 italic">
-          Showing events within the next 2 hours
-        </div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold">Events & World Bosses</h2>
         
-        {completedEventsByType.length > 0 ? (
-          <button
-            onClick={() => setShowCompleted(!showCompleted)}
-            className="flex items-center gap-2 bg-gray-700 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
-          >
-            {showCompleted ? (
-              <>
-                <EyeOff className="w-4 h-4" />
-                Hide Completed
-              </>
-            ) : (
-              <>
-                <Eye className="w-4 h-4" />
-                Show Completed ({completedEventsByType.length})
-              </>
-            )}
-          </button>
-        ) : (
-          <div className="text-sm text-gray-500">
-            No completed events
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-400 italic">
+            Showing events within the next 2 hours
           </div>
-        )}
+          
+          <EventsFilter 
+            onFilterChange={onEventFilterChange}
+            currentFilters={eventFilters}
+          />
+          
+          {completedEventsByType.length > 0 ? (
+            <button
+              onClick={() => setShowCompleted(!showCompleted)}
+              className="flex items-center gap-2 bg-gray-700 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            >
+              {showCompleted ? (
+                <>
+                  <EyeOff className="w-4 h-4" />
+                  Hide Completed
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4" />
+                  Show Completed ({completedEventsByType.length})
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="text-sm text-gray-500">
+              No completed events
+            </div>
+          )}
+        </div>
       </div>
       
-      {/* Eventos ativos */}
+      {/* SEÇÃO DE EVENTOS ATIVOS/UPCOMING */}
       {filteredEventsData.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEventsData.map(event => {
@@ -153,10 +169,15 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
               All upcoming events have been marked as completed.
             </p>
           )}
+          {filteredEvents.length === 0 && Object.keys(eventFilters).length > 0 && (
+            <p className="text-sm mt-4 text-amber-400">
+              No events match your current filters. Try adjusting your filter settings.
+            </p>
+          )}
         </div>
       )}
       
-      {/* Eventos completos */}
+      {/* SEÇÃO DE EVENTOS COMPLETOS */}
       {showCompleted && completedEventsByType.length > 0 && (
         <div className="mt-12">
           <div className="flex items-center gap-3 mb-6">
