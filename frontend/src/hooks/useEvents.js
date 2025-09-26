@@ -60,38 +60,31 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
 
         // Verificar se a expansão existe nos filtros
         if (!eventFilters.expansions[normalizedExpansion]) {
-          console.log(`Expansion "${normalizedExpansion}" not found in filters, including event`);
+          console.log(`Expansion "${normalizedExpansion}" not found in filters, excluding event`);
+          return false;
+        }
+
+        // Primeiro verificar se o evento específico está habilitado
+        const eventConfig = eventFilters.expansions[normalizedExpansion]?.zones?.[normalizedZone]?.events?.[normalizedEvent];
+        if (eventConfig && typeof eventConfig === 'object' && eventConfig.enabled === true) {
+          console.log(`Event "${normalizedEvent}" is specifically enabled, including event`);
           return true;
         }
 
-        // Verificar se a expansão está desabilitada
-        if (eventFilters.expansions[normalizedExpansion].enabled === false) {
-          console.log(`Expansion "${normalizedExpansion}" is disabled, excluding event`);
-          return false;
-        }
-
-        // Verificar se a zona existe nos filtros
-        if (!eventFilters.expansions[normalizedExpansion].zones || 
-            !eventFilters.expansions[normalizedExpansion].zones[normalizedZone]) {
-          console.log(`Zone "${normalizedZone}" not found in filters, including event`);
+        // Se o evento não está especificamente habilitado, verificar se a zona está habilitada
+        if (eventFilters.expansions[normalizedExpansion]?.zones?.[normalizedZone]?.enabled === true) {
+          console.log(`Zone "${normalizedZone}" is enabled, including event`);
           return true;
         }
 
-        // Verificar se a zona está desabilitada
-        if (eventFilters.expansions[normalizedExpansion].zones[normalizedZone].enabled === false) {
-          console.log(`Zone "${normalizedZone}" is disabled, excluding event`);
-          return false;
+        // Se nem o evento nem a zona estão habilitados, verificar se a expansão está habilitada
+        if (eventFilters.expansions[normalizedExpansion].enabled === true) {
+          console.log(`Expansion "${normalizedExpansion}" is enabled, including event`);
+          return true;
         }
 
-        // Verificar se o evento específico está desabilitado
-        const eventConfig = eventFilters.expansions[normalizedExpansion].zones[normalizedZone].events[normalizedEvent];
-        if (!eventConfig || eventConfig.enabled === false) {
-          console.log(`Event "${normalizedEvent}" is disabled or not found, excluding event`);
-          return false;
-        }
-
-        console.log(`Event "${normalizedEvent}" is enabled, including event`);
-        return true;
+        console.log(`Event "${normalizedEvent}" is not enabled at any level, excluding event`);
+        return false;
       };
 
       // Processar estrutura de eventos

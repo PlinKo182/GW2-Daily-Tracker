@@ -42,7 +42,10 @@ const buildCompleteFilterStructure = (eventsData) => {
         const normalizedEvent = normalizeKey(eventName);
         
         // Guardar apenas o estado booleano para eventos, não objetos complexos
-        filters.expansions[normalizedExpansion].zones[normalizedZone].events[normalizedEvent] = true;
+        filters.expansions[normalizedExpansion].zones[normalizedZone].events[normalizedEvent] = {
+          enabled: true,
+          originalName: eventName // Guardar o nome original para display
+        };
         
         filters.expansions[normalizedExpansion].zones[normalizedZone].eventCount++;
         filters.expansions[normalizedExpansion].eventCount++;
@@ -65,9 +68,9 @@ const countSelectedEvents = (filters) => {
 
   Object.values(filters.expansions).forEach(expansion => {
     Object.values(expansion.zones).forEach(zone => {
-      Object.values(zone.events).forEach(isEnabled => {
+      Object.values(zone.events).forEach(event => {
         total++;
-        if (isEnabled) selected++;
+        if (event.enabled) selected++;
       });
     });
   });

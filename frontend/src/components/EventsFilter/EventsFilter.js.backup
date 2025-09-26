@@ -11,85 +11,57 @@ const normalizeKey = (key) => {
 const EventsFilter = ({ onFilterChange, currentFilters }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState(currentFilters);
+  // Função para contar eventos selecionados
+  const countSelectedEvents = (filters) => {
+    let selected = 0;
+    let total = 0;
+    Object.values(filters.expansions).forEach(expansion => {
+      Object.values(expansion.zones).forEach(zone => {
+        Object.values(zone.events).forEach(isEnabled => {
+          total++;
+          if (isEnabled) selected++;
+        });
+      });
+    });
+    return { selected, total };
+  };
   const [isSaving, setIsSaving] = useState(false);
   const [currentView, setCurrentView] = useState('expansions');
   const [navigationStack, setNavigationStack] = useState([]);
   const [selectedExpansion, setSelectedExpansion] = useState(null);
   const [selectedZone, setSelectedZone] = useState(null);
 
-  // Função para contar eventos selecionados
-  const countSelectedEvents = (filters) => {
-    let selected = 0;
-    let total = 0;
-    
-    if (!filters?.expansions) return { selected: 0, total: 0 };
-
-    Object.values(filters.expansions).forEach(expansion => {
-      Object.values(expansion.zones).forEach(zone => {
-        Object.values(zone.events).forEach(event => {
-          total++;
-          if (typeof event === 'object' ? event.enabled : event) {
-            selected++;
-          }
-        });
-      });
-    });
-    
-    return { selected, total };
-  };
-
   // Inicializar quando currentFilters mudar
   useEffect(() => {
     if (currentFilters && currentFilters.expansions) {
-      const newFilters = JSON.parse(JSON.stringify(currentFilters));
-      const counts = countSelectedEvents(newFilters);
-      newFilters.selectedCount = counts.selected;
-      newFilters.totalCount = counts.total;
-      setFilters(newFilters);
+      setFilters(currentFilters);
     }
   }, [currentFilters]);
 
   // Função auxiliar para obter nomes originais de forma segura
   const getOriginalName = (item) => {
     if (typeof item === 'string') return item;
-    if (item && typeof item === 'object') {
-      if (item.originalName) return item.originalName;
-      // Se não tem originalName mas tem enabled, pode ser um evento
-      if ('enabled' in item) return item.eventKey || 'Unknown Event';
+    if (item && typeof item === 'object' && item.originalName) {
+      return item.originalName;
     }
     return 'Unknown';
   };
 
   // Navegar para uma expansão
   const navigateToExpansion = (expansionKey) => {
-    const normalizedKey = normalizeKey(expansionKey);
-    setSelectedExpansion(normalizedKey);
+    setSelectedExpansion(expansionKey);
     setCurrentView('zones');
-    setNavigationStack([{ 
-      type: 'expansion', 
-      key: normalizedKey, 
-      name: getOriginalName(filters.expansions[normalizedKey]) 
-    }]);
+    setNavigationStack([{ type: 'expansion', key: expansionKey, name: getOriginalName(filters.expansions[expansionKey]) }]);
   };
 
   // Navegar para uma zona
   const navigateToZone = (expansionKey, zoneKey) => {
-    const normalizedExpansionKey = normalizeKey(expansionKey);
-    const normalizedZoneKey = normalizeKey(zoneKey);
-    setSelectedExpansion(normalizedExpansionKey);
-    setSelectedZone(normalizedZoneKey);
+    setSelectedExpansion(expansionKey);
+    setSelectedZone(zoneKey);
     setCurrentView('events');
     setNavigationStack([
-      { 
-        type: 'expansion', 
-        key: normalizedExpansionKey, 
-        name: getOriginalName(filters.expansions[normalizedExpansionKey]) 
-      },
-      { 
-        type: 'zone', 
-        key: normalizedZoneKey, 
-        name: getOriginalName(filters.expansions[normalizedExpansionKey]?.zones[normalizedZoneKey]) 
-      }
+      { type: 'expansion', key: expansionKey, name: getOriginalName(filters.expansions[expansionKey]) },
+      { type: 'zone', key: zoneKey, name: getOriginalName(filters.expansions[expansionKey]?.zones[zoneKey]) }
     ]);
   };
 
@@ -101,81 +73,48 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
       setNavigationStack([]);
     } else if (navigationStack.length === 2) {
       setCurrentView('zones');
-      setSelectedZone(null);
-      setNavigationStack([navigationStack[0]]);
-    }
-  };
-
-  // Voltar para a visão principal
-  const navigateToRoot = () => {
-    setCurrentView('expansions');
-    setSelectedExpansion(null);
-    setSelectedZone(null);
-    setNavigationStack([]);
-  };
-
   // Manipular seleção de expansão
   const handleExpansionToggle = (expansionKey, enabled) => {
-    const normalizedKey = normalizeKey(expansionKey);
+    const normalizedExpansionKey = normalizeKey(expansionKey);
     const newFilters = JSON.parse(JSON.stringify(filters));
-    
-    if (!newFilters.expansions[normalizedKey]) return;
-
-    newFilters.expansions[normalizedKey].enabled = enabled;
-    
-    // Aplicar a todos os eventos da expansão
-    Object.keys(newFilters.expansions[normalizedKey].zones).forEach(zoneKey => {
-      newFilters.expansions[normalizedKey].zones[zoneKey].enabled = enabled;
-      Object.keys(newFilters.expansions[normalizedKey].zones[zoneKey].events).forEach(eventKey => {
-        const event = newFilters.expansions[normalizedKey].zones[zoneKey].events[eventKey];
-        if (typeof event === 'object') {
-          event.enabled = enabled;
-        } else {
-          newFilters.expansions[normalizedKey].zones[zoneKey].events[eventKey] = {
-            enabled: enabled,
-            originalName: eventKey
-          };
-        }
+    newFilters.expansions[normalizedExpansionKey].enabled = enabled;
+    Object.keys(newFilters.expansions[normalizedExpansionKey].zones).forEach(zoneKey => {
+      newFilters.expansions[normalizedExpansionKey].zones[zoneKey].enabled = enabled;
+      Object.keys(newFilters.expansions[normalizedExpansionKey].zones[zoneKey].events).forEach(eventKey => {
+        newFilters.expansions[normalizedExpansionKey].zones[zoneKey].events[eventKey] = enabled;
       });
     });
-    
     const counts = countSelectedEvents(newFilters);
     newFilters.selectedCount = counts.selected;
     newFilters.totalCount = counts.total;
+    setFilters(newFilters);
+
+  // Manipular seleção de expansão
+  const handleExpansionToggle = (expansionKey, enabled) => {
+    const newFilters = JSON.parse(JSON.stringify(filters));
+    newFilters.expansions[expansionKey].enabled = enabled;
+    
+    // Aplicar a todos os eventos da expansão
+    Object.keys(newFilters.expansions[expansionKey].zones).forEach(zoneKey => {
+      newFilters.expansions[expansionKey].zones[zoneKey].enabled = enabled;
+      Object.keys(newFilters.expansions[expansionKey].zones[zoneKey].events).forEach(eventKey => {
+        newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey] = enabled;
+      });
+    });
+    
     setFilters(newFilters);
   };
 
   // Manipular seleção de zona
   const handleZoneToggle = (expansionKey, zoneKey, enabled) => {
-    const normalizedExpansionKey = normalizeKey(expansionKey);
-    const normalizedZoneKey = normalizeKey(zoneKey);
     const newFilters = JSON.parse(JSON.stringify(filters));
-    
-    if (!newFilters.expansions[normalizedExpansionKey]?.zones[normalizedZoneKey]) return;
-
-    newFilters.expansions[normalizedExpansionKey].zones[normalizedZoneKey].enabled = enabled;
+    newFilters.expansions[expansionKey].zones[zoneKey].enabled = enabled;
     
     // Aplicar a todos os eventos da zona
-    Object.keys(newFilters.expansions[normalizedExpansionKey].zones[normalizedZoneKey].events).forEach(eventKey => {
-      const event = newFilters.expansions[normalizedExpansionKey].zones[normalizedZoneKey].events[eventKey];
-      if (typeof event === 'object') {
-        event.enabled = enabled;
-      } else {
-        newFilters.expansions[normalizedExpansionKey].zones[normalizedZoneKey].events[eventKey] = {
-          enabled: enabled,
-          originalName: eventKey
-        };
-      }
+    Object.keys(newFilters.expansions[expansionKey].zones[zoneKey].events).forEach(eventKey => {
+      newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey] = enabled;
     });
     
-    // Atualizar estado da expansão baseado nas zonas
-    const expansionZones = Object.values(newFilters.expansions[normalizedExpansionKey].zones);
-    const allZonesEnabled = expansionZones.every(zone => zone.enabled);
-    newFilters.expansions[normalizedExpansionKey].enabled = allZonesEnabled;
-    
-    const counts = countSelectedEvents(newFilters);
-    newFilters.selectedCount = counts.selected;
-    newFilters.totalCount = counts.total;
     setFilters(newFilters);
   };
 
@@ -185,34 +124,28 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
     const normalizedZoneKey = normalizeKey(zoneKey);
     const normalizedEventKey = normalizeKey(eventKey);
     const newFilters = JSON.parse(JSON.stringify(filters));
-    
-    if (!newFilters.expansions[normalizedExpansionKey]?.zones[normalizedZoneKey]) return;
 
-    const event = newFilters.expansions[normalizedExpansionKey].zones[normalizedZoneKey].events[normalizedEventKey];
-    if (typeof event === 'object') {
-      event.enabled = enabled;
-    } else {
+    if (!newFilters.expansions[normalizedExpansionKey].zones[normalizedZoneKey].events[normalizedEventKey]) {
       newFilters.expansions[normalizedExpansionKey].zones[normalizedZoneKey].events[normalizedEventKey] = {
         enabled: enabled,
         originalName: eventKey
       };
+    } else {
+      newFilters.expansions[normalizedExpansionKey].zones[normalizedZoneKey].events[normalizedEventKey].enabled = enabled;
     }
     
     // Atualizar estado da zona baseado nos eventos
     const zoneEvents = Object.values(newFilters.expansions[normalizedExpansionKey].zones[normalizedZoneKey].events);
-    const allEventsEnabled = zoneEvents.every(event => 
-      typeof event === 'object' ? event.enabled : event
-    );
+    const allEventsEnabled = zoneEvents.every(event => event.enabled === true);
+    
     newFilters.expansions[normalizedExpansionKey].zones[normalizedZoneKey].enabled = allEventsEnabled;
     
     // Atualizar estado da expansão baseado nas zonas
-    const expansionZones = Object.values(newFilters.expansions[normalizedExpansionKey].zones);
+    const expansionZones = Object.values(newFilters.expansions[expansionKey].zones);
     const allZonesEnabled = expansionZones.every(zone => zone.enabled);
-    newFilters.expansions[normalizedExpansionKey].enabled = allZonesEnabled;
     
-    const counts = countSelectedEvents(newFilters);
-    newFilters.selectedCount = counts.selected;
-    newFilters.totalCount = counts.total;
+    newFilters.expansions[expansionKey].enabled = allZonesEnabled;
+    
     setFilters(newFilters);
   };
 
@@ -225,9 +158,8 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
       Object.keys(newFilters.expansions[expansionKey].zones).forEach(zoneKey => {
         newFilters.expansions[expansionKey].zones[zoneKey].enabled = true;
         Object.keys(newFilters.expansions[expansionKey].zones[zoneKey].events).forEach(eventKey => {
-          const event = newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey];
-          if (typeof event === 'object') {
-            event.enabled = true;
+          if (typeof newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey] === 'object') {
+            newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey].enabled = true;
           } else {
             newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey] = {
               enabled: true,
@@ -238,53 +170,39 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
       });
     });
     
-    const counts = countSelectedEvents(newFilters);
-    newFilters.selectedCount = counts.selected;
-    newFilters.totalCount = counts.total;
     setFilters(newFilters);
   };
 
   // Desmarcar todos
   const selectNone = () => {
     const newFilters = JSON.parse(JSON.stringify(filters));
-    
     Object.keys(newFilters.expansions).forEach(expansionKey => {
       newFilters.expansions[expansionKey].enabled = false;
       Object.keys(newFilters.expansions[expansionKey].zones).forEach(zoneKey => {
         newFilters.expansions[expansionKey].zones[zoneKey].enabled = false;
         Object.keys(newFilters.expansions[expansionKey].zones[zoneKey].events).forEach(eventKey => {
-          const event = newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey];
-          if (typeof event === 'object') {
-            event.enabled = false;
-          } else {
-            newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey] = {
-              enabled: false,
-              originalName: eventKey
-            };
-          }
+          newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey] = false;
         });
       });
     });
-    
     const counts = countSelectedEvents(newFilters);
     newFilters.selectedCount = counts.selected;
     newFilters.totalCount = counts.total;
+    setFilters(newFilters);
+    newFilters.selectedCount = counts.selected;
+    newFilters.totalCount = counts.total;
+    setFilters(newFilters);
+    
     setFilters(newFilters);
   };
 
   const saveFilters = () => {
     setIsSaving(true);
     
-    // Garantir que os contadores estejam atualizados
-    const newFilters = JSON.parse(JSON.stringify(filters));
-    const counts = countSelectedEvents(newFilters);
-    newFilters.selectedCount = counts.selected;
-    newFilters.totalCount = counts.total;
-    
     setTimeout(() => {
       setIsSaving(false);
       setIsOpen(false);
-      onFilterChange(newFilters);
+      onFilterChange(filters);
     }, 500);
   };
 
@@ -391,15 +309,15 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
           </div>
         </div>
         
-        {Object.entries(zone.events).map(([eventKey, event]) => (
+        {Object.entries(zone.events).map(([eventKey, isEnabled]) => (
           <label key={eventKey} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
             <div className="flex items-center gap-3">
               <File className="w-4 h-4 text-yellow-400" />
-              <span className="text-gray-200">{getOriginalName(event)}</span>
+              <span className="text-gray-200">{eventKey.replace(/_/g, ' ')}</span>
             </div>
             <input
               type="checkbox"
-              checked={typeof event === 'object' ? !!event.enabled : !!event}
+              checked={!!isEnabled}
               onChange={(e) => handleEventToggle(selectedExpansion, selectedZone, eventKey, e.target.checked)}
               className="rounded bg-gray-600 border-gray-500 text-emerald-400 focus:ring-emerald-400"
             />
