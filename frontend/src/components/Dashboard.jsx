@@ -36,8 +36,7 @@ const Dashboard = () => {
     return localStorage.getItem('tyriaTracker_userName') || 'PlinKo';
   });
 
-  const { eventFilters, updateEventFilters } = useEventFilters();
-
+  const { eventFilters, updateEventFilters, isLoading } = useEventFilters();
   const lastResetDateRef = useRef(getCurrentUTCDate());
 
   // Função auxiliar para obter data UTC atual
@@ -49,7 +48,7 @@ const Dashboard = () => {
   // Função para verificar e executar reset diário
   const checkAndResetDailyProgress = useCallback(() => {
     const currentUTCDate = getCurrentUTCDate();
-
+    
     if (currentUTCDate !== lastResetDateRef.current) {
       // Reset all progress
       const resetProgress = {
@@ -75,10 +74,10 @@ const Dashboard = () => {
 
       // Clear localStorage
       localStorageAPI.clearAll();
-
+      
       // Update last reset date
       lastResetDateRef.current = currentUTCDate;
-
+      
       console.log('Daily progress reset executed');
     }
   }, []);
@@ -92,7 +91,7 @@ const Dashboard = () => {
       setIsOnline(true);
       checkApiStatus();
     };
-
+    
     const handleOffline = () => {
       setIsOnline(false);
       setApiStatus('offline');
@@ -129,10 +128,10 @@ const Dashboard = () => {
       const response = await fetch('https://api.guildwars2.com/v2/build', {
         method: 'GET',
         headers: {
-          Accept: 'application/json'
+          'Accept': 'application/json'
         }
       });
-
+      
       if (response.ok) {
         const data = await response.json();
         setApiStatus(data && data.id ? 'online' : 'unavailable');
@@ -177,10 +176,10 @@ const Dashboard = () => {
 
   const handleEventToggle = useCallback((eventId, eventKey) => {
     console.log('Toggling event type:', eventKey);
-
+    
     setCompletedEventTypes(prevTypes => {
       const isCurrentlyCompleted = prevTypes[eventKey];
-
+      
       console.log('Current completion status:', {
         eventKey,
         isCurrentlyCompleted
@@ -202,7 +201,7 @@ const Dashboard = () => {
 
       // Save to localStorage
       localStorageAPI.saveEvents({}, newCompletedEventTypes);
-
+      
       return newCompletedEventTypes;
     });
   }, []);
@@ -221,22 +220,19 @@ const Dashboard = () => {
     return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   }, [dailyProgress]);
 
-  const calculateCategoryProgress = useCallback(
-    category => {
-      const tasks = dailyProgress[category];
-      if (!tasks) return { completed: 0, total: 0, percentage: 0 };
-
-      const totalTasks = Object.keys(tasks).length;
-      const completedTasks = Object.values(tasks).filter(Boolean).length;
-
-      return {
-        completed: completedTasks,
-        total: totalTasks,
-        percentage: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
-      };
-    },
-    [dailyProgress]
-  );
+  const calculateCategoryProgress = useCallback((category) => {
+    const tasks = dailyProgress[category];
+    if (!tasks) return { completed: 0, total: 0, percentage: 0 };
+    
+    const totalTasks = Object.keys(tasks).length;
+    const completedTasks = Object.values(tasks).filter(Boolean).length;
+    
+    return {
+      completed: completedTasks,
+      total: totalTasks,
+      percentage: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
+    };
+  }, [dailyProgress]);
 
   // Função para salvar progresso no MongoDB
   const saveProgressToMongo = useCallback(() => {
@@ -244,11 +240,12 @@ const Dashboard = () => {
     fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        date,
-        dailyProgress,
-        completedEventTypes,
-        userName
+      body: JSON.stringify({ 
+        date, 
+        dailyProgress, 
+        completedEventTypes, 
+        userName,
+        eventFilters
       })
     })
       .then(res => res.json())
@@ -261,15 +258,12 @@ const Dashboard = () => {
         setTimeout(() => setNotification(null), 4000);
       })
       .catch(error => {
-        setNotification({
-          type: 'error',
-          message: 'Connection error: ' + error.message
-        });
+        setNotification({ type: 'error', message: 'Connection error: ' + error.message });
         setTimeout(() => setNotification(null), 4000);
       });
-  }, [dailyProgress, completedEventTypes, userName]);
+  }, [dailyProgress, completedEventTypes, userName, eventFilters]);
 
-  const handleUserNameChange = useCallback(e => {
+  const handleUserNameChange = useCallback((e) => {
     const newUserName = e.target.value;
     setUserName(newUserName);
     localStorage.setItem('tyriaTracker_userName', newUserName);
@@ -279,29 +273,31 @@ const Dashboard = () => {
   useEffect(() => {
     console.log('=== DASHBOARD STATE UPDATE ===');
     console.log('completedEventTypes:', completedEventTypes);
-    console.log(
-      'completedEventTypes count:',
-      Object.keys(completedEventTypes).length
+    console.log('completedEventTypes count:', Object.keys(completedEventTypes).length);
+    console.log('eventFilters:', eventFilters);
+  }, [completedEventTypes, eventFilters]);
+
+  // Mostrar loading enquanto os filtros estão sendo carregados
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-gray-200 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-400 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading event filters...</p>
+        </div>
+      </div>
     );
-  }, [completedEventTypes]);
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
-      <Header
-        currentTime={currentTime}
-        apiStatus={apiStatus}
-        isOnline={isOnline}
-      />
+      <Header currentTime={currentTime} apiStatus={apiStatus} isOnline={isOnline} />
 
       {/* Notificação */}
       {notification && (
-        <div
-          className={`fixed bottom-6 right-6 z-50 min-w-[220px] shadow-lg px-4 py-2 rounded text-sm font-semibold ${
-            notification.type === 'success'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-red-600 text-white'
-          }`}
-        >
+        <div className={`fixed bottom-6 right-6 z-50 min-w-[220px] shadow-lg px-4 py-2 rounded text-sm font-semibold ${
+          notification.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+        }`}>
           {notification.message}
         </div>
       )}
@@ -314,9 +310,7 @@ const Dashboard = () => {
             💾 Data stored localmente no navegador - sem conta!
           </p>
           <div className="flex items-center gap-4 mt-4 flex-wrap">
-            <label htmlFor="userName" className="text-sm text-gray-300">
-              Nome do usuário:
-            </label>
+            <label htmlFor="userName" className="text-sm text-gray-300">Nome do usuário:</label>
             <input
               id="userName"
               type="text"
@@ -335,16 +329,18 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <DailyProgress overallProgress={calculateOverallProgress()} />
+        <DailyProgress 
+          overallProgress={calculateOverallProgress()}
+        />
 
-        <DailyTasks
+        <DailyTasks 
           dailyProgress={dailyProgress}
           onTaskToggle={handleTaskToggle}
           calculateCategoryProgress={calculateCategoryProgress}
           currentTime={currentTime}
         />
 
-        <EventsSection
+        <EventsSection 
           completedEventTypes={completedEventTypes}
           onEventToggle={handleEventToggle}
           currentTime={currentTime}
@@ -356,6 +352,6 @@ const Dashboard = () => {
       <Footer />
     </div>
   );
-};
+}
 
 export default React.memo(Dashboard);
