@@ -97,7 +97,38 @@ export const useEventFilters = () => {
           console.log('Found saved filters in localStorage');
           const parsedFilters = JSON.parse(savedFilters);
           
-          // Verificar se a estrutura salva é válida
+          // Verificar se a estrutura salva é válida e no formato correto
+          const isValidFormat = (filters) => {
+            if (!filters || !filters.expansions) return false;
+            
+            // Verificar se todos os eventos estão no formato correto (objeto com enabled)
+            for (const expansion of Object.values(filters.expansions)) {
+              if (!expansion.zones) return false;
+              
+              for (const zone of Object.values(expansion.zones)) {
+                if (!zone.events) return false;
+                
+                for (const event of Object.values(zone.events)) {
+                  // Se o evento não é um objeto ou não tem a propriedade enabled, formato antigo
+                  if (typeof event !== 'object' || !('enabled' in event)) {
+                    return false;
+                  }
+                }
+              }
+            }
+            return true;
+          };
+          
+          // Se o formato for válido, use os filtros salvos, caso contrário, reconstrua
+          if (isValidFormat(parsedFilters)) {
+            console.log('Saved filters are in the correct format');
+            setEventFilters(parsedFilters);
+            setIsLoading(false);
+            return;
+          } else {
+            console.log('Saved filters are in old format, rebuilding...');
+            localStorage.removeItem('tyriaTracker_eventFilters'); // Limpar filtros antigos
+          }
           if (parsedFilters.expansions && Object.keys(parsedFilters.expansions).length > 0) {
             console.log('Using saved filters structure');
             setEventFilters(parsedFilters);
