@@ -7,22 +7,22 @@ import { useItemPrices } from '../../hooks/useItemPrices';
 import EventCard from './EventCard';
 import CompletedEventTypeCard from './CompletedEventTypeCard';
 
-const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
+const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventFilters = {} }) => {
   const [showCompleted, setShowCompleted] = useState(false);
   
   const safeCurrentTime = currentTime || new Date();
   
-  // Usar eventsData
-  const { allEvents, eventsData: filteredEvents } = useEvents(eventsData, safeCurrentTime);
+  // Hook de eventos com filtros
+  const { allEvents, eventsData: filteredEvents } = useEvents(eventsData, safeCurrentTime, eventFilters);
   const itemPrices = useItemPrices(allEvents);
 
-  // DEBUG: Verificar o que está nos estados
+  // DEBUG
   console.log('=== EVENTS SECTION DEBUG ===');
   console.log('completedEventTypes:', completedEventTypes);
   console.log('allEvents count:', allEvents?.length);
   console.log('filteredEvents count:', filteredEvents?.length);
 
-  // Filtrar eventos não concluídos para mostrar na seção principal
+  // Filtrar eventos não concluídos
   const filteredEventsData = useMemo(() => {
     if (!filteredEvents || !Array.isArray(filteredEvents)) return [];
     
@@ -38,7 +38,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
     });
   }, [filteredEvents, completedEventTypes]);
 
-  // Obter eventos concluídos
+  // Eventos concluídos agrupados
   const completedEventsByType = useMemo(() => {
     if (!allEvents || !Array.isArray(allEvents)) return [];
     
@@ -75,7 +75,6 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
     onEventToggle(eventId, eventKey);
   }, [onEventToggle]);
 
-  // Renderização mais segura
   const hasEventsData = filteredEvents && Array.isArray(filteredEvents);
   const hasAllEvents = allEvents && Array.isArray(allEvents);
 
@@ -126,7 +125,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
         )}
       </div>
       
-      {/* SEÇÃO DE EVENTOS ATIVOS/UPCOMING */}
+      {/* Eventos ativos */}
       {filteredEventsData.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEventsData.map(event => {
@@ -157,7 +156,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime }) => {
         </div>
       )}
       
-      {/* SEÇÃO DE EVENTOS COMPLETOS */}
+      {/* Eventos completos */}
       {showCompleted && completedEventsByType.length > 0 && (
         <div className="mt-12">
           <div className="flex items-center gap-3 mb-6">
