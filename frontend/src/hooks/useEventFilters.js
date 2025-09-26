@@ -36,26 +36,10 @@ const buildCompleteFilterStructure = (eventsData) => {
   });
 
   filters.totalCount = totalEvents;
-  filters.selectedCount = totalEvents; // Inicialmente todos selecionados
+  filters.selectedCount = totalEvents;
 
+  console.log('Built filter structure with', totalEvents, 'total events');
   return filters;
-};
-
-// Função para contar eventos selecionados
-const countSelectedEvents = (filters) => {
-  let selected = 0;
-  let total = 0;
-
-  Object.values(filters.expansions).forEach(expansion => {
-    Object.values(expansion.zones).forEach(zone => {
-      Object.values(zone.events).forEach(isSelected => {
-        total++;
-        if (isSelected) selected++;
-      });
-    });
-  });
-
-  return { selected, total };
 };
 
 export const useEventFilters = () => {
@@ -68,29 +52,32 @@ export const useEventFilters = () => {
 
   useEffect(() => {
     const initializeFilters = () => {
-      const savedFilters = localStorage.getItem('tyriaTracker_eventFilters');
+      console.log('Initializing event filters...');
       
-      if (savedFilters) {
-        try {
+      try {
+        const savedFilters = localStorage.getItem('tyriaTracker_eventFilters');
+        
+        if (savedFilters) {
+          console.log('Found saved filters in localStorage');
           const parsedFilters = JSON.parse(savedFilters);
           
-          // Mesclar com a estrutura atual para garantir que novos eventos sejam incluídos
-          const currentStructure = buildCompleteFilterStructure(eventsData);
-          const mergedFilters = mergeFilterStructures(currentStructure, parsedFilters);
-          const counts = countSelectedEvents(mergedFilters);
-          
-          mergedFilters.selectedCount = counts.selected;
-          mergedFilters.totalCount = counts.total;
-          
-          setEventFilters(mergedFilters);
-          console.log('Loaded saved event filters:', mergedFilters);
-        } catch (error) {
-          console.error('Error parsing saved filters:', error);
+          // Verificar se a estrutura salva é válida
+          if (parsedFilters.expansions && Object.keys(parsedFilters.expansions).length > 0) {
+            console.log('Using saved filters structure');
+            setEventFilters(parsedFilters);
+          } else {
+            console.log('Saved filters structure is invalid, using default');
+            initializeDefaultFilters();
+          }
+        } else {
+          console.log('No saved filters found, using default');
           initializeDefaultFilters();
         }
-      } else {
+      } catch (error) {
+        console.error('Error initializing filters:', error);
         initializeDefaultFilters();
       }
+      
       setIsLoading(false);
     };
 
@@ -98,51 +85,16 @@ export const useEventFilters = () => {
       const defaultFilters = buildCompleteFilterStructure(eventsData);
       setEventFilters(defaultFilters);
       localStorage.setItem('tyriaTracker_eventFilters', JSON.stringify(defaultFilters));
-      console.log('Initialized default event filters:', defaultFilters);
-    };
-
-    // Função para mesclar estruturas de filtro
-    const mergeFilterStructures = (current, saved) => {
-      const merged = JSON.parse(JSON.stringify(current)); // Deep clone
-      
-      Object.keys(merged.expansions).forEach(expansion => {
-        if (saved.expansions && saved.expansions[expansion]) {
-          // Mesclar configuração da expansão
-          merged.expansions[expansion].enabled = saved.expansions[expansion].enabled;
-          
-          Object.keys(merged.expansions[expansion].zones).forEach(zone => {
-            if (saved.expansions[expansion].zones && saved.expansions[expansion].zones[zone]) {
-              // Mesclar configuração da zona
-              merged.expansions[expansion].zones[zone].enabled = 
-                saved.expansions[expansion].zones[zone].enabled;
-              
-              Object.keys(merged.expansions[expansion].zones[zone].events).forEach(event => {
-                if (saved.expansions[expansion].zones[zone].events && 
-                    saved.expansions[expansion].zones[zone].events[event] !== undefined) {
-                  // Mesclar configuração do evento
-                  merged.expansions[expansion].zones[zone].events[event] = 
-                    saved.expansions[expansion].zones[zone].events[event];
-                }
-              });
-            }
-          });
-        }
-      });
-      
-      return merged;
+      console.log('Initialized default filters');
     };
 
     initializeFilters();
   }, []);
 
   const updateEventFilters = (newFilters) => {
-    const counts = countSelectedEvents(newFilters);
-    newFilters.selectedCount = counts.selected;
-    newFilters.totalCount = counts.total;
-    
+    console.log('Updating filters:', newFilters);
     setEventFilters(newFilters);
     localStorage.setItem('tyriaTracker_eventFilters', JSON.stringify(newFilters));
-    console.log('Updated event filters:', newFilters);
   };
 
   return { eventFilters, updateEventFilters, isLoading };

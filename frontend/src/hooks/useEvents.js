@@ -39,36 +39,44 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
 
       // Função para verificar se um evento deve ser incluído com base nos filtros
       const shouldIncludeEvent = (expansion, zone, eventName) => {
-        // Se não há filtros definidos, incluir tudo
-        if (!eventFilters.expansions || Object.keys(eventFilters.expansions).length === 0) {
+        // Se não há filtros definidos ou a estrutura está vazia, incluir tudo
+        if (!eventFilters || !eventFilters.expansions || Object.keys(eventFilters.expansions).length === 0) {
+          console.log('No filters defined, including all events');
           return true;
         }
 
         // Verificar se a expansão existe nos filtros
         if (!eventFilters.expansions[expansion]) {
+          console.log(`Expansion "${expansion}" not found in filters, including event`);
           return true; // Se a expansão não está nos filtros, incluir por padrão
         }
 
         // Verificar se a expansão está desabilitada
         if (eventFilters.expansions[expansion].enabled === false) {
+          console.log(`Expansion "${expansion}" is disabled, excluding event`);
           return false;
         }
 
         // Verificar se a zona existe nos filtros
-        if (!eventFilters.expansions[expansion].zones[zone]) {
+        if (!eventFilters.expansions[expansion].zones || !eventFilters.expansions[expansion].zones[zone]) {
+          console.log(`Zone "${zone}" not found in filters for expansion "${expansion}", including event`);
           return true; // Se a zona não está nos filtros, incluir por padrão
         }
 
         // Verificar se a zona está desabilitada
         if (eventFilters.expansions[expansion].zones[zone].enabled === false) {
+          console.log(`Zone "${zone}" is disabled, excluding event`);
           return false;
         }
 
         // Verificar se o evento específico está desabilitado
-        if (eventFilters.expansions[expansion].zones[zone].events[eventName] === false) {
+        if (eventFilters.expansions[expansion].zones[zone].events && 
+            eventFilters.expansions[expansion].zones[zone].events[eventName] === false) {
+          console.log(`Event "${eventName}" is disabled, excluding event`);
           return false;
         }
 
+        console.log(`Event "${eventName}" in zone "${zone}" of expansion "${expansion}" is enabled`);
         return true;
       };
 
@@ -77,8 +85,11 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
         Object.entries(eventsData).forEach(([expansion, zones]) => {
           Object.entries(zones).forEach(([zone, eventsGroup]) => {
             Object.entries(eventsGroup).forEach(([eventName, eventData]) => {
+              console.log('Processing event:', expansion, '->', zone, '->', eventName);
+              
               // Verificar filtros antes de processar o evento
               if (!shouldIncludeEvent(expansion, zone, eventName)) {
+                console.log('Event excluded by filters:', eventName);
                 return;
               }
 
@@ -98,9 +109,19 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
                     if (endTime > now) {
                       const rewards = convertRewardsToArray(eventData.rewards);
                       
+                      const eventId = `${expansion}_${zone}_${eventName}_${utcTimeStr}_${dayOffset}`
+                        .toLowerCase()
+                        .replace(/\s+/g, '_')
+                        .replace(/[^a-z0-9_]/g, '');
+                      
+                      const eventKey = `${expansion}_${zone}_${eventName}`
+                        .toLowerCase()
+                        .replace(/\s+/g, '_')
+                        .replace(/[^a-z0-9_]/g, '');
+                      
                       events.push({
-                        id: `${expansion}_${zone}_${eventName}_${utcTimeStr}_${dayOffset}`,
-                        eventKey: `${expansion}_${zone}_${eventName}`.toLowerCase().replace(/\s+/g, '_'),
+                        id: eventId,
+                        eventKey: eventKey,
                         name: eventName,
                         location: `${expansion} - ${zone}`,
                         waypoint: eventData.waypoint || '',
@@ -121,6 +142,7 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
       };
 
       if (eventsData) {
+        console.log('Starting to process events data with filters:', eventFilters);
         processEventsData(eventsData);
       }
 
@@ -134,7 +156,10 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
   }, [eventsData, eventFilters]);
 
   const eventsDataFiltered = useMemo(() => {
-    if (!currentTime) return [];
+    if (!currentTime) {
+      console.log('No current time provided');
+      return [];
+    }
     
     const now = currentTime;
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
@@ -144,10 +169,23 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
       const isOngoing = event.startTime <= now && event.endTime > now;
       const notEnded = event.endTime > now;
       
-      return (startsWithinTwoHours || isOngoing) && notEnded;
+      const shouldInclude = (startsWithinTwoHours || isOngoing) && notEnded;
+      
+      if (!shouldInclude) {
+        console.log('Event filtered by time:', event.name, {
+          startTime: event.startTime,
+          endTime: event.endTime,
+          now: now,
+          startsWithinTwoHours,
+          isOngoing,
+          notEnded
+        });
+      }
+      
+      return shouldInclude;
     });
 
-    console.log(`Filtered to ${filtered.length} events within next 2 hours`);
+    console.log(`Time filtering: ${filtered.length} events within next 2 hours out of ${allEvents.length} total events`);
     return filtered;
   }, [allEvents, currentTime]);
 

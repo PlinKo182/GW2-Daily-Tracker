@@ -13,22 +13,26 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
   
   const safeCurrentTime = currentTime || new Date();
   
+  console.log('=== EVENTS SECTION RENDER ===');
+  console.log('eventFilters:', eventFilters);
+  console.log('completedEventTypes:', completedEventTypes);
+  
   // Usar eventsData com filtros
   const { allEvents, eventsData: filteredEvents } = useEvents(eventsData, safeCurrentTime, eventFilters);
   const itemPrices = useItemPrices(allEvents);
 
-  // DEBUG: Verificar o que está nos estados
-  console.log('=== EVENTS SECTION DEBUG ===');
-  console.log('completedEventTypes:', completedEventTypes);
+  console.log('After useEvents hook:');
   console.log('allEvents count:', allEvents?.length);
   console.log('filteredEvents count:', filteredEvents?.length);
-  console.log('eventFilters:', eventFilters);
 
   // Filtrar eventos não concluídos para mostrar na seção principal
   const filteredEventsData = useMemo(() => {
-    if (!filteredEvents || !Array.isArray(filteredEvents)) return [];
+    if (!filteredEvents || !Array.isArray(filteredEvents)) {
+      console.log('No filteredEvents or not an array');
+      return [];
+    }
     
-    return filteredEvents.filter(event => {
+    const result = filteredEvents.filter(event => {
       if (!event || typeof event !== 'object' || !event.eventKey || !event.id) {
         console.log('Filtering out invalid event:', event);
         return false;
@@ -38,11 +42,17 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
       console.log(`Event ${event.id} (${event.eventKey}) - completed:`, isCompleted);
       return !isCompleted;
     });
+    
+    console.log('Filtered events (excluding completed):', result.length);
+    return result;
   }, [filteredEvents, completedEventTypes]);
 
   // Obter eventos concluídos
   const completedEventsByType = useMemo(() => {
-    if (!allEvents || !Array.isArray(allEvents)) return [];
+    if (!allEvents || !Array.isArray(allEvents)) {
+      console.log('No allEvents or not an array');
+      return [];
+    }
     
     const eventsByType = {};
     
@@ -82,6 +92,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
   const hasAllEvents = allEvents && Array.isArray(allEvents);
 
   if (!hasEventsData || !hasAllEvents) {
+    console.log('No events data available, showing loading state');
     return (
       <div className="mb-12">
         <div className="flex justify-between items-center mb-6">
@@ -100,6 +111,10 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
       </div>
     );
   }
+
+  console.log('Final rendering state:');
+  console.log('filteredEventsData length:', filteredEventsData.length);
+  console.log('completedEventsByType length:', completedEventsByType.length);
 
   return (
     <div className="mb-12">
@@ -164,15 +179,30 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
       ) : (
         <div className="text-center py-8 text-gray-400">
           <p>No events in the next 2 hours.</p>
-          {filteredEvents.length > 0 && (
+          {allEvents.length > 0 && filteredEvents.length === 0 && (
+            <p className="text-sm mt-4 text-amber-400">
+              All events are outside the 2-hour window or filtered by time.
+            </p>
+          )}
+          {allEvents.length > 0 && filteredEvents.length > 0 && filteredEventsData.length === 0 && (
             <p className="text-sm mt-4 text-amber-400">
               All upcoming events have been marked as completed.
             </p>
           )}
-          {filteredEvents.length === 0 && Object.keys(eventFilters).length > 0 && (
-            <p className="text-sm mt-4 text-amber-400">
-              No events match your current filters. Try adjusting your filter settings.
-            </p>
+          {allEvents.length === 0 && (
+            <div className="text-sm mt-4 text-amber-400">
+              <p>No events match your current filters.</p>
+              <p>Try adjusting your filter settings or check the console for details.</p>
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('tyriaTracker_eventFilters');
+                  window.location.reload();
+                }}
+                className="mt-2 px-3 py-1 bg-amber-600 text-white rounded text-xs hover:bg-amber-700"
+              >
+                Reset Filters to Default
+              </button>
+            </div>
           )}
         </div>
       )}
