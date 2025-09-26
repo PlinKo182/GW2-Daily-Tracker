@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { eventsData } from '../utils/eventsData';
 
-// Função para normalizar chaves (igual à usada no useEvents)
+// Função para normalizar chaves
 const normalizeKey = (key) => {
   if (!key) return '';
   return key.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
@@ -23,7 +23,7 @@ const buildCompleteFilterStructure = (eventsData) => {
     
     filters.expansions[normalizedExpansion] = {
       enabled: true,
-      originalName: expansion,
+      originalName: expansion, // Guardar o nome original para display
       zones: {},
       eventCount: 0
     };
@@ -33,7 +33,7 @@ const buildCompleteFilterStructure = (eventsData) => {
       
       filters.expansions[normalizedExpansion].zones[normalizedZone] = {
         enabled: true,
-        originalName: zone,
+        originalName: zone, // Guardar o nome original para display
         events: {},
         eventCount: 0
       };
@@ -41,10 +41,8 @@ const buildCompleteFilterStructure = (eventsData) => {
       Object.keys(events).forEach(eventName => {
         const normalizedEvent = normalizeKey(eventName);
         
-        filters.expansions[normalizedExpansion].zones[normalizedZone].events[normalizedEvent] = {
-          enabled: true,
-          originalName: eventName
-        };
+        // Guardar apenas o estado booleano para eventos, não objetos complexos
+        filters.expansions[normalizedExpansion].zones[normalizedZone].events[normalizedEvent] = true;
         
         filters.expansions[normalizedExpansion].zones[normalizedZone].eventCount++;
         filters.expansions[normalizedExpansion].eventCount++;
@@ -67,9 +65,9 @@ const countSelectedEvents = (filters) => {
 
   Object.values(filters.expansions).forEach(expansion => {
     Object.values(expansion.zones).forEach(zone => {
-      Object.values(zone.events).forEach(event => {
+      Object.values(zone.events).forEach(isEnabled => {
         total++;
-        if (event.enabled) selected++;
+        if (isEnabled) selected++;
       });
     });
   });
