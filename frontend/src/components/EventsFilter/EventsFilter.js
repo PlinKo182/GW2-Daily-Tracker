@@ -1,75 +1,142 @@
 // components/EventsFilter/EventsFilter.js
 import React, { useState, useEffect } from 'react';
-import { Filter, X, Save, Loader } from 'lucide-react';
-import { eventsData } from '../../utils/eventsData';
+import { Filter, X, Save, Loader, ChevronRight, ChevronDown, Home, Folder, File } from 'lucide-react';
 
 const EventsFilter = ({ onFilterChange, currentFilters }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedFilters, setSelectedFilters] = useState(currentFilters || {});
+  const [filters, setFilters] = useState(currentFilters);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentView, setCurrentView] = useState('expansions'); // 'expansions', 'zones', 'events'
+  const [navigationStack, setNavigationStack] = useState([]); // Para rastrear o caminho de navegação
+  const [selectedExpansion, setSelectedExpansion] = useState(null);
+  const [selectedZone, setSelectedZone] = useState(null);
 
-  // Contar eventos por categoria
-  const countEventsInCategory = (categoryData) => {
-    let count = 0;
-    
-    const countRecursive = (data) => {
-      if (data.utc_times && Array.isArray(data.utc_times)) {
-        count++;
-        return;
-      }
-      
-      if (typeof data === 'object' && data !== null) {
-        Object.values(data).forEach(value => {
-          if (typeof value === 'object' && value !== null) {
-            countRecursive(value);
-          }
-        });
-      }
-    };
-    
-    if (typeof categoryData === 'object' && categoryData !== null) {
-      countRecursive(categoryData);
-    }
-    
-    return count;
-  };
-
-  // Inicializar filtros quando currentFilters mudar
+  // Inicializar quando currentFilters mudar
   useEffect(() => {
-    if (currentFilters && Object.keys(currentFilters).length > 0) {
-      setSelectedFilters(currentFilters);
-    } else {
-      // Inicializar com todas as categorias selecionadas
-      const initialFilters = {};
-      Object.keys(eventsData).forEach(category => {
-        initialFilters[category] = true;
-      });
-      setSelectedFilters(initialFilters);
-    }
+    setFilters(currentFilters);
   }, [currentFilters]);
 
-  const handleCategoryToggle = (category) => {
-    const newFilters = {
-      ...selectedFilters,
-      [category]: !selectedFilters[category]
-    };
-    setSelectedFilters(newFilters);
+  // Navegar para uma expansão
+  const navigateToExpansion = (expansion) => {
+    setSelectedExpansion(expansion);
+    setCurrentView('zones');
+    setNavigationStack([{ type: 'expansion', name: expansion }]);
   };
 
-  const handleSelectAll = () => {
-    const allSelected = {};
-    Object.keys(eventsData).forEach(category => {
-      allSelected[category] = true;
-    });
-    setSelectedFilters(allSelected);
+  // Navegar para uma zona
+  const navigateToZone = (expansion, zone) => {
+    setSelectedExpansion(expansion);
+    setSelectedZone(zone);
+    setCurrentView('events');
+    setNavigationStack([
+      { type: 'expansion', name: expansion },
+      { type: 'zone', name: zone }
+    ]);
   };
 
-  const handleSelectNone = () => {
-    const noneSelected = {};
-    Object.keys(eventsData).forEach(category => {
-      noneSelected[category] = false;
+  // Voltar na navegação
+  const navigateBack = () => {
+    if (navigationStack.length === 1) {
+      setCurrentView('expansions');
+      setSelectedExpansion(null);
+      setNavigationStack([]);
+    } else if (navigationStack.length === 2) {
+      setCurrentView('zones');
+      setSelectedZone(null);
+      setNavigationStack([navigationStack[0]]);
+    }
+  };
+
+  // Voltar para a visão principal
+  const navigateToRoot = () => {
+    setCurrentView('expansions');
+    setSelectedExpansion(null);
+    setSelectedZone(null);
+    setNavigationStack([]);
+  };
+
+  // Manipular seleção de expansão
+  const handleExpansionToggle = (expansion, enabled) => {
+    const newFilters = { ...filters };
+    newFilters.expansions[expansion].enabled = enabled;
+    
+    // Aplicar a todos os eventos da expansão
+    Object.keys(newFilters.expansions[expansion].zones).forEach(zone => {
+      newFilters.expansions[expansion].zones[zone].enabled = enabled;
+      Object.keys(newFilters.expansions[expansion].zones[zone].events).forEach(event => {
+        newFilters.expansions[expansion].zones[zone].events[event] = enabled;
+      });
     });
-    setSelectedFilters(noneSelected);
+    
+    setFilters(newFilters);
+  };
+
+  // Manipular seleção de zona
+  const handleZoneToggle = (expansion, zone, enabled) => {
+    const newFilters = { ...filters };
+    newFilters.expansions[expansion].zones[zone].enabled = enabled;
+    
+    // Aplicar a todos os eventos da zona
+    Object.keys(newFilters.expansions[expansion].zones[zone].events).forEach(event => {
+      newFilters.expansions[expansion].zones[zone].events[event] = enabled;
+    });
+    
+    setFilters(newFilters);
+  };
+
+  // Manipular seleção de evento individual
+  const handleEventToggle = (expansion, zone, event, enabled) => {
+    const newFilters = { ...filters };
+    newFilters.expansions[expansion].zones[zone].events[event] = enabled;
+    
+    // Atualizar estado da zona baseado nos eventos
+    const zoneEvents = Object.values(newFilters.expansions[expansion].zones[zone].events);
+    const allEventsEnabled = zoneEvents.every(val => val);
+    const someEventsEnabled = zoneEvents.some(val => val);
+    
+    newFilters.expansions[expansion].zones[zone].enabled = allEventsEnabled;
+    
+    // Atualizar estado da expansão baseado nas zonas
+    const expansionZones = Object.values(newFilters.expansions[expansion].zones);
+    const allZonesEnabled = expansionZones.every(zone => zone.enabled);
+    
+    newFilters.expansions[expansion].enabled = allZonesEnabled;
+    
+    setFilters(newFilters);
+  };
+
+  // Selecionar todos
+  const selectAll = () => {
+    const newFilters = { ...filters };
+    
+    Object.keys(newFilters.expansions).forEach(expansion => {
+      newFilters.expansions[expansion].enabled = true;
+      Object.keys(newFilters.expansions[expansion].zones).forEach(zone => {
+        newFilters.expansions[expansion].zones[zone].enabled = true;
+        Object.keys(newFilters.expansions[expansion].zones[zone].events).forEach(event => {
+          newFilters.expansions[expansion].zones[zone].events[event] = true;
+        });
+      });
+    });
+    
+    setFilters(newFilters);
+  };
+
+  // Desmarcar todos
+  const selectNone = () => {
+    const newFilters = { ...filters };
+    
+    Object.keys(newFilters.expansions).forEach(expansion => {
+      newFilters.expansions[expansion].enabled = false;
+      Object.keys(newFilters.expansions[expansion].zones).forEach(zone => {
+        newFilters.expansions[expansion].zones[zone].enabled = false;
+        Object.keys(newFilters.expansions[expansion].zones[zone].events).forEach(event => {
+          newFilters.expansions[expansion].zones[zone].events[event] = false;
+        });
+      });
+    });
+    
+    setFilters(newFilters);
   };
 
   const saveFilters = () => {
@@ -78,12 +145,134 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
     setTimeout(() => {
       setIsSaving(false);
       setIsOpen(false);
-      onFilterChange(selectedFilters);
+      onFilterChange(filters);
     }, 500);
   };
 
-  const selectedCount = Object.values(selectedFilters).filter(Boolean).length;
-  const totalCount = Object.keys(eventsData).length;
+  // Renderizar visão de expansões
+  const renderExpansionsView = () => {
+    return (
+      <div className="space-y-2">
+        {Object.entries(filters.expansions).map(([expansion, data]) => (
+          <div key={expansion} className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1">
+                <button
+                  onClick={() => navigateToExpansion(expansion)}
+                  className="flex items-center gap-2 text-gray-200 hover:text-white transition-colors flex-1 text-left"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                  <Folder className="w-5 h-5 text-blue-400" />
+                  <span className="font-medium">{expansion}</span>
+                </button>
+                <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
+                  {data.eventCount} events
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                checked={data.enabled}
+                onChange={(e) => handleExpansionToggle(expansion, e.target.checked)}
+                className="rounded bg-gray-600 border-gray-500 text-emerald-400 focus:ring-emerald-400 ml-2"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Renderizar visão de zonas
+  const renderZonesView = () => {
+    if (!selectedExpansion) return null;
+    
+    const expansion = filters.expansions[selectedExpansion];
+    
+    return (
+      <div className="space-y-2">
+        <div className="mb-4 p-3 bg-gray-700 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-gray-300">
+            <span>Expansion:</span>
+            <span className="font-medium text-emerald-400">{selectedExpansion}</span>
+          </div>
+        </div>
+        
+        {Object.entries(expansion.zones).map(([zone, data]) => (
+          <div key={zone} className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1">
+                <button
+                  onClick={() => navigateToZone(selectedExpansion, zone)}
+                  className="flex items-center gap-2 text-gray-200 hover:text-white transition-colors flex-1 text-left"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                  <Folder className="w-5 h-5 text-green-400" />
+                  <span>{zone}</span>
+                </button>
+                <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
+                  {data.eventCount} events
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                checked={data.enabled}
+                onChange={(e) => handleZoneToggle(selectedExpansion, zone, e.target.checked)}
+                className="rounded bg-gray-600 border-gray-500 text-emerald-400 focus:ring-emerald-400 ml-2"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Renderizar visão de eventos
+  const renderEventsView = () => {
+    if (!selectedExpansion || !selectedZone) return null;
+    
+    const zone = filters.expansions[selectedExpansion].zones[selectedZone];
+    
+    return (
+      <div className="space-y-2">
+        <div className="mb-4 p-3 bg-gray-700 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-gray-300">
+            <span>Expansion:</span>
+            <span className="font-medium text-emerald-400">{selectedExpansion}</span>
+            <span className="mx-1">→</span>
+            <span>Zone:</span>
+            <span className="font-medium text-green-400">{selectedZone}</span>
+          </div>
+        </div>
+        
+        {Object.entries(zone.events).map(([event, isEnabled]) => (
+          <label key={event} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
+            <div className="flex items-center gap-3">
+              <File className="w-4 h-4 text-yellow-400" />
+              <span className="text-gray-200">{event}</span>
+            </div>
+            <input
+              type="checkbox"
+              checked={isEnabled}
+              onChange={(e) => handleEventToggle(selectedExpansion, selectedZone, event, e.target.checked)}
+              className="rounded bg-gray-600 border-gray-500 text-emerald-400 focus:ring-emerald-400"
+            />
+          </label>
+        ))}
+      </div>
+    );
+  };
+
+  // Renderizar conteúdo baseado na visão atual
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'zones':
+        return renderZonesView();
+      case 'events':
+        return renderEventsView();
+      default:
+        return renderExpansionsView();
+    }
+  };
 
   return (
     <>
@@ -92,7 +281,7 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
         className="flex items-center gap-2 bg-gray-700 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
       >
         <Filter className="w-4 h-4" />
-        Event Filters ({selectedCount}/{totalCount})
+        Event Filters ({filters.selectedCount}/{filters.totalCount})
       </button>
 
       {isOpen && (
@@ -100,7 +289,16 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
           <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-gray-700">
             <div className="p-6 border-b border-gray-700">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-emerald-400">Event Filters</h3>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={navigateToRoot}
+                    className="text-gray-400 hover:text-white transition-colors"
+                    title="Back to expansions"
+                  >
+                    <Home className="w-5 h-5" />
+                  </button>
+                  <h3 className="text-xl font-bold text-emerald-400">Event Filters</h3>
+                </div>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="text-gray-400 hover:text-white transition-colors"
@@ -108,72 +306,97 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
                   <X className="w-6 h-6" />
                 </button>
               </div>
+              
+              {/* Breadcrumb navigation */}
+              {navigationStack.length > 0 && (
+                <div className="flex items-center gap-1 text-sm text-gray-400 mb-3">
+                  <button 
+                    onClick={navigateToRoot}
+                    className="hover:text-white transition-colors"
+                  >
+                    Expansions
+                  </button>
+                  {navigationStack.map((item, index) => (
+                    <span key={index} className="flex items-center gap-1">
+                      <span className="mx-1">→</span>
+                      {index === navigationStack.length - 1 ? (
+                        <span className="text-emerald-400">{item.name}</span>
+                      ) : (
+                        <button 
+                          onClick={navigateBack}
+                          className="hover:text-white transition-colors"
+                        >
+                          {item.name}
+                        </button>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              )}
+              
               <p className="text-gray-400 text-sm">
-                Select which event categories you want to see in the Events & World Bosses section.
+                {currentView === 'expansions' && 'Select expansion to view its zones'}
+                {currentView === 'zones' && 'Select zone to view its events'}
+                {currentView === 'events' && 'Select individual events to show/hide'}
               </p>
-            </div>
-
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <div className="flex gap-2 mb-4">
+              
+              <div className="flex gap-2 mt-4">
                 <button
-                  onClick={handleSelectAll}
+                  onClick={selectAll}
                   className="px-3 py-1 text-xs bg-emerald-600 hover:bg-emerald-700 rounded transition-colors"
                 >
                   Select All
                 </button>
                 <button
-                  onClick={handleSelectNone}
+                  onClick={selectNone}
                   className="px-3 py-1 text-xs bg-gray-600 hover:bg-gray-700 rounded transition-colors"
                 >
                   Select None
                 </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {Object.keys(eventsData).map(category => {
-                  const eventCount = countEventsInCategory(eventsData[category]);
-                  return (
-                    <label key={category} className="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={!!selectedFilters[category]}
-                        onChange={() => handleCategoryToggle(category)}
-                        className="rounded bg-gray-600 border-gray-500 text-emerald-400 focus:ring-emerald-400"
-                      />
-                      <span className="text-gray-200 flex-1">{category}</span>
-                      <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
-                        {eventCount} events
-                      </span>
-                    </label>
-                  );
-                })}
+                {currentView !== 'expansions' && (
+                  <button
+                    onClick={navigateBack}
+                    className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                  >
+                    Back
+                  </button>
+                )}
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-700 flex justify-end gap-3">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveFilters}
-                disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader className="w-4 h-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Save Filters
-                  </>
-                )}
-              </button>
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {renderCurrentView()}
+            </div>
+
+            <div className="p-6 border-t border-gray-700 flex justify-between items-center">
+              <div className="text-sm text-gray-400">
+                Selected: {filters.selectedCount} of {filters.totalCount} events
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveFilters}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Filters
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
