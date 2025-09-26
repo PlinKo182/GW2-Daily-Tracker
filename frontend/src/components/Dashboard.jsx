@@ -39,13 +39,14 @@ const Dashboard = () => {
   const { eventFilters, updateEventFilters, isLoading } = useEventFilters();
 
 // E no render, você pode mostrar um loading se necessário:
-if (isLoading) {
-  return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="text-white">Loading event filters...</div>
-    </div>
-  );
-}
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Loading event filters...</div>
+      </div>
+    );
+  }
+
   const lastResetDateRef = useRef(getCurrentUTCDate());
 
   // Função auxiliar para obter data UTC atual
