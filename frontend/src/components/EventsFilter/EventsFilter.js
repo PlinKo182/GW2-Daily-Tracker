@@ -2,12 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, X, Save, Loader, ChevronRight, ChevronDown, Home, Folder, File } from 'lucide-react';
 
+// Função para normalizar chaves (igual à usada no useEvents)
+const normalizeKey = (key) => {
+  if (!key) return '';
+  return key.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+};
+
 const EventsFilter = ({ onFilterChange, currentFilters }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState(currentFilters);
   const [isSaving, setIsSaving] = useState(false);
-  const [currentView, setCurrentView] = useState('expansions'); // 'expansions', 'zones', 'events'
-  const [navigationStack, setNavigationStack] = useState([]); // Para rastrear o caminho de navegação
+  const [currentView, setCurrentView] = useState('expansions');
+  const [navigationStack, setNavigationStack] = useState([]);
   const [selectedExpansion, setSelectedExpansion] = useState(null);
   const [selectedZone, setSelectedZone] = useState(null);
 
@@ -16,21 +22,26 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
     setFilters(currentFilters);
   }, [currentFilters]);
 
+  // Função auxiliar para obter nomes originais
+  const getOriginalName = (item) => {
+    return item?.originalName || item;
+  };
+
   // Navegar para uma expansão
-  const navigateToExpansion = (expansion) => {
-    setSelectedExpansion(expansion);
+  const navigateToExpansion = (expansionKey) => {
+    setSelectedExpansion(expansionKey);
     setCurrentView('zones');
-    setNavigationStack([{ type: 'expansion', name: expansion }]);
+    setNavigationStack([{ type: 'expansion', key: expansionKey, name: getOriginalName(filters.expansions[expansionKey]) }]);
   };
 
   // Navegar para uma zona
-  const navigateToZone = (expansion, zone) => {
-    setSelectedExpansion(expansion);
-    setSelectedZone(zone);
+  const navigateToZone = (expansionKey, zoneKey) => {
+    setSelectedExpansion(expansionKey);
+    setSelectedZone(zoneKey);
     setCurrentView('events');
     setNavigationStack([
-      { type: 'expansion', name: expansion },
-      { type: 'zone', name: zone }
+      { type: 'expansion', key: expansionKey, name: getOriginalName(filters.expansions[expansionKey]) },
+      { type: 'zone', key: zoneKey, name: getOriginalName(filters.expansions[expansionKey]?.zones[zoneKey]) }
     ]);
   };
 
@@ -56,15 +67,15 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
   };
 
   // Manipular seleção de expansão
-  const handleExpansionToggle = (expansion, enabled) => {
-    const newFilters = { ...filters };
-    newFilters.expansions[expansion].enabled = enabled;
+  const handleExpansionToggle = (expansionKey, enabled) => {
+    const newFilters = JSON.parse(JSON.stringify(filters));
+    newFilters.expansions[expansionKey].enabled = enabled;
     
     // Aplicar a todos os eventos da expansão
-    Object.keys(newFilters.expansions[expansion].zones).forEach(zone => {
-      newFilters.expansions[expansion].zones[zone].enabled = enabled;
-      Object.keys(newFilters.expansions[expansion].zones[zone].events).forEach(event => {
-        newFilters.expansions[expansion].zones[zone].events[event] = enabled;
+    Object.keys(newFilters.expansions[expansionKey].zones).forEach(zoneKey => {
+      newFilters.expansions[expansionKey].zones[zoneKey].enabled = enabled;
+      Object.keys(newFilters.expansions[expansionKey].zones[zoneKey].events).forEach(eventKey => {
+        newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey].enabled = enabled;
       });
     });
     
@@ -72,49 +83,50 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
   };
 
   // Manipular seleção de zona
-  const handleZoneToggle = (expansion, zone, enabled) => {
-    const newFilters = { ...filters };
-    newFilters.expansions[expansion].zones[zone].enabled = enabled;
+  const handleZoneToggle = (expansionKey, zoneKey, enabled) => {
+    const newFilters = JSON.parse(JSON.stringify(filters));
+    newFilters.expansions[expansionKey].zones[zoneKey].enabled = enabled;
     
     // Aplicar a todos os eventos da zona
-    Object.keys(newFilters.expansions[expansion].zones[zone].events).forEach(event => {
-      newFilters.expansions[expansion].zones[zone].events[event] = enabled;
+    Object.keys(newFilters.expansions[expansionKey].zones[zoneKey].events).forEach(eventKey => {
+      newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey].enabled = enabled;
     });
     
     setFilters(newFilters);
   };
 
   // Manipular seleção de evento individual
-  const handleEventToggle = (expansion, zone, event, enabled) => {
-    const newFilters = { ...filters };
-    newFilters.expansions[expansion].zones[zone].events[event] = enabled;
+  const handleEventToggle = (expansionKey, zoneKey, eventKey, enabled) => {
+    const newFilters = JSON.parse(JSON.stringify(filters));
+    newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey].enabled = enabled;
     
     // Atualizar estado da zona baseado nos eventos
-    const zoneEvents = Object.values(newFilters.expansions[expansion].zones[zone].events);
-    const allEventsEnabled = zoneEvents.every(val => val);
-    const someEventsEnabled = zoneEvents.some(val => val);
+    const zoneEvents = Object.values(newFilters.expansions[expansionKey].zones[zoneKey].events);
+    const allEventsEnabled = zoneEvents.every(event => event.enabled);
+    const someEventsEnabled = zoneEvents.some(event => event.enabled);
     
-    newFilters.expansions[expansion].zones[zone].enabled = allEventsEnabled;
+    newFilters.expansions[expansionKey].zones[zoneKey].enabled = allEventsEnabled;
     
     // Atualizar estado da expansão baseado nas zonas
-    const expansionZones = Object.values(newFilters.expansions[expansion].zones);
+    const expansionZones = Object.values(newFilters.expansions[expansionKey].zones);
     const allZonesEnabled = expansionZones.every(zone => zone.enabled);
+    const someZonesEnabled = expansionZones.some(zone => zone.enabled);
     
-    newFilters.expansions[expansion].enabled = allZonesEnabled;
+    newFilters.expansions[expansionKey].enabled = allZonesEnabled;
     
     setFilters(newFilters);
   };
 
   // Selecionar todos
   const selectAll = () => {
-    const newFilters = { ...filters };
+    const newFilters = JSON.parse(JSON.stringify(filters));
     
-    Object.keys(newFilters.expansions).forEach(expansion => {
-      newFilters.expansions[expansion].enabled = true;
-      Object.keys(newFilters.expansions[expansion].zones).forEach(zone => {
-        newFilters.expansions[expansion].zones[zone].enabled = true;
-        Object.keys(newFilters.expansions[expansion].zones[zone].events).forEach(event => {
-          newFilters.expansions[expansion].zones[zone].events[event] = true;
+    Object.keys(newFilters.expansions).forEach(expansionKey => {
+      newFilters.expansions[expansionKey].enabled = true;
+      Object.keys(newFilters.expansions[expansionKey].zones).forEach(zoneKey => {
+        newFilters.expansions[expansionKey].zones[zoneKey].enabled = true;
+        Object.keys(newFilters.expansions[expansionKey].zones[zoneKey].events).forEach(eventKey => {
+          newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey].enabled = true;
         });
       });
     });
@@ -124,14 +136,14 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
 
   // Desmarcar todos
   const selectNone = () => {
-    const newFilters = { ...filters };
+    const newFilters = JSON.parse(JSON.stringify(filters));
     
-    Object.keys(newFilters.expansions).forEach(expansion => {
-      newFilters.expansions[expansion].enabled = false;
-      Object.keys(newFilters.expansions[expansion].zones).forEach(zone => {
-        newFilters.expansions[expansion].zones[zone].enabled = false;
-        Object.keys(newFilters.expansions[expansion].zones[zone].events).forEach(event => {
-          newFilters.expansions[expansion].zones[zone].events[event] = false;
+    Object.keys(newFilters.expansions).forEach(expansionKey => {
+      newFilters.expansions[expansionKey].enabled = false;
+      Object.keys(newFilters.expansions[expansionKey].zones).forEach(zoneKey => {
+        newFilters.expansions[expansionKey].zones[zoneKey].enabled = false;
+        Object.keys(newFilters.expansions[expansionKey].zones[zoneKey].events).forEach(eventKey => {
+          newFilters.expansions[expansionKey].zones[zoneKey].events[eventKey].enabled = false;
         });
       });
     });
@@ -153,26 +165,26 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
   const renderExpansionsView = () => {
     return (
       <div className="space-y-2">
-        {Object.entries(filters.expansions).map(([expansion, data]) => (
-          <div key={expansion} className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors">
+        {Object.entries(filters.expansions).map(([expansionKey, expansionData]) => (
+          <div key={expansionKey} className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-1">
                 <button
-                  onClick={() => navigateToExpansion(expansion)}
+                  onClick={() => navigateToExpansion(expansionKey)}
                   className="flex items-center gap-2 text-gray-200 hover:text-white transition-colors flex-1 text-left"
                 >
                   <ChevronRight className="w-4 h-4" />
                   <Folder className="w-5 h-5 text-blue-400" />
-                  <span className="font-medium">{expansion}</span>
+                  <span className="font-medium">{getOriginalName(expansionData)}</span>
                 </button>
                 <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
-                  {data.eventCount} events
+                  {expansionData.eventCount} events
                 </span>
               </div>
               <input
                 type="checkbox"
-                checked={data.enabled}
-                onChange={(e) => handleExpansionToggle(expansion, e.target.checked)}
+                checked={expansionData.enabled}
+                onChange={(e) => handleExpansionToggle(expansionKey, e.target.checked)}
                 className="rounded bg-gray-600 border-gray-500 text-emerald-400 focus:ring-emerald-400 ml-2"
               />
             </div>
@@ -193,30 +205,30 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
         <div className="mb-4 p-3 bg-gray-700 rounded-lg">
           <div className="flex items-center gap-2 text-sm text-gray-300">
             <span>Expansion:</span>
-            <span className="font-medium text-emerald-400">{selectedExpansion}</span>
+            <span className="font-medium text-emerald-400">{getOriginalName(expansion)}</span>
           </div>
         </div>
         
-        {Object.entries(expansion.zones).map(([zone, data]) => (
-          <div key={zone} className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors">
+        {Object.entries(expansion.zones).map(([zoneKey, zoneData]) => (
+          <div key={zoneKey} className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-1">
                 <button
-                  onClick={() => navigateToZone(selectedExpansion, zone)}
+                  onClick={() => navigateToZone(selectedExpansion, zoneKey)}
                   className="flex items-center gap-2 text-gray-200 hover:text-white transition-colors flex-1 text-left"
                 >
                   <ChevronRight className="w-4 h-4" />
                   <Folder className="w-5 h-5 text-green-400" />
-                  <span>{zone}</span>
+                  <span>{getOriginalName(zoneData)}</span>
                 </button>
                 <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
-                  {data.eventCount} events
+                  {zoneData.eventCount} events
                 </span>
               </div>
               <input
                 type="checkbox"
-                checked={data.enabled}
-                onChange={(e) => handleZoneToggle(selectedExpansion, zone, e.target.checked)}
+                checked={zoneData.enabled}
+                onChange={(e) => handleZoneToggle(selectedExpansion, zoneKey, e.target.checked)}
                 className="rounded bg-gray-600 border-gray-500 text-emerald-400 focus:ring-emerald-400 ml-2"
               />
             </div>
@@ -237,23 +249,23 @@ const EventsFilter = ({ onFilterChange, currentFilters }) => {
         <div className="mb-4 p-3 bg-gray-700 rounded-lg">
           <div className="flex items-center gap-2 text-sm text-gray-300">
             <span>Expansion:</span>
-            <span className="font-medium text-emerald-400">{selectedExpansion}</span>
+            <span className="font-medium text-emerald-400">{getOriginalName(filters.expansions[selectedExpansion])}</span>
             <span className="mx-1">→</span>
             <span>Zone:</span>
-            <span className="font-medium text-green-400">{selectedZone}</span>
+            <span className="font-medium text-green-400">{getOriginalName(zone)}</span>
           </div>
         </div>
         
-        {Object.entries(zone.events).map(([event, isEnabled]) => (
-          <label key={event} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
+        {Object.entries(zone.events).map(([eventKey, eventData]) => (
+          <label key={eventKey} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
             <div className="flex items-center gap-3">
               <File className="w-4 h-4 text-yellow-400" />
-              <span className="text-gray-200">{event}</span>
+              <span className="text-gray-200">{getOriginalName(eventData)}</span>
             </div>
             <input
               type="checkbox"
-              checked={isEnabled}
-              onChange={(e) => handleEventToggle(selectedExpansion, selectedZone, event, e.target.checked)}
+              checked={eventData.enabled}
+              onChange={(e) => handleEventToggle(selectedExpansion, selectedZone, eventKey, e.target.checked)}
               className="rounded bg-gray-600 border-gray-500 text-emerald-400 focus:ring-emerald-400"
             />
           </label>

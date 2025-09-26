@@ -2,6 +2,12 @@
 import { useState, useEffect } from 'react';
 import { eventsData } from '../utils/eventsData';
 
+// Função para normalizar chaves (igual à usada no useEvents)
+const normalizeKey = (key) => {
+  if (!key) return '';
+  return key.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+};
+
 // Função para construir a estrutura completa de filtros
 const buildCompleteFilterStructure = (eventsData) => {
   const filters = {
@@ -13,23 +19,35 @@ const buildCompleteFilterStructure = (eventsData) => {
   let totalEvents = 0;
 
   Object.entries(eventsData).forEach(([expansion, zones]) => {
-    filters.expansions[expansion] = {
+    const normalizedExpansion = normalizeKey(expansion);
+    
+    filters.expansions[normalizedExpansion] = {
       enabled: true,
+      originalName: expansion,
       zones: {},
       eventCount: 0
     };
 
     Object.entries(zones).forEach(([zone, events]) => {
-      filters.expansions[expansion].zones[zone] = {
+      const normalizedZone = normalizeKey(zone);
+      
+      filters.expansions[normalizedExpansion].zones[normalizedZone] = {
         enabled: true,
+        originalName: zone,
         events: {},
         eventCount: 0
       };
 
       Object.keys(events).forEach(eventName => {
-        filters.expansions[expansion].zones[zone].events[eventName] = true;
-        filters.expansions[expansion].zones[zone].eventCount++;
-        filters.expansions[expansion].eventCount++;
+        const normalizedEvent = normalizeKey(eventName);
+        
+        filters.expansions[normalizedExpansion].zones[normalizedZone].events[normalizedEvent] = {
+          enabled: true,
+          originalName: eventName
+        };
+        
+        filters.expansions[normalizedExpansion].zones[normalizedZone].eventCount++;
+        filters.expansions[normalizedExpansion].eventCount++;
         totalEvents++;
       });
     });
@@ -40,6 +58,23 @@ const buildCompleteFilterStructure = (eventsData) => {
 
   console.log('Built filter structure with', totalEvents, 'total events');
   return filters;
+};
+
+// Função para contar eventos selecionados
+const countSelectedEvents = (filters) => {
+  let selected = 0;
+  let total = 0;
+
+  Object.values(filters.expansions).forEach(expansion => {
+    Object.values(expansion.zones).forEach(zone => {
+      Object.values(zone.events).forEach(event => {
+        total++;
+        if (event.enabled) selected++;
+      });
+    });
+  });
+
+  return { selected, total };
 };
 
 export const useEventFilters = () => {
@@ -92,6 +127,10 @@ export const useEventFilters = () => {
   }, []);
 
   const updateEventFilters = (newFilters) => {
+    const counts = countSelectedEvents(newFilters);
+    newFilters.selectedCount = counts.selected;
+    newFilters.totalCount = counts.total;
+    
     console.log('Updating filters:', newFilters);
     setEventFilters(newFilters);
     localStorage.setItem('tyriaTracker_eventFilters', JSON.stringify(newFilters));
