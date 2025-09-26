@@ -2,6 +2,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { convertUTCTimeToLocal } from '../utils/timeUtils';
 
+// Função para normalizar chaves (igual à usada nos filtros)
+const normalizeKey = (key) => {
+  if (!key) return '';
+  return key.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+};
+
 export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
   const [allEvents, setAllEvents] = useState([]);
 
@@ -39,44 +45,52 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
 
       // Função para verificar se um evento deve ser incluído com base nos filtros
       const shouldIncludeEvent = (expansion, zone, eventName) => {
-        // Se não há filtros definidos ou a estrutura está vazia, incluir tudo
-        if (!eventFilters || !eventFilters.expansions || Object.keys(eventFilters.expansions).length === 0) {
-          console.log('No filters defined, including all events');
+        const normalizedExpansion = normalizeKey(expansion);
+        const normalizedZone = normalizeKey(zone);
+        const normalizedEvent = normalizeKey(eventName);
+
+        console.log('Checking event:', { expansion, zone, eventName });
+        console.log('Normalized keys:', { normalizedExpansion, normalizedZone, normalizedEvent });
+
+        // Se não há filtros definidos, incluir tudo
+        if (!eventFilters.expansions || Object.keys(eventFilters.expansions).length === 0) {
+          console.log('No filters defined, including event');
           return true;
         }
 
         // Verificar se a expansão existe nos filtros
-        if (!eventFilters.expansions[expansion]) {
-          console.log(`Expansion "${expansion}" not found in filters, including event`);
-          return true; // Se a expansão não está nos filtros, incluir por padrão
+        if (!eventFilters.expansions[normalizedExpansion]) {
+          console.log(`Expansion "${normalizedExpansion}" not found in filters, including event`);
+          return true;
         }
 
         // Verificar se a expansão está desabilitada
-        if (eventFilters.expansions[expansion].enabled === false) {
-          console.log(`Expansion "${expansion}" is disabled, excluding event`);
+        if (eventFilters.expansions[normalizedExpansion].enabled === false) {
+          console.log(`Expansion "${normalizedExpansion}" is disabled, excluding event`);
           return false;
         }
 
         // Verificar se a zona existe nos filtros
-        if (!eventFilters.expansions[expansion].zones || !eventFilters.expansions[expansion].zones[zone]) {
-          console.log(`Zone "${zone}" not found in filters for expansion "${expansion}", including event`);
-          return true; // Se a zona não está nos filtros, incluir por padrão
+        if (!eventFilters.expansions[normalizedExpansion].zones || 
+            !eventFilters.expansions[normalizedExpansion].zones[normalizedZone]) {
+          console.log(`Zone "${normalizedZone}" not found in filters, including event`);
+          return true;
         }
 
         // Verificar se a zona está desabilitada
-        if (eventFilters.expansions[expansion].zones[zone].enabled === false) {
-          console.log(`Zone "${zone}" is disabled, excluding event`);
+        if (eventFilters.expansions[normalizedExpansion].zones[normalizedZone].enabled === false) {
+          console.log(`Zone "${normalizedZone}" is disabled, excluding event`);
           return false;
         }
 
         // Verificar se o evento específico está desabilitado
-        if (eventFilters.expansions[expansion].zones[zone].events && 
-            eventFilters.expansions[expansion].zones[zone].events[eventName] === false) {
-          console.log(`Event "${eventName}" is disabled, excluding event`);
+        const eventConfig = eventFilters.expansions[normalizedExpansion].zones[normalizedZone].events[normalizedEvent];
+        if (!eventConfig || eventConfig.enabled === false) {
+          console.log(`Event "${normalizedEvent}" is disabled or not found, excluding event`);
           return false;
         }
 
-        console.log(`Event "${eventName}" in zone "${zone}" of expansion "${expansion}" is enabled`);
+        console.log(`Event "${normalizedEvent}" is enabled, including event`);
         return true;
       };
 
@@ -85,11 +99,8 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
         Object.entries(eventsData).forEach(([expansion, zones]) => {
           Object.entries(zones).forEach(([zone, eventsGroup]) => {
             Object.entries(eventsGroup).forEach(([eventName, eventData]) => {
-              console.log('Processing event:', expansion, '->', zone, '->', eventName);
-              
               // Verificar filtros antes de processar o evento
               if (!shouldIncludeEvent(expansion, zone, eventName)) {
-                console.log('Event excluded by filters:', eventName);
                 return;
               }
 
@@ -156,10 +167,7 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
   }, [eventsData, eventFilters]);
 
   const eventsDataFiltered = useMemo(() => {
-    if (!currentTime) {
-      console.log('No current time provided');
-      return [];
-    }
+    if (!currentTime) return [];
     
     const now = currentTime;
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
@@ -169,20 +177,7 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
       const isOngoing = event.startTime <= now && event.endTime > now;
       const notEnded = event.endTime > now;
       
-      const shouldInclude = (startsWithinTwoHours || isOngoing) && notEnded;
-      
-      if (!shouldInclude) {
-        console.log('Event filtered by time:', event.name, {
-          startTime: event.startTime,
-          endTime: event.endTime,
-          now: now,
-          startsWithinTwoHours,
-          isOngoing,
-          notEnded
-        });
-      }
-      
-      return shouldInclude;
+      return (startsWithinTwoHours || isOngoing) && notEnded;
     });
 
     console.log(`Time filtering: ${filtered.length} events within next 2 hours out of ${allEvents.length} total events`);
