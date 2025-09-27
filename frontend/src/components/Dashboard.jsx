@@ -10,6 +10,8 @@ import * as Tabs from '@radix-ui/react-tabs';
 import useStore from '../store/useStore';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
+import { ProfileSwitcher } from './ui/ProfileSwitcher';
 
 const Dashboard = () => {
   // Local state for UI that doesn't need to be global
@@ -18,17 +20,20 @@ const Dashboard = () => {
 
   // Get state and actions from the Zustand store
   const {
-    dailyProgress,
-    completedEventTypes,
-    userName,
     notification,
     loadInitialData,
     handleTaskToggle,
     handleEventToggle,
-    setUserName,
     setNotification,
     checkAndResetDailyProgress,
+    getActiveDailyProgress,
+    getActiveCompletedEventTypes,
+    activeProfile,
   } = useStore();
+
+  // Get active profile data using selectors
+  const dailyProgress = getActiveDailyProgress();
+  const completedEventTypes = getActiveCompletedEventTypes();
 
   const { eventFilters, updateEventFilters, isLoading } = useEventFilters();
 
@@ -61,6 +66,7 @@ const Dashboard = () => {
 
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date());
+      // The daily reset check is now handled inside the store, but we still need to trigger it
       checkAndResetDailyProgress();
     }, 1000);
 
@@ -119,14 +125,10 @@ const Dashboard = () => {
       date,
       dailyProgress,
       completedEventTypes,
-      userName,
+      userName: activeProfile, // Use activeProfile for the userName field
       eventFilters,
     });
-  }, [dailyProgress, completedEventTypes, userName, eventFilters, mutation]);
-
-  const handleUserNameChange = (e) => {
-    setUserName(e.target.value);
-  };
+  }, [dailyProgress, completedEventTypes, activeProfile, eventFilters, mutation]);
 
   if (isLoading) {
     return (
@@ -163,18 +165,7 @@ const Dashboard = () => {
             💾 Data stored localmente no navegador - sem conta!
           </p>
           <div className="flex items-center gap-4 mt-4 flex-wrap">
-            <label htmlFor="userName" className="text-sm text-muted-foreground">
-              Nome do usuário:
-            </label>
-            <input
-              id="userName"
-              type="text"
-              value={userName}
-              onChange={handleUserNameChange}
-              className="px-2 py-1 rounded bg-input text-foreground border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
-              style={{ minWidth: 100 }}
-              placeholder="Seu nome"
-            />
+            <ProfileSwitcher />
             <button
               className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
               onClick={saveProgressToMongo}
@@ -182,6 +173,12 @@ const Dashboard = () => {
             >
               {mutation.isLoading ? 'Saving...' : 'Save to MongoDB'}
             </button>
+            <Link
+              to="/history"
+              className="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+            >
+              View History
+            </Link>
           </div>
         </div>
 
