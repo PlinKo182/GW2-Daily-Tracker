@@ -171,18 +171,41 @@ const Dashboard = () => {
     });
   }, []);
 
+  // Função para obter eventos relacionados que devem ser completados juntos
+  const getRelatedEventKeys = useCallback((eventKey) => {
+    // Ley-Line Anomaly events - todos devem ser completados juntos
+    const leyLineEvents = [
+      'coretyria_leylineanomaly_timberlinefalls',
+      'coretyria_leylineanomaly_ironmarches', 
+      'coretyria_leylineanomaly_gendarranfields'
+    ];
+    
+    if (leyLineEvents.includes(eventKey)) {
+      return leyLineEvents;
+    }
+    
+    // Adicionar outros grupos de eventos relacionados aqui no futuro
+    
+    return [eventKey]; // Por padrão, retorna apenas o próprio evento
+  }, []);
+
   const handleEventToggle = useCallback((eventId, eventKey) => {
     setCompletedEventTypes(prevTypes => {
       const isCurrentlyCompleted = prevTypes[eventKey];
+      const relatedEventKeys = getRelatedEventKeys(eventKey);
       
       const newCompletedEventTypes = { ...prevTypes };
 
       if (isCurrentlyCompleted) {
-        // REMOVER completude - eliminar o tipo de evento
-        delete newCompletedEventTypes[eventKey];
+        // REMOVER completude - eliminar todos os eventos relacionados
+        relatedEventKeys.forEach(key => {
+          delete newCompletedEventTypes[key];
+        });
       } else {
-        // MARCAR como completo - todos os eventos deste tipo
-        newCompletedEventTypes[eventKey] = true;
+        // MARCAR como completo - todos os eventos relacionados
+        relatedEventKeys.forEach(key => {
+          newCompletedEventTypes[key] = true;
+        });
       }
 
       // Save to localStorage
@@ -190,7 +213,7 @@ const Dashboard = () => {
       
       return newCompletedEventTypes;
     });
-  }, []);
+  }, [getRelatedEventKeys]);
 
   const calculateOverallProgress = useCallback(() => {
     let totalTasks = 0;
