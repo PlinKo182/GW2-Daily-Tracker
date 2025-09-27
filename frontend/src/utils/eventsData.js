@@ -100,15 +100,17 @@ export const eventsData = {
         "duration_minutes": 30,
         "utc_times": ["01:00", "04:00", "08:00", "12:30", "17:00", "20:00", "25:00"],
         "waypoint": "[&BKoBAAA=]",
+        "link": "https://wiki.guildwars2.com/wiki/Defeat_the_crimson_head_of_the_great_jungle_wurm",
         "rewards": {
           "item": { "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
+          "currency": { "amount": 2, "type": "gold" }
         }
       },
       "Karka Queen": {
         "duration_minutes": 30,
         "utc_times": ["02:00", "06:00", "10:30", "15:00", "18:00", "23:00"],
         "waypoint": "[&BNUGAAA=]",
+        "link": "https://wiki.guildwars2.com/wiki/Defeat_the_Karka_Queen_threatening_the_settlements",
         "rewards": {
           "item": { "name": "", "link": "", "itemId": null },
           "currency": { "amount": null, "type": "" }
