@@ -27,7 +27,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://*.vercel.app",
-        "https://tyria-tracker.vercel.app"
+        "https://gw-2-daily-tracker.vercel.app",
     ],
     allow_methods=["*"],
     allow_headers=["*"],

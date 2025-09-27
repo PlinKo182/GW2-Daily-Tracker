@@ -22,6 +22,6 @@
     { "src": "/(.*)", "dest": "/frontend/index.html" }
   ],
   "env": {
-    "REACT_APP_BACKEND_URL": "https://tyria-tracker.vercel.app"
+    "REACT_APP_BACKEND_URL": "https://gw-2-daily-tracker.vercel.app"
   }
 }

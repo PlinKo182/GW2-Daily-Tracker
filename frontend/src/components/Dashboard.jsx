@@ -237,7 +237,7 @@ const Dashboard = () => {
   // Função para salvar progresso no MongoDB
   const saveProgressToMongo = useCallback(() => {
     const date = new Date().toISOString().slice(0, 10);
-    fetch('https://gw-2-daily-tracker-emergent.vercel.app/api/progress', {
+    fetch('https://gw-2-daily-tracker.vercel.app/api/progress', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
