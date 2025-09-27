@@ -339,8 +339,9 @@ export const eventsData = {
         "duration_minutes": 20,
         "utc_times": ["00:30", "02:30", "04:30", "06:30", "08:30", "10:30", "12:30", "14:30", "16:30", "18:30", "20:30", "22:30"],
         "waypoint": "[&BPUHAAA=]",
+          "link": "https://wiki.guildwars2.com/wiki/King_of_the_Jungle",
         "rewards": {
-          "item": { "name": "", "link": "", "itemId": null },
+          "item": { "name": "Chak Gerent", "link": "https://wiki.guildwars2.com/wiki/Chak_Gerent", "itemId": 72021 },
           "currency": { "amount": null, "type": "" }
         }
       }
@@ -350,6 +351,7 @@ export const eventsData = {
         "duration_minutes": 120,
         "utc_times": ["01:30", "03:30", "05:30", "07:30", "09:30", "11:30", "13:30", "15:30", "17:30", "19:30", "21:30", "23:30"],
         "waypoint": "[&BBAIAAA=]",
+          "link": "https://wiki.guildwars2.com/wiki/Defeat_Tequatl_the_Sunless",
         "rewards": {
           "item": { "name": "", "link": "", "itemId": null },
           "currency": { "amount": null, "type": "" }
