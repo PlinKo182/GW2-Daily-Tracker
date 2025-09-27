@@ -118,9 +118,10 @@ export const eventsData = {
         "duration_minutes": 30,
         "utc_times": ["00:00", "03:00", "07:00", "11:30", "16:00", "19:00", "24:00"],
         "waypoint": "[&BNABAAA=]",
+        "link": "https://wiki.guildwars2.com/wiki/Defeat_Tequatl_the_Sunless",
         "rewards": {
-          "item": { "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
+          "item": { "name": "Benthic Aquabreather", "link": "https://wiki.guildwars2.com/wiki/Benthic_Aquabreather", "itemId": 47874 },
+          "currency": { "amount": 1, "type": "gold" }
         }
       }
     },
@@ -130,7 +131,7 @@ export const eventsData = {
         "utc_times": ["00:20", "06:20", "12:20", "18:20"],
         "waypoint": "[&BEwCAAA=]",
         "rewards": {
-          "item": { "name": "", "link": "", "itemId": null },
+          "item": { "name": "", "link": "", "itemId": 47874 },
           "currency": { "amount": null, "type": "" }
         }
       },

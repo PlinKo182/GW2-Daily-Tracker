@@ -133,7 +133,20 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices, currentTi
       />
 
       <div className="p-6 flex-grow pt-12">
-        <h3 className="text-xl font-bold text-emerald-400 mb-2">{event.name || 'Unknown Event'}</h3>
+        {event.link ? (
+          <h3 className="text-xl font-bold text-emerald-400 mb-2">
+            <a 
+              href={event.link} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-emerald-300 hover:underline transition-colors duration-200"
+            >
+              {event.name || 'Unknown Event'}
+            </a>
+          </h3>
+        ) : (
+          <h3 className="text-xl font-bold text-emerald-400 mb-2">{event.name || 'Unknown Event'}</h3>
+        )}
         <div className="flex items-center gap-1 text-sm text-gray-400 mb-4">
           <MapPin className="w-4 h-4" />
           {event.location || 'Unknown Location'}

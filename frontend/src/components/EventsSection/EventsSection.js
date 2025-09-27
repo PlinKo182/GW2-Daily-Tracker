@@ -55,6 +55,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
           eventsByType[event.eventKey] = {
             eventKey: event.eventKey,
             name: event.name || 'Unknown Event',
+            link: event.link || null,
             instances: []
           };
         }

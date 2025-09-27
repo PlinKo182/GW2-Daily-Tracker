@@ -117,7 +117,20 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
       />
 
       <div className="p-6 flex-grow pt-12">
-        <h3 className="text-xl font-bold text-emerald-400 mb-2">{eventType.name || 'Unknown Event'}</h3>
+        {eventType.link ? (
+          <h3 className="text-xl font-bold text-emerald-400 mb-2">
+            <a 
+              href={eventType.link} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-emerald-300 hover:underline transition-colors duration-200"
+            >
+              {eventType.name || 'Unknown Event'}
+            </a>
+          </h3>
+        ) : (
+          <h3 className="text-xl font-bold text-emerald-400 mb-2">{eventType.name || 'Unknown Event'}</h3>
+        )}
         <div className="text-sm text-gray-400 mb-4">
           Daily reward claimed
         </div>

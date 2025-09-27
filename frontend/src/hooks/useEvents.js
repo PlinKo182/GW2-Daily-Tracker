@@ -120,6 +120,7 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
                         name: eventName,
                         location: `${expansion} - ${zone}`,
                         waypoint: eventData.waypoint || '',
+                        link: eventData.link || null,
                         startTime: new Date(adjustedEventTime),
                         endTime: endTime,
                         duration: eventData.duration_minutes || 15,
