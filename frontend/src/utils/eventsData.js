@@ -314,15 +314,6 @@ export const eventsData = {
           "currency": { "amount": null, "type": "" }
         }
       },
-      "Reset": {
-        "duration_minutes": 10,
-        "utc_times": ["01:20", "03:20", "05:20", "07:20", "09:20", "11:20", "13:20", "15:20", "17:20", "19:20", "21:20", "23:20"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      }
     },
     "Tangled Depths": {
       "Help the Outposts": {
@@ -363,15 +354,6 @@ export const eventsData = {
           "currency": { "amount": null, "type": "" }
         }
       },
-      "(continued)": {
-        "duration_minutes": 90,
-        "utc_times": ["00:00"],
-        "waypoint": "",
-        "rewards": {
-          "item": { "name": "", "link": "", "itemId": null },
-          "currency": { "amount": null, "type": "" }
-        }
-      }
     }
   },
   "Living World Season 3": {
