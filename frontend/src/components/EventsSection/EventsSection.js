@@ -149,6 +149,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
                 isCompleted={false}
                 onToggle={handleEventToggle}
                 itemPrices={itemPrices}
+                currentTime={safeCurrentTime}
               />
             );
           })}
@@ -210,6 +211,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
                   eventType={eventType}
                   onToggle={handleEventToggle}
                   itemPrices={itemPrices}
+                  currentTime={safeCurrentTime}
                 />
               );
             })}

@@ -5,10 +5,10 @@ import { formatTime } from '../../utils/timeUtils';
 import { copyToClipboard } from '../../utils/clipboardUtils';
 import { formatPriceWithImages } from '../../utils/priceUtils';
 
-const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
+const EventCard = ({ event, isCompleted = false, onToggle, itemPrices, currentTime }) => {
   if (!event) return null;
 
-  const now = new Date();
+  const now = currentTime || new Date();
   const eventActive = event.startTime <= now && event.endTime >= now;
   const eventUpcoming = event.startTime > now;
 
@@ -143,6 +143,7 @@ const EventCard = ({ event, isCompleted = false, onToggle, itemPrices }) => {
           <CountdownTimer 
             startTime={event.startTime} 
             endTime={event.endTime}
+            currentTime={now}
           />
         )}
         

@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 
-const CountdownTimer = ({ startTime, endTime, onTimerEnd }) => {
-  const [currentTime, setCurrentTime] = useState(new Date());
+const CountdownTimer = ({ startTime, endTime, onTimerEnd, currentTime: propCurrentTime }) => {
+  const [currentTime, setCurrentTime] = useState(propCurrentTime || new Date());
 
   useEffect(() => {
+    // Se currentTime foi passado como prop, use-o diretamente
+    if (propCurrentTime) {
+      setCurrentTime(propCurrentTime);
+      return;
+    }
+
+    // Caso contrário, use o timer interno
     const interval = setInterval(() => {
       const newTime = new Date();
       setCurrentTime(newTime);
@@ -14,11 +21,9 @@ const CountdownTimer = ({ startTime, endTime, onTimerEnd }) => {
         onTimerEnd();
       }
     }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [endTime, onTimerEnd]);
 
-  const getTimeRemaining = (targetTime) => {
+    return () => clearInterval(interval);
+  }, [propCurrentTime, endTime, onTimerEnd]);  const getTimeRemaining = (targetTime) => {
     const difference = targetTime - currentTime;
     
     if (difference <= 0) {
