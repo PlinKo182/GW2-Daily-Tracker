@@ -1,112 +1,67 @@
 // components/Dashboard.jsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from './Header';
 import DailyProgress from './DailyProgress';
 import DailyTasks from './DailyTasks';
 import EventsSection from './EventsSection/EventsSection';
 import Footer from './Footer';
-import { localStorageAPI } from '../services/api';
 import { useEventFilters } from '../hooks/useEventFilters';
 import * as Tabs from '@radix-ui/react-tabs';
+import useStore from '../store/useStore';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import axios from 'axios';
 
 const Dashboard = () => {
-  const [notification, setNotification] = useState(null);
-  const [dailyProgress, setDailyProgress] = useState({
-    gathering: {
-      vine_bridge: false,
-      prosperity: false,
-      destinys_gorge: false
-    },
-    crafting: {
-      mithrillium: false,
-      elonian_cord: false,
-      spirit_residue: false,
-      gossamer: false
-    },
-    specials: {
-      psna: false,
-      home_instance: false
-    }
-  });
-
-  const [completedEventTypes, setCompletedEventTypes] = useState({});
+  // Local state for UI that doesn't need to be global
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [apiStatus, setApiStatus] = useState('checking');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [userName, setUserName] = useState(() => {
-    return localStorage.getItem('tyriaTracker_userName') || 'PlinKo';
-  });
+
+  // Get state and actions from the Zustand store
+  const {
+    dailyProgress,
+    completedEventTypes,
+    userName,
+    notification,
+    loadInitialData,
+    handleTaskToggle,
+    handleEventToggle,
+    setUserName,
+    setNotification,
+    checkAndResetDailyProgress,
+  } = useStore();
 
   const { eventFilters, updateEventFilters, isLoading } = useEventFilters();
-  const lastResetDateRef = useRef(getCurrentUTCDate());
 
-  // Função auxiliar para obter data UTC atual
-  function getCurrentUTCDate() {
-    const now = new Date();
-    return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  }
+  // React Query for checking API status
+  const { data: apiStatus } = useQuery({
+    queryKey: ['apiStatus'],
+    queryFn: async () => {
+      if (!isOnline) return 'offline';
+      try {
+        const response = await axios.get('https://api.guildwars2.com/v2/build');
+        return response.data && response.data.id ? 'online' : 'unavailable';
+      } catch (error) {
+        return 'unavailable';
+      }
+    },
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  // Função para verificar e executar reset diário
-  const checkAndResetDailyProgress = useCallback(() => {
-    const currentUTCDate = getCurrentUTCDate();
-    
-    if (currentUTCDate !== lastResetDateRef.current) {
-      // Reset all progress
-      const resetProgress = {
-        gathering: {
-          vine_bridge: false,
-          prosperity: false,
-          destinys_gorge: false
-        },
-        crafting: {
-          mithrillium: false,
-          elonian_cord: false,
-          spirit_residue: false,
-          gossamer: false
-        },
-        specials: {
-          psna: false,
-          home_instance: false
-        }
-      };
-
-      setDailyProgress(resetProgress);
-      setCompletedEventTypes({});
-
-      // Clear localStorage
-      localStorageAPI.clearAll();
-      
-      // Update last reset date
-      lastResetDateRef.current = currentUTCDate;
-    }
-  }, []);
-
-  // Load data from localStorage on component mount
+  // Effect for initial data load, timers, and online status
   useEffect(() => {
     loadInitialData();
+    checkAndResetDailyProgress();
 
-    // Monitor online/offline status
-    const handleOnline = () => {
-      setIsOnline(true);
-      checkApiStatus();
-    };
-    
-    const handleOffline = () => {
-      setIsOnline(false);
-      setApiStatus('offline');
-    };
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Check API status on load
-    checkApiStatus();
-
-    // Setup time updater
     const timeInterval = setInterval(() => {
-      const newTime = new Date();
-      setCurrentTime(newTime);
-      checkAndResetDailyProgress(); // Check for reset on each time update
+      setCurrentTime(new Date());
+      checkAndResetDailyProgress();
     }, 1000);
 
     return () => {
@@ -114,149 +69,65 @@ const Dashboard = () => {
       window.removeEventListener('offline', handleOffline);
       clearInterval(timeInterval);
     };
-  }, [checkAndResetDailyProgress]);
+  }, [loadInitialData, checkAndResetDailyProgress]);
 
-  const checkApiStatus = async () => {
-    if (!isOnline) {
-      setApiStatus('offline');
-      return;
-    }
-
-    try {
-      // Test direct GW2 API connection
-      const response = await fetch('https://api.guildwars2.com/v2/build', {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setApiStatus(data && data.id ? 'online' : 'unavailable');
-      } else {
-        setApiStatus('unavailable');
-      }
-    } catch (error) {
-      setApiStatus('unavailable');
-    }
-  };
-
-  const loadInitialData = () => {
-    // Load from localStorage (primary data source)
-    const savedProgressData = localStorageAPI.getProgress();
-    const savedEventsData = localStorageAPI.getEvents();
-
-    if (savedProgressData && savedProgressData.dailyProgress) {
-      setDailyProgress(savedProgressData.dailyProgress);
-    }
-
-    if (savedEventsData && savedEventsData.completedEventTypes) {
-      setCompletedEventTypes(savedEventsData.completedEventTypes);
-    }
-  };
-
-  const handleTaskToggle = useCallback((category, task) => {
-    setDailyProgress(prev => {
-      const newProgress = {
-        ...prev,
-        [category]: {
-          ...prev[category],
-          [task]: !prev[category][task]
-        }
-      };
-
-      // Update localStorage
-      localStorageAPI.saveProgress(newProgress);
-      return newProgress;
-    });
-  }, []);
-
-  const handleEventToggle = useCallback((eventId, eventKey) => {
-    setCompletedEventTypes(prevTypes => {
-      const isCurrentlyCompleted = prevTypes[eventKey];
-      
-      const newCompletedEventTypes = { ...prevTypes };
-
-      if (isCurrentlyCompleted) {
-        // REMOVER completude - eliminar o tipo de evento
-        delete newCompletedEventTypes[eventKey];
-      } else {
-        // MARCAR como completo - todos os eventos deste tipo
-        newCompletedEventTypes[eventKey] = true;
-      }
-
-      // Save to localStorage
-      localStorageAPI.saveEvents({}, newCompletedEventTypes);
-      
-      return newCompletedEventTypes;
-    });
-  }, []);
-
+  // Progress calculation logic (now depends on store state)
   const calculateOverallProgress = useCallback(() => {
     let totalTasks = 0;
     let completedTasks = 0;
-
-    Object.values(dailyProgress).forEach(category => {
-      Object.values(category).forEach(task => {
+    Object.values(dailyProgress).forEach((category) => {
+      Object.values(category).forEach((task) => {
         totalTasks++;
         if (task) completedTasks++;
       });
     });
-
     return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   }, [dailyProgress]);
 
-  const calculateCategoryProgress = useCallback((category) => {
-    const tasks = dailyProgress[category];
-    if (!tasks) return { completed: 0, total: 0, percentage: 0 };
-    
-    const totalTasks = Object.keys(tasks).length;
-    const completedTasks = Object.values(tasks).filter(Boolean).length;
-    
-    return {
-      completed: completedTasks,
-      total: totalTasks,
-      percentage: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
-    };
-  }, [dailyProgress]);
+  const calculateCategoryProgress = useCallback(
+    (category) => {
+      const tasks = dailyProgress[category];
+      if (!tasks) return { completed: 0, total: 0, percentage: 0 };
+      const totalTasks = Object.keys(tasks).length;
+      const completedTasks = Object.values(tasks).filter(Boolean).length;
+      return {
+        completed: completedTasks,
+        total: totalTasks,
+        percentage: totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0,
+      };
+    },
+    [dailyProgress]
+  );
 
-  // Função para salvar progresso no MongoDB
+  // React Query for saving progress to MongoDB
+  const mutation = useMutation({
+    mutationFn: (progressData) =>
+      axios.put('https://gw-2-daily-tracker.vercel.app/api/progress', progressData),
+    onSuccess: () => {
+      setNotification({ type: 'success', message: 'Saved on MongoDB!' });
+      setTimeout(() => setNotification(null), 4000);
+    },
+    onError: (error) => {
+      setNotification({ type: 'error', message: `Error: ${error.response?.data?.error || error.message}` });
+      setTimeout(() => setNotification(null), 4000);
+    },
+  });
+
   const saveProgressToMongo = useCallback(() => {
     const date = new Date().toISOString().slice(0, 10);
-    fetch('https://gw-2-daily-tracker.vercel.app/api/progress', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        date, 
-        dailyProgress, 
-        completedEventTypes, 
-        userName,
-        eventFilters
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setNotification({ type: 'success', message: 'Saved on MongoDB!' });
-        } else {
-          setNotification({ type: 'error', message: 'Error: ' + data.error });
-        }
-        setTimeout(() => setNotification(null), 4000);
-      })
-      .catch(error => {
-        setNotification({ type: 'error', message: 'Connection error: ' + error.message });
-        setTimeout(() => setNotification(null), 4000);
-      });
-  }, [dailyProgress, completedEventTypes, userName, eventFilters]);
+    mutation.mutate({
+      date,
+      dailyProgress,
+      completedEventTypes,
+      userName,
+      eventFilters,
+    });
+  }, [dailyProgress, completedEventTypes, userName, eventFilters, mutation]);
 
-  const handleUserNameChange = useCallback((e) => {
-    const newUserName = e.target.value;
-    setUserName(newUserName);
-    localStorage.setItem('tyriaTracker_userName', newUserName);
-  }, []);
+  const handleUserNameChange = (e) => {
+    setUserName(e.target.value);
+  };
 
-  // Mostrar loading enquanto os filtros estão sendo carregados
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
@@ -272,11 +143,14 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background text-foreground">
       <Header currentTime={currentTime} apiStatus={apiStatus} isOnline={isOnline} />
 
-      {/* Notificação */}
       {notification && (
-        <div className={`fixed bottom-6 right-6 z-50 min-w-[220px] shadow-lg px-4 py-2 rounded text-sm font-semibold ${
-          notification.type === 'success' ? 'bg-primary text-primary-foreground' : 'bg-destructive text-destructive-foreground'
-        }`}>
+        <div
+          className={`fixed bottom-6 right-6 z-50 min-w-[220px] shadow-lg px-4 py-2 rounded text-sm font-semibold ${
+            notification.type === 'success'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-destructive text-destructive-foreground'
+          }`}
+        >
           {notification.message}
         </div>
       )}
@@ -289,7 +163,9 @@ const Dashboard = () => {
             💾 Data stored localmente no navegador - sem conta!
           </p>
           <div className="flex items-center gap-4 mt-4 flex-wrap">
-            <label htmlFor="userName" className="text-sm text-muted-foreground">Nome do usuário:</label>
+            <label htmlFor="userName" className="text-sm text-muted-foreground">
+              Nome do usuário:
+            </label>
             <input
               id="userName"
               type="text"
@@ -302,15 +178,14 @@ const Dashboard = () => {
             <button
               className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
               onClick={saveProgressToMongo}
+              disabled={mutation.isLoading}
             >
-              Save to MongoDB
+              {mutation.isLoading ? 'Saving...' : 'Save to MongoDB'}
             </button>
           </div>
         </div>
 
-        <DailyProgress 
-          overallProgress={calculateOverallProgress()}
-        />
+        <DailyProgress overallProgress={calculateOverallProgress()} />
 
         <Tabs.Root defaultValue="tasks" className="mt-8">
           <Tabs.List className="border-b border-border flex items-center gap-4">
@@ -350,6 +225,6 @@ const Dashboard = () => {
       <Footer />
     </div>
   );
-}
+};
 
 export default React.memo(Dashboard);
