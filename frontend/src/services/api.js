@@ -33,7 +33,6 @@ class TyriaTrackerAPI {
       const response = await axios.get(`${API}/`);
       return response.data;
     } catch (error) {
-      console.error('Health check failed:', error);
       return null;
     }
   }
@@ -74,7 +73,7 @@ export const localStorageAPI = {
           return parsed;
         }
       } catch (e) {
-        console.error('Error parsing saved progress:', e);
+        // Error parsing saved progress
       }
     }
     

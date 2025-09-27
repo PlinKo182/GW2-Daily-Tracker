@@ -57,7 +57,6 @@ const buildCompleteFilterStructure = (eventsData) => {
   filters.totalCount = totalEvents;
   filters.selectedCount = totalEvents;
 
-  console.log('Built filter structure with', totalEvents, 'total events');
   return filters;
 };
 
@@ -88,13 +87,10 @@ export const useEventFilters = () => {
 
   useEffect(() => {
     const initializeFilters = () => {
-      console.log('Initializing event filters...');
-      
       try {
         const savedFilters = localStorage.getItem('tyriaTracker_eventFilters');
         
         if (savedFilters) {
-          console.log('Found saved filters in localStorage');
           const parsedFilters = JSON.parse(savedFilters);
           
           // Verificar se a estrutura salva é válida e no formato correto
@@ -121,27 +117,21 @@ export const useEventFilters = () => {
           
           // Se o formato for válido, use os filtros salvos, caso contrário, reconstrua
           if (isValidFormat(parsedFilters)) {
-            console.log('Saved filters are in the correct format');
             setEventFilters(parsedFilters);
             setIsLoading(false);
             return;
           } else {
-            console.log('Saved filters are in old format, rebuilding...');
             localStorage.removeItem('tyriaTracker_eventFilters'); // Limpar filtros antigos
           }
           if (parsedFilters.expansions && Object.keys(parsedFilters.expansions).length > 0) {
-            console.log('Using saved filters structure');
             setEventFilters(parsedFilters);
           } else {
-            console.log('Saved filters structure is invalid, using default');
             initializeDefaultFilters();
           }
         } else {
-          console.log('No saved filters found, using default');
           initializeDefaultFilters();
         }
       } catch (error) {
-        console.error('Error initializing filters:', error);
         initializeDefaultFilters();
       }
       
@@ -152,7 +142,6 @@ export const useEventFilters = () => {
       const defaultFilters = buildCompleteFilterStructure(eventsData);
       setEventFilters(defaultFilters);
       localStorage.setItem('tyriaTracker_eventFilters', JSON.stringify(defaultFilters));
-      console.log('Initialized default filters');
     };
 
     initializeFilters();
@@ -163,7 +152,6 @@ export const useEventFilters = () => {
     newFilters.selectedCount = counts.selected;
     newFilters.totalCount = counts.total;
     
-    console.log('Updating filters:', newFilters);
     setEventFilters(newFilters);
     localStorage.setItem('tyriaTracker_eventFilters', JSON.stringify(newFilters));
   };

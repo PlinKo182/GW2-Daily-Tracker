@@ -44,7 +44,7 @@ export const useItemPrices = (events) => {
         
         setItemPrices(prices);
       } catch (error) {
-        console.error('Failed to fetch item prices:', error);
+        // Failed to fetch item prices
       }
     };
 

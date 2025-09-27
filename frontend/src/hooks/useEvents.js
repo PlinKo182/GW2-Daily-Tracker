@@ -49,41 +49,32 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
         const normalizedZone = normalizeKey(zone);
         const normalizedEvent = normalizeKey(eventName);
 
-        console.log('Checking event:', { expansion, zone, eventName });
-        console.log('Normalized keys:', { normalizedExpansion, normalizedZone, normalizedEvent });
-
         // Se não há filtros definidos, incluir tudo
         if (!eventFilters.expansions || Object.keys(eventFilters.expansions).length === 0) {
-          console.log('No filters defined, including event');
           return true;
         }
 
         // Verificar se a expansão existe nos filtros
         if (!eventFilters.expansions[normalizedExpansion]) {
-          console.log(`Expansion "${normalizedExpansion}" not found in filters, excluding event`);
           return false;
         }
 
         // Primeiro verificar se o evento específico está habilitado
         const eventConfig = eventFilters.expansions[normalizedExpansion]?.zones?.[normalizedZone]?.events?.[normalizedEvent];
         if (eventConfig && typeof eventConfig === 'object' && eventConfig.enabled === true) {
-          console.log(`Event "${normalizedEvent}" is specifically enabled, including event`);
           return true;
         }
 
         // Se o evento não está especificamente habilitado, verificar se a zona está habilitada
         if (eventFilters.expansions[normalizedExpansion]?.zones?.[normalizedZone]?.enabled === true) {
-          console.log(`Zone "${normalizedZone}" is enabled, including event`);
           return true;
         }
 
         // Se nem o evento nem a zona estão habilitados, verificar se a expansão está habilitada
         if (eventFilters.expansions[normalizedExpansion].enabled === true) {
-          console.log(`Expansion "${normalizedExpansion}" is enabled, including event`);
           return true;
         }
 
-        console.log(`Event "${normalizedEvent}" is not enabled at any level, excluding event`);
         return false;
       };
 
@@ -146,13 +137,11 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
       };
 
       if (eventsData) {
-        console.log('Starting to process events data with filters:', eventFilters);
         processEventsData(eventsData);
       }
 
       // Ordenar eventos por hora de início
       events.sort((a, b) => a.startTime - b.startTime);
-      console.log(`Loaded ${events.length} events with current filters`);
       setAllEvents(events);
     };
 
@@ -173,7 +162,6 @@ export const useEvents = (eventsData, currentTime, eventFilters = {}) => {
       return (startsWithinTwoHours || isOngoing) && notEnded;
     });
 
-    console.log(`Time filtering: ${filtered.length} events within next 2 hours out of ${allEvents.length} total events`);
     return filtered;
   }, [allEvents, currentTime]);
 

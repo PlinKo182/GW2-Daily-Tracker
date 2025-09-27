@@ -3,7 +3,6 @@ import { formatPriceWithImages } from '../../utils/priceUtils';
 
 const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
   if (!eventType || !eventType.instances || eventType.instances.length === 0) {
-    console.log('CompletedEventTypeCard: No instances for eventType', eventType);
     return null;
   }
 
@@ -103,7 +102,6 @@ const CompletedEventTypeCard = ({ eventType, onToggle, itemPrices }) => {
   };
 
   const handleToggle = () => {
-    console.log('Toggling completed event:', eventType.eventKey, eventType.instances[0]?.id);
     if (eventType.instances.length > 0) {
       onToggle(eventType.instances[0].id, eventType.eventKey);
     }

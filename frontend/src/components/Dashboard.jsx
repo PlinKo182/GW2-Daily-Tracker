@@ -77,8 +77,6 @@ const Dashboard = () => {
       
       // Update last reset date
       lastResetDateRef.current = currentUTCDate;
-      
-      console.log('Daily progress reset executed');
     }
   }, []);
 
@@ -139,7 +137,6 @@ const Dashboard = () => {
         setApiStatus('unavailable');
       }
     } catch (error) {
-      console.error('API check failed:', error);
       setApiStatus('unavailable');
     }
   };
@@ -175,29 +172,18 @@ const Dashboard = () => {
   }, []);
 
   const handleEventToggle = useCallback((eventId, eventKey) => {
-    console.log('Toggling event type:', eventKey);
-    
     setCompletedEventTypes(prevTypes => {
       const isCurrentlyCompleted = prevTypes[eventKey];
       
-      console.log('Current completion status:', {
-        eventKey,
-        isCurrentlyCompleted
-      });
-
       const newCompletedEventTypes = { ...prevTypes };
 
       if (isCurrentlyCompleted) {
         // REMOVER completude - eliminar o tipo de evento
         delete newCompletedEventTypes[eventKey];
-        console.log('Removing event type completion:', eventKey);
       } else {
         // MARCAR como completo - todos os eventos deste tipo
         newCompletedEventTypes[eventKey] = true;
-        console.log('Marking event type as completed:', eventKey);
       }
-
-      console.log('New completedEventTypes:', newCompletedEventTypes);
 
       // Save to localStorage
       localStorageAPI.saveEvents({}, newCompletedEventTypes);
@@ -268,14 +254,6 @@ const Dashboard = () => {
     setUserName(newUserName);
     localStorage.setItem('tyriaTracker_userName', newUserName);
   }, []);
-
-  // Debug effect
-  useEffect(() => {
-    console.log('=== DASHBOARD STATE UPDATE ===');
-    console.log('completedEventTypes:', completedEventTypes);
-    console.log('completedEventTypes count:', Object.keys(completedEventTypes).length);
-    console.log('eventFilters:', eventFilters);
-  }, [completedEventTypes, eventFilters]);
 
   // Mostrar loading enquanto os filtros estão sendo carregados
   if (isLoading) {

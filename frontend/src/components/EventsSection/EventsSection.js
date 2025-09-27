@@ -13,44 +13,31 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
   
   const safeCurrentTime = currentTime || new Date();
   
-  console.log('=== EVENTS SECTION RENDER ===');
-  console.log('eventFilters:', eventFilters);
-  console.log('completedEventTypes:', completedEventTypes);
-  
   // Usar eventsData com filtros
   const { allEvents, eventsData: filteredEvents } = useEvents(eventsData, safeCurrentTime, eventFilters);
   const itemPrices = useItemPrices(allEvents);
 
-  console.log('After useEvents hook:');
-  console.log('allEvents count:', allEvents?.length);
-  console.log('filteredEvents count:', filteredEvents?.length);
-
   // Filtrar eventos não concluídos para mostrar na seção principal
   const filteredEventsData = useMemo(() => {
     if (!filteredEvents || !Array.isArray(filteredEvents)) {
-      console.log('No filteredEvents or not an array');
       return [];
     }
     
     const result = filteredEvents.filter(event => {
       if (!event || typeof event !== 'object' || !event.eventKey || !event.id) {
-        console.log('Filtering out invalid event:', event);
         return false;
       }
       
       const isCompleted = completedEventTypes[event.eventKey];
-      console.log(`Event ${event.id} (${event.eventKey}) - completed:`, isCompleted);
       return !isCompleted;
     });
     
-    console.log('Filtered events (excluding completed):', result.length);
     return result;
   }, [filteredEvents, completedEventTypes]);
 
   // Obter eventos concluídos
   const completedEventsByType = useMemo(() => {
     if (!allEvents || !Array.isArray(allEvents)) {
-      console.log('No allEvents or not an array');
       return [];
     }
     
@@ -58,7 +45,6 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
     
     allEvents.forEach(event => {
       if (!event || typeof event !== 'object' || !event.eventKey || !event.id) {
-        console.log('Skipping invalid event in completedEventsByType:', event);
         return;
       }
       
@@ -77,13 +63,10 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
       }
     });
     
-    console.log('completedEventsByType found:', Object.values(eventsByType).length, 'types');
-    
     return Object.values(eventsByType);
   }, [allEvents, completedEventTypes]);
 
   const handleEventToggle = useCallback((eventId, eventKey) => {
-    console.log('Toggling event in EventsSection:', eventId, eventKey);
     onEventToggle(eventId, eventKey);
   }, [onEventToggle]);
 
@@ -92,7 +75,6 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
   const hasAllEvents = allEvents && Array.isArray(allEvents);
 
   if (!hasEventsData || !hasAllEvents) {
-    console.log('No events data available, showing loading state');
     return (
       <div className="mb-12">
         <div className="flex justify-between items-center mb-6">
@@ -111,10 +93,6 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
       </div>
     );
   }
-
-  console.log('Final rendering state:');
-  console.log('filteredEventsData length:', filteredEventsData.length);
-  console.log('completedEventsByType length:', completedEventsByType.length);
 
   return (
     <div className="mb-12">
@@ -161,7 +139,6 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEventsData.map(event => {
             if (!event || !event.id) {
-              console.log('Skipping invalid event in map:', event);
               return null;
             }
             
@@ -192,7 +169,7 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
           {allEvents.length === 0 && (
             <div className="text-sm mt-4 text-amber-400">
               <p>No events match your current filters.</p>
-              <p>Try adjusting your filter settings or check the console for details.</p>
+              <p>Try adjusting your filter settings.</p>
               <button 
                 onClick={() => {
                   localStorage.removeItem('tyriaTracker_eventFilters');
@@ -224,7 +201,6 @@ const EventsSection = ({ completedEventTypes, onEventToggle, currentTime, eventF
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {completedEventsByType.map(eventType => {
               if (!eventType || !eventType.eventKey) {
-                console.log('Skipping invalid eventType:', eventType);
                 return null;
               }
               
