@@ -7,6 +7,7 @@ import EventsSection from './EventsSection/EventsSection';
 import Footer from './Footer';
 import { localStorageAPI } from '../services/api';
 import { useEventFilters } from '../hooks/useEventFilters';
+import * as Tabs from '@radix-ui/react-tabs';
 
 const Dashboard = () => {
   const [notification, setNotification] = useState(null);
@@ -311,14 +312,30 @@ const Dashboard = () => {
           overallProgress={calculateOverallProgress()}
         />
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-2">
+        <Tabs.Root defaultValue="tasks" className="mt-8">
+          <Tabs.List className="border-b border-border flex items-center gap-4">
+            <Tabs.Trigger
+              value="tasks"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Daily Tasks
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="events"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Live Events
+            </Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value="tasks" className="py-6 focus:outline-none">
             <DailyTasks
               dailyProgress={dailyProgress}
               onTaskToggle={handleTaskToggle}
               calculateCategoryProgress={calculateCategoryProgress}
               currentTime={currentTime}
             />
-
+          </Tabs.Content>
+          <Tabs.Content value="events" className="py-6 focus:outline-none">
             <EventsSection
               completedEventTypes={completedEventTypes}
               onEventToggle={handleEventToggle}
@@ -326,7 +343,8 @@ const Dashboard = () => {
               eventFilters={eventFilters}
               onEventFilterChange={updateEventFilters}
             />
-        </div>
+          </Tabs.Content>
+        </Tabs.Root>
       </main>
 
       <Footer />
