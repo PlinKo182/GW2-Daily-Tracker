@@ -7,6 +7,7 @@ import EventsSection from './EventsSection/EventsSection';
 import Footer from './Footer';
 import { localStorageAPI } from '../services/api';
 import { useEventFilters } from '../hooks/useEventFilters';
+import * as Tabs from '@radix-ui/react-tabs';
 
 const Dashboard = () => {
   const [notification, setNotification] = useState(null);
@@ -281,23 +282,23 @@ const Dashboard = () => {
   // Mostrar loading enquanto os filtros estão sendo carregados
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-gray-200 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading event filters...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading event filters...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-200">
+    <div className="min-h-screen bg-background text-foreground">
       <Header currentTime={currentTime} apiStatus={apiStatus} isOnline={isOnline} />
 
       {/* Notificação */}
       {notification && (
         <div className={`fixed bottom-6 right-6 z-50 min-w-[220px] shadow-lg px-4 py-2 rounded text-sm font-semibold ${
-          notification.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+          notification.type === 'success' ? 'bg-primary text-primary-foreground' : 'bg-destructive text-destructive-foreground'
         }`}>
           {notification.message}
         </div>
@@ -306,23 +307,23 @@ const Dashboard = () => {
       <main className="max-w-7xl mx-auto py-8 px-6">
         <div className="mb-10">
           <h2 className="text-3xl font-bold mb-2">Daily Dashboard</h2>
-          <p className="text-gray-400">Track your daily progress in Guild Wars 2</p>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-muted-foreground">Track your daily progress in Guild Wars 2</p>
+          <p className="text-xs text-muted-foreground mt-2">
             💾 Data stored localmente no navegador - sem conta!
           </p>
           <div className="flex items-center gap-4 mt-4 flex-wrap">
-            <label htmlFor="userName" className="text-sm text-gray-300">Nome do usuário:</label>
+            <label htmlFor="userName" className="text-sm text-muted-foreground">Nome do usuário:</label>
             <input
               id="userName"
               type="text"
               value={userName}
               onChange={handleUserNameChange}
-              className="px-2 py-1 rounded bg-gray-800 text-white border border-gray-600 focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+              className="px-2 py-1 rounded bg-input text-foreground border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
               style={{ minWidth: 100 }}
               placeholder="Seu nome"
             />
             <button
-              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
               onClick={saveProgressToMongo}
             >
               Save to MongoDB
@@ -334,20 +335,39 @@ const Dashboard = () => {
           overallProgress={calculateOverallProgress()}
         />
 
-        <DailyTasks 
-          dailyProgress={dailyProgress}
-          onTaskToggle={handleTaskToggle}
-          calculateCategoryProgress={calculateCategoryProgress}
-          currentTime={currentTime}
-        />
-
-        <EventsSection 
-          completedEventTypes={completedEventTypes}
-          onEventToggle={handleEventToggle}
-          currentTime={currentTime}
-          eventFilters={eventFilters}
-          onEventFilterChange={updateEventFilters}
-        />
+        <Tabs.Root defaultValue="tasks" className="mt-8">
+          <Tabs.List className="border-b border-border flex items-center gap-4">
+            <Tabs.Trigger
+              value="tasks"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Daily Tasks
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="events"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Live Events
+            </Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value="tasks" className="py-6 focus:outline-none">
+            <DailyTasks
+              dailyProgress={dailyProgress}
+              onTaskToggle={handleTaskToggle}
+              calculateCategoryProgress={calculateCategoryProgress}
+              currentTime={currentTime}
+            />
+          </Tabs.Content>
+          <Tabs.Content value="events" className="py-6 focus:outline-none">
+            <EventsSection
+              completedEventTypes={completedEventTypes}
+              onEventToggle={handleEventToggle}
+              currentTime={currentTime}
+              eventFilters={eventFilters}
+              onEventFilterChange={updateEventFilters}
+            />
+          </Tabs.Content>
+        </Tabs.Root>
       </main>
 
       <Footer />
