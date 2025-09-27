@@ -101,7 +101,7 @@ const useStore = create((set, get) => ({
   },
 
   // Update event completion for the active profile
-  handleEventToggle: (eventKey) => {
+  handleEventToggle: (eventId, eventKey) => {
     const { activeProfile } = get();
     if (!activeProfile) return;
 
