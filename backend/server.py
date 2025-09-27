@@ -26,10 +26,9 @@ app.add_middleware(
     allow_credentials=True,
     allow_origins=[
         "http://localhost:3000",
-        "https://*.vercel.app",
         "https://gw-2-daily-tracker.vercel.app",
-        "https://gw-2-daily-tracker-git-feat-ui-overhaul-plinko-projects.vercel.app",
     ],
+    allow_origin_regex=r"https://gw-2-daily-tracker-.*\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )

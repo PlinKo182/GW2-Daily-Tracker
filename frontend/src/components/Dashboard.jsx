@@ -10,8 +10,8 @@ import * as Tabs from '@radix-ui/react-tabs';
 import useStore from '../store/useStore';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
 import { ProfileSwitcher } from './ui/ProfileSwitcher';
+import HistoryTab from './HistoryTab';
 
 const Dashboard = () => {
   // Local state for UI that doesn't need to be global
@@ -26,14 +26,12 @@ const Dashboard = () => {
     handleEventToggle,
     setNotification,
     checkAndResetDailyProgress,
-    getActiveDailyProgress,
-    getActiveCompletedEventTypes,
     activeProfile,
   } = useStore();
 
-  // Get active profile data using selectors
-  const dailyProgress = getActiveDailyProgress();
-  const completedEventTypes = getActiveCompletedEventTypes();
+  // Get active profile data using REACTIVE selectors
+  const dailyProgress = useStore(state => state.profileData[state.activeProfile]?.dailyProgress || {});
+  const completedEventTypes = useStore(state => state.profileData[state.activeProfile]?.completedEventTypes || {});
 
   const { eventFilters, updateEventFilters, isLoading } = useEventFilters();
 
@@ -173,12 +171,6 @@ const Dashboard = () => {
             >
               {mutation.isLoading ? 'Saving...' : 'Save to MongoDB'}
             </button>
-            <Link
-              to="/history"
-              className="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-            >
-              View History
-            </Link>
           </div>
         </div>
 
@@ -198,6 +190,12 @@ const Dashboard = () => {
             >
               Live Events
             </Tabs.Trigger>
+            <Tabs.Trigger
+              value="history"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              History
+            </Tabs.Trigger>
           </Tabs.List>
           <Tabs.Content value="tasks" className="py-6 focus:outline-none">
             <DailyTasks
@@ -215,6 +213,9 @@ const Dashboard = () => {
               eventFilters={eventFilters}
               onEventFilterChange={updateEventFilters}
             />
+          </Tabs.Content>
+          <Tabs.Content value="history" className="py-6 focus:outline-none">
+            <HistoryTab />
           </Tabs.Content>
         </Tabs.Root>
       </main>

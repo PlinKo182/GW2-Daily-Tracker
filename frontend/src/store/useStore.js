@@ -143,16 +143,6 @@ const useStore = create((set, get) => ({
     }
   },
 
-  // --- SELECTORS ---
-  // These selectors derive state for the active profile
-  getActiveDailyProgress: () => {
-    const { activeProfile, profileData } = get();
-    return profileData[activeProfile]?.dailyProgress || defaultProgress;
-  },
-  getActiveCompletedEventTypes: () => {
-    const { activeProfile, profileData } = get();
-    return profileData[activeProfile]?.completedEventTypes || {};
-  },
 }));
 
 // Initialize the store with data from localStorage
